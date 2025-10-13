@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from 'react'
 import style from './mainPage.module.css'
 import Image from 'next/image'
@@ -29,6 +30,7 @@ const MainPage = () => {
     const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "name-reverse" | "length">("newest")
     const [pageLimit, setPageLimit] = useState<number>(50);
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentPage, setCurrentPage] = useState<number>(1);
 
     useEffect(() => {
@@ -133,6 +135,7 @@ const MainPage = () => {
             handleTextSearch(searchText);
         }, 300);
         return () => clearTimeout(delayDebounceFn);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchText]);
 
     const handleTextSearch = (text: string) => {
@@ -149,7 +152,7 @@ const MainPage = () => {
     return (
         <div className={style.main}>
             <div className={style.title}>
-                <img src="/logo.png" alt="" />
+                <Image src="/logo.png" alt="" width={100} height={100} />
                 <span>Seeker tracker</span>
             </div>
 

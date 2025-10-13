@@ -16,7 +16,7 @@ type Ctx = {
     solPrice: number;
     backendHealth: boolean;
     seekerData: SeekerData;
-    backendWS?: Socket
+    backendWS: Socket | null;
 };
 
 const defaultCtx: Ctx = {
@@ -25,38 +25,52 @@ const defaultCtx: Ctx = {
     seekerData: {
         lifeTimeSolFees: 0,
     },
-    backendWS: undefined
+    backendWS: null,
 };
 
 const DataContext = createContext<Ctx>(defaultCtx);
 
-export default function DataProviderClient({ children, initialData }: { children: ReactNode, initialData: Ctx }) {
+export default function DataProviderClient({
+    children,
+    initialData,
+}: {
+    children: ReactNode;
+    initialData: Omit<Ctx, "backendWS">;
+}) {
     const [solPrice, setSolPrice] = useState<number>(initialData.solPrice);
-    const backendWS = getWebSocket();
+    const [backendWS, setBackendWS] = useState<Socket | null>(null);
 
+    // ✅ connect websocket only on client
     useEffect(() => {
-        if (!backendWS) return;
-        console.log("Setting up WS listeners");
-        backendWS.on("priceUpdate", (data) => {
-            const { usdPrice } = data;
-            console.log("Received price update:", usdPrice);
-            setSolPrice(usdPrice);
-        })
+        const ws = getWebSocket();
+        if (!ws) return;
 
-        backendWS.on("disconnect", () => {
-            console.log("WebSocket disconnected");
+        setBackendWS(ws);
+
+        ws.on("priceUpdate", (data) => {
+            const { usdPrice } = data;
+            console.log("💰 Received price update:", usdPrice);
+            setSolPrice(usdPrice);
         });
 
+        ws.on("disconnect", () => console.log("❌ WebSocket disconnected"));
 
-    }, [backendWS]);
+        return () => {
+            ws.off("priceUpdate");
+            ws.off("disconnect");
+        };
+    }, []);
 
-    // we only want to set sol price on client side
-    const toSend = useMemo(() => ({
-        solPrice,
-        backendHealth: initialData.backendHealth,
-        seekerData: initialData.seekerData,
-        backendWS
-    }), [solPrice, initialData]);
+    // ✅ memoized context data
+    const toSend = useMemo<Ctx>(
+        () => ({
+            solPrice,
+            backendHealth: initialData.backendHealth,
+            seekerData: initialData.seekerData,
+            backendWS,
+        }),
+        [solPrice, initialData, backendWS]
+    );
 
     return <DataContext.Provider value={toSend}>{children}</DataContext.Provider>;
 }

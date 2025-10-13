@@ -6,6 +6,10 @@ let socket: Socket | null = null;
 export function getWebSocket() {
     if (socket && socket.connected) return socket;
 
+    if (typeof window === "undefined") {
+        // ❌ Don't run on server / build
+        return null;
+    }
 
 
     if (!socket) {
