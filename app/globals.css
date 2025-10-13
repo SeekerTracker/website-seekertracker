@@ -1,0 +1,104 @@
+:root {
+  --background: linear-gradient(135deg, #003333 0%, #001a1a 50%, #000000 100%);
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: linear-gradient(
+      135deg,
+      #003333 0%,
+      #001a1a 50%,
+      #000000 100%
+    );
+    --foreground: #ededed;
+  }
+}
+/* globals.css */
+body.no-scroll {
+  overflow: hidden;
+}
+
+html,
+body {
+  max-width: 100dvw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+
+  font-family: var(--font-jetbrains-mono), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.mainWholeAppContainer {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  min-width: 100dvw;
+}
+.gridBG {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 96%;
+  height: 96%;
+  background-image: linear-gradient(rgba(0, 255, 217, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 217, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  z-index: -1;
+  animation: gridFloat 20s linear infinite;
+}
+
+@keyframes gridFloat {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(1%, 1%) rotate(1deg);
+  }
+  50% {
+    transform: translate(2%, 2%) rotate(-1deg);
+  }
+  75% {
+    transform: translate(1%, 1%) rotate(1deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+/* ::scroller */
+:root::-webkit-scrollbar {
+  width: 0.5em;
+}
+:root::-webkit-scrollbar-track {
+  background-color: #033c49;
+}
+:root::-webkit-scrollbar-thumb {
+  border-radius: 0.25em;
+  background: linear-gradient(135deg, #00ffd9, #00ff66);
+  border: 1px solid #033c49;
+}

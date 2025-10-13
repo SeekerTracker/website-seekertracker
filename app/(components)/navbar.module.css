@@ -1,0 +1,90 @@
+.main {
+  display: flex;
+  padding: 1em;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.priceInfo {
+  display: flex;
+  height: fit-content;
+  font-size: 0.8em;
+  background-color: rgba(0, 255, 217, 0.1);
+  padding: 0.5em 1.5em;
+  border-radius: 2em;
+  gap: 1em;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  color: #c0c0c0;
+  flex-wrap: nowrap;
+  text-wrap: nowrap;
+}
+
+.priceInfo strong {
+  color: #00ffd9;
+  font-weight: 600;
+}
+
+.socialMediaTab {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.5em 1em;
+  border-radius: 0.5em;
+  border: 1px solid rgba(0, 255, 102, 0.3);
+  background-color: rgba(0, 255, 102, 0.1);
+}
+
+.socialLinks {
+  display: flex;
+  gap: 0.5em;
+}
+
+.socialLink {
+  display: flex;
+  position: relative;
+  background-color: rgba(0, 255, 217, 0.1);
+  transition: all 0.3s ease;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  cursor: pointer;
+}
+.socialLink img,
+.socialLink .checkIcon {
+  width: 1.5em !important;
+  height: 1.5em !important;
+}
+.checkIcon {
+  align-self: center;
+  text-align: center;
+  font-weight: bolds;
+}
+
+.socialLink:hover {
+  background-color: rgba(0, 255, 217, 0.2);
+  border-color: rgba(0, 255, 217, 0.5);
+  transform: translateY(-1px);
+}
+
+.hoverName {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.5em);
+  left: -0.5em;
+  font-size: 0.75em;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 0.2em 0.5em;
+  border-radius: 0.3em;
+}
+.socialLink:hover .hoverName {
+  display: block;
+}
+
+@media screen and (max-width: 760px) {
+  .socialMediaTab {
+    display: none;
+  }
+}

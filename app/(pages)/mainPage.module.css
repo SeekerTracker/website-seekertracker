@@ -1,0 +1,295 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  padding: 0 3em;
+  width: 100%;
+  align-items: center;
+  gap: 2em;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 2em;
+  text-align: center;
+  text-wrap: nowrap;
+}
+
+.title img {
+  width: 6.5em;
+  height: 6.5em;
+  object-fit: contain;
+}
+.title span {
+  font-weight: 800;
+  background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
+  -webkit-text-fill-color: transparent;
+  font-size: 3em;
+  text-transform: uppercase;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(0, 255, 217, 0.5);
+  line-height: 1.1;
+}
+
+/* page top tabs */
+.pageTabs {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 1em 2em;
+  justify-content: center;
+}
+.eachTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 10em;
+  margin: auto;
+  padding: 0.5em 1em;
+  background: rgba(0, 255, 217, 0.1);
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 0.75em;
+  backdrop-filter: blur(10px);
+}
+.eachTab strong {
+  font-size: 1.5em;
+  font-weight: 600;
+  color: #00ffd9;
+}
+.eachTab span {
+  font-size: 0.8em;
+  color: #c0c0c0;
+  opacity: 0.7;
+}
+.eachTab img {
+  width: 2em;
+  height: 2em;
+  object-fit: contain;
+  filter: drop-shadow(0 0 5px rgba(0, 255, 217, 0.5));
+}
+.eachTab span img {
+  width: 1em;
+  height: 1em;
+  margin-right: 0.2em;
+  filter: none;
+}
+
+/* reginal activity */
+.reginalCont {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 0.5em;
+  background-color: rgba(0, 255, 217, 0.1);
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 0.75em;
+  backdrop-filter: blur(10px);
+  padding: 1em;
+}
+.reginalData {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1em;
+}
+.eachRegion {
+  display: flex;
+  color: #00ffd9;
+}
+.reginalData hr {
+  border: 1px solid #00ffd9;
+}
+
+/* center differe search types */
+.diffSearchType {
+  display: flex;
+  flex-direction: column;
+  padding: 2em;
+}
+
+/* seekercard */
+.seekerShowcase {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 1em;
+}
+.nameSearchCont {
+  display: flex;
+  width: 100%;
+  background-color: rgba(17, 17, 17, 0.9);
+  border: 2px solid rgba(0, 255, 217, 0.3);
+  border-radius: 1em;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  padding: 0.5em;
+  gap: 0.5em;
+}
+.nameSearchCont input {
+  flex: 1;
+  padding: 1em;
+  background: none;
+  border: none;
+  border-radius: 1em;
+  color: #00ffd9;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  min-width: 25em;
+}
+.nameSearchCont button {
+  padding: 1em;
+  background: linear-gradient(45deg, #00ffd9, #00e6c0);
+  border-radius: 1em;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  color: #001a18;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.nameSearchCont button:hover {
+  transform: translateY(-0.25em) scale(1.05);
+  box-shadow: 0 0 15px rgba(0, 255, 217, 0.6);
+}
+
+/* seekrcard filters */
+.showTop {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+.resultInfo {
+  display: flex;
+  flex-direction: column;
+  max-width: 30em;
+  color: #a0a0a0;
+}
+.resultInfo strong {
+  font-size: 2em;
+  color: #00ffd9;
+}
+
+.filterTabs {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+.filterTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.6rem;
+  background: rgba(0, 255, 217, 0.1);
+  width: 5em;
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 0.75em;
+  cursor: pointer;
+  color: #00ffd9;
+  font-size: 0.9em;
+}
+.filterTab:hover {
+  background: rgba(0, 255, 217, 0.3);
+}
+.filterTab.active {
+  background: rgba(0, 255, 217, 0.2);
+  border: 1px solid #00ffd9;
+}
+.filterTabs hr {
+  height: 2em;
+  border: 1px solid #a0a0a0;
+}
+.pageLimitCont {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  color: #a0a0a0;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.pageLimitLabel {
+  color: #00ffd9;
+  font-weight: 600;
+}
+.pageLimit {
+  appearance: none;
+  background: linear-gradient(145deg, #001a18, #002824);
+  border: 1px solid rgba(0, 255, 217, 0.4);
+  border-radius: 0.6em;
+  padding: 0.45em 2.2em 0.45em 0.9em;
+  color: #00ffd9;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 217, 0.15);
+  position: relative;
+}
+/* subtle glow + motion */
+.pageLimit:hover {
+  background: linear-gradient(145deg, #003b35, #005046);
+  border-color: #00ffd9;
+  box-shadow: 0 0 20px rgba(0, 255, 217, 0.4);
+}
+/* option styling (for browsers that support it) */
+.pageLimit option {
+  background: #001a18;
+  color: #00ffd9;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.seekerCardOuter {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20em, 1fr));
+  gap: 1em;
+  padding: 0.5em 0;
+}
+
+@media screen and (max-width: 760px) {
+  .main {
+    padding: 0 1.5em;
+  }
+  .showTop {
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+  }
+  .title {
+    gap: 0.5em;
+  }
+  .title img {
+    width: 4.5em;
+    height: 4.5em;
+  }
+  .title span {
+    font-size: 2em;
+  }
+  .pageTabs {
+    gap: 1em;
+  }
+  .eachTab {
+    width: 45%;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .main {
+    padding: 0 1em;
+  }
+  .title {
+    flex-direction: column;
+    gap: 0.2em;
+    text-wrap: wrap;
+  }
+  .pageTabs {
+    gap: 0.5em;
+  }
+  .eachTab {
+    width: 100%;
+  }
+}

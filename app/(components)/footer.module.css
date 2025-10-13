@@ -1,0 +1,98 @@
+.main {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  width: 100%;
+  margin-top: auto;
+  padding: 1em;
+  color: rgba(255, 255, 255, 0.4);
+  align-items: center;
+  gap: 0.25em;
+}
+
+.sponsorship {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+.sponsorship span {
+  font-size: 0.8em;
+}
+
+.sponsorship img {
+  width: 3em;
+  height: 3em;
+  object-fit: contain;
+}
+
+.tokenInfo {
+  font-size: 0.8em;
+  text-align: center;
+}
+.contractAddress {
+  font-family: monospace;
+  font-size: 1rem;
+  text-decoration: 2px underline dotted;
+  cursor: pointer;
+}
+.contractAddress strong {
+  font-weight: 600;
+  color: rgb(74, 222, 128);
+}
+
+/* mobile bottom seeker version */
+.mobileSocialIcons {
+  display: none;
+  background-color: rgba(17, 17, 17, 0.95);
+  backdrop-filter: blur(0px);
+  padding: 1em;
+  z-index: 10;
+  justify-content: center;
+  border-top: 1px solid rgba(0, 255, 217, 0.2);
+  gap: 1.5rem;
+}
+.socialLinks {
+  display: flex;
+  gap: 0.5em;
+}
+
+.socialLink {
+  display: flex;
+  position: relative;
+  background-color: rgba(0, 255, 217, 0.1);
+  transition: all 0.3s ease;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  cursor: pointer;
+}
+.socialLink img,
+.socialLink .checkIcon {
+  width: 1.5em !important;
+  height: 1.5em !important;
+}
+.checkIcon {
+  align-self: center;
+  text-align: center;
+  font-weight: bolds;
+}
+
+.socialLink:hover {
+  background-color: rgba(0, 255, 217, 0.2);
+  border-color: rgba(0, 255, 217, 0.5);
+  transform: translateY(-1px);
+}
+
+@media screen and (max-width: 760px) {
+  .mobileSocialIcons {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .mobileSocialIcons {
+    padding: 0.5em;
+    gap: 0.5em;
+  }
+}
