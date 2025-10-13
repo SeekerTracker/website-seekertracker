@@ -39,9 +39,6 @@ const defaultData: BasicDataLib = {
 
 // ------------------ 🧠 Main Functions ------------------
 export async function getBasicData(): Promise<BasicDataLib> {
-    if (typeof window === "undefined") {
-        return defaultData;
-    }
     const [aResult, bResult] = await Promise.allSettled([
         fetchInitialData(),
         fetchBackendHealth(),
