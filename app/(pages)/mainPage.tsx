@@ -5,6 +5,10 @@ import Image from 'next/image'
 import { useDataContext } from 'app/(utils)/context/dataProvider'
 import { DomainInfo } from 'app/(utils)/constantTypes'
 import SeekerCard from 'app/(components)/seekerCard'
+import { v4 as uuid } from 'uuid';
+import Link from 'next/link';
+
+
 const MainPage = () => {
     const { seekerData, backendWS } = useDataContext()
 
@@ -75,7 +79,9 @@ const MainPage = () => {
         })
 
         backendWS.on("newDomain", (data) => {
+            console.log("New domain received:", data);
             setTodaySeekerIds(prev => prev + 1)
+            setTotalSeekerIds(prev => prev + 1)
             setUiSeekerData(prev => {
                 const next = [...prev];
                 if (!next.find(d => d.name_account === data.name_account)) {
@@ -257,10 +263,16 @@ const MainPage = () => {
                     </div>
                 </div>
                 <div className={style.seekerCardOuter}>
-                    {uiSeekerData.map((domain) => (
-                        <SeekerCard key={`${domain.name_account} ${domain.created_at}`} domainInfo={domain} />
+                    {uiSeekerData.length > 0 && uiSeekerData.map((domain) => (
+                        <SeekerCard key={domain.name_account} domainInfo={domain} />
                     ))}
                 </div>
+                {uiSeekerData.length === 0 && (
+                    <div className={style.noResult}>
+                        <span className={style.maginifyingGlass}>🔍</span>
+                        <Link href="https://store.solanamobile.com/" target='_blank' className={style.link}>Still available - order seeker to claim</Link>
+                    </div>
+                )}
             </div>
 
         </div>

@@ -34,7 +34,7 @@ const SeekerCard = ({ domainInfo }: { domainInfo: DomainInfo }) => {
                         href={`https://solscan.io/account/${domainInfo.owner}`}
                         target='_blank'
                     >
-                        <span>{domainInfo.owner.slice(0, 5)}...{domainInfo.owner.slice(-5)}</span>
+                        <span>{domainInfo.owner?.slice(0, 5)}...{domainInfo.owner?.slice(-5)}</span>
                     </Link>
                 </div>
                 <div className={styles.eachInfo}>
