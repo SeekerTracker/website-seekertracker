@@ -1,6 +1,6 @@
 import { PublicKey } from "@solana/web3.js"
 import { solanaWSConnection } from "./constant"
-import { getHashedName } from "./functions";
+import { getFirstTxHash, getHashedName } from "./functions";
 import { BN } from "bn.js";
 import { DomainInfo } from "./constantTypes";
 
@@ -37,12 +37,17 @@ export const getOnchainDomainData = async (domain: string, subDomain: string): P
 
 
 
+    const firstTxHash = await getFirstTxHash(subDomain_NA_Pkey)
+    if (!firstTxHash) {
+        console.error("No transaction found for this domain")
+    }
+
     const domainData: DomainInfo = {
         domain: domain,
         subdomain: subDomain,
         created_at: new Date(createdAt * 1000).toISOString(),
-        subdomain_tx: subDomain_NA_Pkey.toBase58(),
-        subdomain_tx_blocktime: new Date(createdAt * 1000).toISOString(),
+        subdomain_tx: firstTxHash.hash || "",
+        subdomain_tx_blocktime: new Date(firstTxHash.blockTime * 1000).toISOString(),
         name_account: subDomain_NA_Pkey.toBase58(),
         tld_account: subDomain_TLD_Pkey.toBase58(),
         non_transferable: nonTransferable,
