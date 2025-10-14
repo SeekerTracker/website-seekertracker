@@ -82,14 +82,19 @@ const MainPage = () => {
         backendWS.on("newDomain", (data) => {
             console.log("New domain received:", data);
             setTodaySeekerIds(prev => prev + 1)
-            setTotalSeekerIds(prev => prev + 1)
             setUiSeekerData(prev => {
                 const next = [...prev];
                 if (!next.find(d => d.name_account === data.name_account)) {
-                    next.unshift(data);
+                    const newData = {
+                        ...data,
+                        rank: data.rank ?? totalSeekerIds + 1, // Assign rank if not present
+                    };
+
+                    next.unshift(newData);
                 }
                 return next;
             });
+            setTotalSeekerIds(prev => prev + 1)
 
             const currentHour = new Date(data.created_at).getUTCHours();
             setRegionDistribution(prev => {
@@ -165,9 +170,7 @@ const MainPage = () => {
         }
 
         backendWS.emit("getDomains", {
-            limit: 1,
-            page: rankNumber,
-            sortBy: "oldest"
+            rankQuery: rankNumber
         });
 
     }
@@ -303,7 +306,7 @@ const MainPage = () => {
                 </div>
                 <div className={style.seekerCardOuter}>
                     {uiSeekerData.length > 0 && uiSeekerData.map((domain, index) => (
-                        <SeekerCard key={domain.name_account} domainInfo={domain} filterRank={filterRank} />
+                        <SeekerCard key={domain.name_account} domainInfo={domain} showRank={filterRank! > 0} />
                     ))}
                 </div>
                 {uiSeekerData.length === 0 && (

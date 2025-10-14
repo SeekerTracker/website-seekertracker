@@ -28,5 +28,6 @@ export type DomainInfo = {
     name_account: string;
     tld_account: string;
     owner: string;
+    rank: number;
     non_transferable: boolean;
 }

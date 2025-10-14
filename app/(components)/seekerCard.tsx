@@ -5,7 +5,7 @@ import { DomainInfo } from 'app/(utils)/constantTypes'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-const SeekerCard = ({ domainInfo, filterRank }: { domainInfo: DomainInfo, filterRank?: number }) => {
+const SeekerCard = ({ domainInfo, showRank }: { domainInfo: DomainInfo, showRank: boolean }) => {
     const router = useRouter()
 
 
@@ -24,7 +24,7 @@ const SeekerCard = ({ domainInfo, filterRank }: { domainInfo: DomainInfo, filter
             <div className={styles.tagCont}>
 
                 {isNew(domainInfo.created_at) && <span className={styles.nameTag}>New</span>}
-                {filterRank! > 0 && <span className={styles.rankTag}>Rank #{filterRank}</span>}
+                {showRank && <span className={styles.rankTag}>Rank #{domainInfo.rank}</span>}
             </div>
             <span className={styles.domainName}>{domainInfo.subdomain}{domainInfo.domain}</span>
             <div className={styles.domainInfo}>
