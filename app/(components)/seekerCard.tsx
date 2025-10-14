@@ -3,12 +3,29 @@ import React, { useEffect, useState } from 'react'
 import styles from './seekerCard.module.css'
 import { DomainInfo } from 'app/(utils)/constantTypes'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
-const SeekerCard = ({ domainInfo }: { domainInfo: DomainInfo }) => {
+const SeekerCard = ({ domainInfo, filterRank }: { domainInfo: DomainInfo, filterRank?: number }) => {
+    const router = useRouter()
+
+
+
+    const handleCardClick = (e: React.MouseEvent) => {
+        // Prevent navigation if user clicked a link inside the card
+        const target = e.target as HTMLElement
+        if (target.closest('a')) return
+
+        // Navigate to internal domain route
+        router.push(`/domain/${domainInfo.subdomain}${domainInfo.domain}`)
+    }
     return (
-        <div className={styles.seekerCard} key={`${domainInfo.name_account} ${domainInfo.created_at}`}>
+        <div className={styles.seekerCard} key={`${domainInfo.name_account} ${domainInfo.created_at}`} onClick={handleCardClick}>
             <div className={styles.seekerAnimation} />
-            {isNew(domainInfo.created_at) && <span className={styles.nameTag}>New</span>}
+            <div className={styles.tagCont}>
+
+                {isNew(domainInfo.created_at) && <span className={styles.nameTag}>New</span>}
+                {filterRank! > 0 && <span className={styles.rankTag}>Rank #{filterRank}</span>}
+            </div>
             <span className={styles.domainName}>{domainInfo.subdomain}{domainInfo.domain}</span>
             <div className={styles.domainInfo}>
                 <div className={styles.eachInfo}>

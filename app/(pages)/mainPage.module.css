@@ -106,7 +106,9 @@
 .diffSearchType {
   display: flex;
   flex-direction: column;
-  padding: 2em;
+  align-items: center;
+  padding: 2em 0;
+  gap: 1em;
 }
 
 /* seekercard */
@@ -126,6 +128,8 @@
   backdrop-filter: blur(10px);
   padding: 0.5em;
   gap: 0.5em;
+  width: 30em;
+  max-width: 90vw;
 }
 .nameSearchCont input {
   flex: 1;
@@ -137,7 +141,7 @@
   font-size: 1rem;
   outline: none;
   transition: all 0.3s ease;
-  min-width: 25em;
+  width: 100%;
 }
 .nameSearchCont button {
   padding: 1em;
@@ -175,6 +179,8 @@
 
 .filterTabs {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5em;
   align-items: center;
 }
@@ -292,10 +298,20 @@
   .eachTab {
     width: 100%;
   }
+
+  .nameSearchCont button {
+    display: none;
+  }
+  .resultInfo {
+    text-align: center;
+    font-size: 0.9rem;
+  }
+  .filterTabs hr {
+    display: none;
+  }
 }
 
-
-.noResult{
+.noResult {
   display: flex;
   width: 100%;
   flex-direction: column;
@@ -303,9 +319,9 @@
   justify-content: center;
   text-align: center;
 }
-.maginifyingGlass{
+.maginifyingGlass {
   font-size: 2em;
 }
-.noResult a{
+.noResult a {
   text-decoration: 2px underline dotted;
 }

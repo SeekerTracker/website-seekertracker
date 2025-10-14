@@ -64,17 +64,33 @@
   font-weight: 700;
 }
 
-.nameTag {
+.tagCont {
+  display: flex;
   position: absolute;
   top: 1rem;
-  right: 1rem;
+  padding: 0 1rem;
+  width: 100%;
+  justify-content: flex-end;
+  gap: 0.5em;
+}
+
+.nameTag {
   background: linear-gradient(45deg, #00ff66, #00e6c0);
   color: #000;
   padding: 0.2em 0.5em;
   border-radius: 0.5em;
   font-size: 0.75em;
   font-weight: 600;
-  animation: pulse 2s infinite;
+  animation: pulse-bg 2s infinite;
+}
+.rankTag {
+  background: linear-gradient(45deg, #ffd700, #ffa500);
+  color: #000;
+  padding: 0.2em 0.5em;
+  border-radius: 0.5em;
+  font-size: 0.75em;
+  font-weight: 600;
+  animation: pulse-bg 2s infinite;
 }
 
 .domainInfo {
@@ -97,16 +113,19 @@
   color: #00ffd9;
   cursor: pointer;
 }
+.eachInfo a:hover {
+  text-decoration: underline;
+}
 
 @keyframes pulse-bg {
   0% {
-    background-color: #00ff66;
+    opacity: 1;
   }
   50% {
-    background-color: #00cc52; /* slightly dimmer */
+    opacity: 0.5;
   }
   100% {
-    background-color: #00ff66;
+    opacity: 1;
   }
 }
 

@@ -31,8 +31,9 @@ const MainPage = () => {
 
     // sortby
     const [searchText, setSearchText] = useState<string>("");
+    const [filterRank, setFilterRank] = useState<number | undefined>();
     const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "name-reverse" | "length">("newest")
-    const [pageLimit, setPageLimit] = useState<number>(50);
+    const [pageLimit, setPageLimit] = useState<number>(10);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentPage, setCurrentPage] = useState<number>(1);
@@ -138,11 +139,39 @@ const MainPage = () => {
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            handleTextSearch(searchText);
+            handleTextSearch(searchText.replace(".skr", "").trim());
         }, 300);
         return () => clearTimeout(delayDebounceFn);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchText]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            handleRankSearch(filterRank);
+        }, 300);
+        return () => clearTimeout(delayDebounceFn);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterRank]);
+
+
+    const handleRankSearch = (rankNumber?: number) => {
+
+        if (!backendWS) return;
+        if (rankNumber && rankNumber <= 0) return;
+
+        if (rankNumber === 0 || !rankNumber) {
+            handleTextSearch(searchText);
+            return;
+        }
+
+        backendWS.emit("getDomains", {
+            limit: 1,
+            page: rankNumber,
+            sortBy: "oldest"
+        });
+
+    }
+
 
     const handleTextSearch = (text: string) => {
         if (!backendWS) return;
@@ -231,6 +260,15 @@ const MainPage = () => {
                     />
                     <button onClick={() => handleTextSearch(searchText)}>Search</button>
                 </div>
+                <div className={style.nameSearchCont}>
+                    <input
+                        type="text"
+                        placeholder='Search by rank... (e.g. 1 for oldest SeekerID, 100 for 100th oldest)'
+                        value={filterRank || ""}
+                        onChange={(e) => setFilterRank(Number(e.target.value))}
+                    />
+                    <button onClick={() => handleRankSearch(filterRank)}>Find Rank</button>
+                </div>
             </div>
 
 
@@ -253,6 +291,7 @@ const MainPage = () => {
                                 className={style.pageLimit} value={pageLimit}
                                 onChange={(e) => handlePageLimitChange(Number(e.target.value))}
                             >
+                                <option value="10">10 results</option>
                                 <option value="20">20 results</option>
                                 <option value="50">50 results</option>
                                 <option value="100">100 results</option>
@@ -263,8 +302,8 @@ const MainPage = () => {
                     </div>
                 </div>
                 <div className={style.seekerCardOuter}>
-                    {uiSeekerData.length > 0 && uiSeekerData.map((domain) => (
-                        <SeekerCard key={domain.name_account} domainInfo={domain} />
+                    {uiSeekerData.length > 0 && uiSeekerData.map((domain, index) => (
+                        <SeekerCard key={domain.name_account} domainInfo={domain} filterRank={filterRank} />
                     ))}
                 </div>
                 {uiSeekerData.length === 0 && (
