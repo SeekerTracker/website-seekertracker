@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import style from './mainPage.module.css'
 import Image from 'next/image'
 import { useDataContext } from 'app/(utils)/context/dataProvider'
@@ -13,6 +13,7 @@ const MainPage = () => {
     const { seekerData, backendWS } = useDataContext()
 
     const [totalSeekerIds, setTotalSeekerIds] = useState(0)
+    const currSkrIdCount = useRef(0);
     const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([])
     const [todaySeekerIds, setTodaySeekerIds] = useState(0)
     const [avgSubdomainLength, setAvgSubdomainLength] = useState(0)
@@ -52,6 +53,7 @@ const MainPage = () => {
         }) => {
             const { totalDomains, data: domains, avgSubdomainLength, domainsByDate, domainsByTimeRange } = data;
             setTotalSeekerIds(totalDomains)
+            currSkrIdCount.current = totalDomains;
 
             setUiSeekerData(domains)
 
@@ -82,19 +84,20 @@ const MainPage = () => {
         backendWS.on("newDomain", (data) => {
             console.log("New domain received:", data);
             setTodaySeekerIds(prev => prev + 1)
+            setTotalSeekerIds(prev => prev + 1)
+            currSkrIdCount.current += 1;
             setUiSeekerData(prev => {
                 const next = [...prev];
                 if (!next.find(d => d.name_account === data.name_account)) {
                     const newData = {
                         ...data,
-                        rank: data.rank ?? totalSeekerIds + 1, // Assign rank if not present
+                        rank: data.rank ?? currSkrIdCount.current, // Assign rank if not present
                     };
 
                     next.unshift(newData);
                 }
                 return next;
             });
-            setTotalSeekerIds(prev => prev + 1)
 
             const currentHour = new Date(data.created_at).getUTCHours();
             setRegionDistribution(prev => {
