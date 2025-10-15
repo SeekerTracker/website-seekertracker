@@ -12,28 +12,35 @@ export async function generateMetadata(
     const { userDomain } = await params;
 
     return {
-        title: `${userDomain} | Seeker`,
-        description: `Details and insights for domain ${userDomain}.`,
+        applicationName: "Seeker",
+        title: `${userDomain} - SeekerID Profile`,
+        description: `Complete SeekerID profile with activation details and analytics.`,
         openGraph: {
-            title: `${userDomain} | Seeker`,
-            description: `Explore data about ${userDomain}.`,
             type: "website",
-            url: `https://your-domain.com/${userDomain}`,
+            title: `${userDomain} - SeekerID Profile`,
+            description: `🔥 SeekerID Profile for ${userDomain} - View rank, analytics, token holdings and activation details on Seeker Tracker`,
+            url: `https://seeker.solana.charity/${userDomain}`,
+            siteName: "Seeker Tracker",
             images: [
                 {
-                    url: `https://your-domain.com/image/${encodeURIComponent(userDomain)}.png`,
+                    url: `https://seeker.solana.charity/image/${encodeURIComponent(userDomain)}`,
                     width: 1200,
                     height: 630,
-                    alt: `${userDomain} OG Image`,
+                    alt: `${userDomain} SeekerID Profile`,
+                    type: "image/png",
                 },
             ],
         },
         twitter: {
             card: "summary_large_image",
-            title: `${userDomain} | Seeker`,
-            description: `Learn more about ${userDomain}.`,
-            images: [`https://your-domain.com/image/${encodeURIComponent(userDomain)}.png`],
+            title: `${userDomain} - SeekerID Profile`,
+            description: `Complete SeekerID profile with activation details and analytics.`,
+            images: [
+                `https://seeker.solana.charity/image/${encodeURIComponent(userDomain)}`
+            ],
         },
+        themeColor: "#e39653",
+
     };
 }
 
