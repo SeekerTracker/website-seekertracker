@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { useDataContext } from 'app/(utils)/context/dataProvider'
 import { DomainInfo } from 'app/(utils)/constantTypes'
 import SeekerCard from 'app/(components)/seekerCard'
-import { v4 as uuid } from 'uuid';
 import Link from 'next/link';
 
 

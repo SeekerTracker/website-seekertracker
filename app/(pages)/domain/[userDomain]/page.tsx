@@ -1,7 +1,6 @@
 
 import React from 'react'
 import UserDomain from './userDomain';
-import ToastMessage from 'app/(components)/toastMessage';
 
 
 const Page = async ({

@@ -30,7 +30,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
             }
         };
         fetchDomainData();
-    }, [userDomain]);
+    }, [domain, subdomain, userDomain]);
 
 
     if (loaded && !domainData) {
