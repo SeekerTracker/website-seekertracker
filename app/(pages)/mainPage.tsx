@@ -321,7 +321,7 @@ const MainPage = () => {
                     </div>
                 </div>
                 <div className={style.seekerCardOuter}>
-                    {uiSeekerData.length > 0 && uiSeekerData.map((domain, index) => (
+                    {uiSeekerData.length > 0 && uiSeekerData.map((domain) => (
                         <SeekerCard key={domain.name_account} domainInfo={domain} showRank={filterRank! > 0} />
                     ))}
                 </div>
