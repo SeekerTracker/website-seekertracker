@@ -61,7 +61,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     <hr />
                     <div className={styles.eachDetail}>
                         <span className={styles.detailTitle}>Length:</span>
-                        <span className={styles.detailValue}>{subdomain.length}</span>
+                        <span className={styles.detailValue}>{subdomain.length}&nbsp;Characters</span>
                     </div>
                     <hr />
                     <div className={styles.eachDetail}>
@@ -85,6 +85,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                                 day: "numeric",
                                 hour: "numeric",
                                 minute: "2-digit",
+                                second: "2-digit",
                                 hour12: true,
                             })}</span>
                     </div>

@@ -39,6 +39,16 @@
   gap: 1em 2em;
   justify-content: center;
 }
+.pageTabs a {
+  cursor: pointer;
+  translate: 0 -0.25em;
+}
+.pageTabs a:hover .eachTab {
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  scale: 1.05;
+  box-shadow: 0 0 15px rgba(0, 255, 217, 0.6);
+}
+
 .eachTab {
   display: flex;
   flex-direction: column;

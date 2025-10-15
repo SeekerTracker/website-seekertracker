@@ -49,17 +49,17 @@
   padding: 0.5em;
   border-radius: 0.5em;
   border: 1px solid rgba(0, 255, 217, 0.3);
-  cursor: pointer;
 }
 .socialLink img,
 .socialLink .checkIcon {
   width: 1.5em !important;
+  cursor: pointer !important;
   height: 1.5em !important;
 }
 .checkIcon {
   align-self: center;
   text-align: center;
-  font-weight: bolds;
+  font-weight: bold;
 }
 
 .socialLink:hover {

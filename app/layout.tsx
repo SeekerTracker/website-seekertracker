@@ -5,6 +5,7 @@ import { getBasicData } from "./(utils)/lib/getBasicData";
 import DataProviderClient from "./(utils)/context/dataProvider";
 import Navbar from "./(components)/navbar";
 import Footer from "./(components)/footer";
+import ToastMessage from "./(components)/toastMessage";
 
 const jetBrains = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -32,6 +33,7 @@ export default async function RootLayout({
           <DataProviderClient initialData={basicData}>
             <div className="gridBG" />
             <Navbar />
+            <ToastMessage />
             {children}
             <Footer />
           </DataProviderClient>

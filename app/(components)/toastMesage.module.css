@@ -1,0 +1,51 @@
+.main {
+  display: flex;
+  position: fixed;
+  width: 100%;
+  height: fit-content;
+  padding: 0.5em;
+  padding-right: 2em;
+  top: 3em;
+  overflow: hidden;
+  justify-content: flex-end;
+  align-items: flex-end;
+  z-index: 10;
+}
+
+.toastMessages {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  max-width: 100%;
+  align-self: flex-end;
+}
+
+.toastMessage {
+  display: flex;
+  width: fit-content;
+  text-align: center;
+  background-color: #00ff86;
+  color: black;
+  padding: 0.5em 1em;
+  border-radius: 0.5em;
+  outline: 1px solid rgba(0, 255, 217, 0.3);
+  max-width: 15em;
+  align-items: center;
+
+  /* Animation */
+  position: relative;
+  animation: slideInRight 0.4s ease-out;
+  cursor: pointer;
+}
+
+/* Keyframes for sliding in from the right */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

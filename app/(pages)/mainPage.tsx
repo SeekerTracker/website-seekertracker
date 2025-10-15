@@ -81,6 +81,14 @@ const MainPage = () => {
 
         })
 
+        setInterval(() => {
+            if (currSkrIdCount.current > 0) return;
+            console.log("Fetching latest domains...");
+            backendWS.emit("getDomains", {
+                sortBy: "newest",
+            })
+        }, 5 * 1000);
+
         backendWS.on("newDomain", (data) => {
             console.log("New domain received:", data);
             setTodaySeekerIds(prev => prev + 1)
@@ -143,6 +151,7 @@ const MainPage = () => {
             page: currentPage, // optional: reset to first page when limit changes
         });
     };
+
 
 
     useEffect(() => {
@@ -221,14 +230,19 @@ const MainPage = () => {
                         Seekers Earned
                     </span>
                 </div>
-                <div className={style.eachTab}>
-                    <Image src="/icons/sol.png" alt="" width={32} height={32} />
-                    <span>💰 Order Seeker</span>
-                </div>
-                <div className={style.eachTab}>
-                    <Image src="/icons/seeker.png" alt="" width={32} height={32} />
-                    <span>Order Case</span>
-                </div>
+                <Link href={"https://store.solanamobile.com/"} target='_blank' rel="noopener noreferrer"                >
+                    <div className={style.eachTab}>
+                        <Image src="/icons/sol.png" alt="" width={32} height={32} />
+                        <span>💰 Order Seeker</span>
+                    </div>
+                </Link>
+
+                <Link href={"https://solyd.store/?ref=tracker"} target='_blank' rel="noopener noreferrer">
+                    <div className={style.eachTab}>
+                        <Image src="/icons/seeker.png" alt="" width={32} height={32} />
+                        <span>Order Case</span>
+                    </div>
+                </Link>
             </div>
 
             <div className={style.reginalCont}>

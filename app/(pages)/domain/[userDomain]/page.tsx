@@ -1,6 +1,7 @@
 
 import React from 'react'
 import UserDomain from './userDomain';
+import ToastMessage from 'app/(components)/toastMessage';
 
 
 const Page = async ({
@@ -23,7 +24,12 @@ const Page = async ({
 
 
 
-    return <UserDomain userDomain={userDomain} />
+    return (
+
+        <>
+            <UserDomain userDomain={userDomain} />
+        </>
+    )
 }
 
 export default Page

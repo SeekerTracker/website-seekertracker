@@ -29,9 +29,13 @@ const Footer = () => {
             <div className={styles.main}>
                 <div className={styles.sponsorship}>
                     <span>RPC sponsored by</span>
-                    <Image src="/icons/helius.png" alt="" width={48} height={48} />
+                    <Link href={"https://helius.xyz"} target="_blank" rel="noopener noreferrer">
+                        <Image src="/icons/helius.png" alt="" width={48} height={48} />
+                    </Link>
                     <span>API provided by</span>
-                    <Image src="/icons/supalabs.png" alt="" width={48} height={48} />
+                    <Link href={"https://supalab.xyz"} target="_blank" rel="noopener noreferrer">
+                        <Image src="/icons/supalabs.png" alt="" width={48} height={48} />
+                    </Link>
                 </div>
                 <div className={styles.tokenInfo}>
                     <span>Regional Activity calculated based on the UTC timestamp of .skr SeekerID registrations</span>
