@@ -9,5 +9,6 @@ export const solanaWSConnection = new Connection(CONN_RPC_URL, "processed")
 
 export const BEPATH = {
     health: `${BE_URL}/health`,
+    domain: `${BE_URL}/domain`,
     priceData: `${BE_URL}/priceData`,
 }

@@ -31,3 +31,15 @@ export type DomainInfo = {
     rank?: number;
     non_transferable: boolean;
 }
+
+export type fetchDomainType = {
+    owner: string;
+    createdAt: string;
+    expiresAt: string;
+    nonTransferable: boolean;
+    domainNA: string;
+    domainTLD: string;
+    subDomainNA: string;
+    subDomainTLD: string;
+    rank: number;
+}

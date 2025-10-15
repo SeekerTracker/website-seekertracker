@@ -1,8 +1,8 @@
 import { PublicKey } from "@solana/web3.js"
-import { solanaWSConnection } from "./constant"
+import { BEPATH, solanaWSConnection } from "./constant"
 import { getFirstTxHash, getHashedName } from "./functions";
 import { BN } from "bn.js";
-import { DomainInfo } from "./constantTypes";
+import { DomainInfo, fetchDomainType } from "./constantTypes";
 
 export const ANS_PROGRAM_ID = new PublicKey(
     'ALTNSZ46uaAUU7XUV6awvdorLGqAsPwa9shm7h4uP2FK',
@@ -174,3 +174,26 @@ export function get_subdomain_Pubkey(domain: string, subDomain: string): {
     }
 }
 
+
+export async function getApiUserData(userDomain: string): Promise<fetchDomainType | undefined> {
+    try {
+        const response = await fetch(BEPATH.domain, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ domain: userDomain }),
+        });
+
+        if (!response.ok) {
+            console.error("❌ getApiUserData failed:", response.status, response.statusText);
+            return undefined;
+        }
+
+        const data: fetchDomainType = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error in getApiUserData:", error);
+        return undefined;
+    }
+}
