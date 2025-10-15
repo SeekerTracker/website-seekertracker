@@ -16,7 +16,7 @@ const SeekerCard = ({ domainInfo, showRank }: { domainInfo: DomainInfo, showRank
         if (target.closest('a')) return
 
         // Navigate to internal domain route
-        router.push(`/domain/${domainInfo.subdomain}${domainInfo.domain}`)
+        router.push(`/id/${domainInfo.subdomain}${domainInfo.domain}`)
     }
     return (
         <div className={styles.seekerCard} key={`${domainInfo.name_account} ${domainInfo.created_at}`} onClick={handleCardClick}>

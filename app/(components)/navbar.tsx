@@ -109,16 +109,20 @@ const Navbar = () => {
                         }
 
                         return (
-                            <Link
+                            <div
                                 key={link.name}
-                                href={link.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
                                 className={styles.socialLink}
                             >
-                                <Image src={link.icon} alt={link.name} width={32} height={32} />
-                                <span className={styles.hoverName}>{link.title}</span>
-                            </Link>
+                                <Link
+                                    key={link.name}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <Image src={link.icon} alt={link.name} width={32} height={32} />
+                                    <span className={styles.hoverName}>{link.title}</span>
+                                </Link>
+                            </div>
                         );
                     })}
                 </div>

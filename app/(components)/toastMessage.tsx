@@ -26,7 +26,7 @@ const ToastMessage = () => {
                 id: uuid(),
                 message: `New domain found: ${subdomain}${domain}`,
                 timestamp: Date.now(),
-                link: `/domain/${subdomain}${domain}`
+                link: `/id/${subdomain}${domain}`
             }
             setNewMessage(prev => [message, ...prev])
             setTimeout(() => {

@@ -42,45 +42,69 @@
 }
 
 .socialLink {
-  display: flex;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background-color: rgba(0, 255, 217, 0.1);
-  transition: all 0.3s ease;
   padding: 0.5em;
   border-radius: 0.5em;
   border: 1px solid rgba(0, 255, 217, 0.3);
-}
-.socialLink img,
-.socialLink .checkIcon {
-  width: 1.5em !important;
-  cursor: pointer !important;
-  height: 1.5em !important;
-}
-.checkIcon {
-  align-self: center;
-  text-align: center;
-  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  overflow: visible;
+  z-index: 1;
 }
 
 .socialLink:hover {
   background-color: rgba(0, 255, 217, 0.2);
   border-color: rgba(0, 255, 217, 0.5);
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 10px rgba(0, 255, 217, 0.3);
 }
 
+.socialLink a {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.socialLink img,
+.socialLink .checkIcon {
+  width: 1.5em !important;
+  height: 1.5em !important;
+  object-fit: contain;
+}
+
+.checkIcon {
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Tooltip */
 .hoverName {
-  display: none;
   position: absolute;
   top: calc(100% + 0.5em);
-  left: -0.5em;
-  font-size: 0.75em;
-  background-color: rgba(0, 0, 0, 0.7);
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background-color: rgba(0, 0, 0, 0.8);
   color: #fff;
-  padding: 0.2em 0.5em;
+  font-size: 0.75em;
+  padding: 0.25em 0.6em;
   border-radius: 0.3em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: -1;
 }
+
 .socialLink:hover .hoverName {
-  display: block;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
 @media screen and (max-width: 760px) {
