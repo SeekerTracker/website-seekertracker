@@ -6,6 +6,7 @@ import DataProviderClient from "./(utils)/context/dataProvider";
 import Navbar from "./(components)/navbar";
 import Footer from "./(components)/footer";
 import ToastMessage from "./(components)/toastMessage";
+import { Analytics } from "@vercel/analytics/next";
 
 const jetBrains = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -35,6 +36,7 @@ export default async function RootLayout({
             <Navbar />
             <ToastMessage />
             {children}
+            <Analytics />
             <Footer />
           </DataProviderClient>
         </div>
