@@ -19,11 +19,11 @@ export async function generateMetadata(
             type: "website",
             title: `${userDomain} - SeekerID Profile`,
             description: `🔥 SeekerID Profile for ${userDomain} - View rank, analytics, token holdings and activation details on Seeker Tracker`,
-            url: `https://seeker.solana.charity/${userDomain}`,
+            url: `https://seekertracker.com/${userDomain}`,
             siteName: "Seeker Tracker",
             images: [
                 {
-                    url: `https://seeker.solana.charity/image/${encodeURIComponent(userDomain)}`,
+                    url: `https://seekertracker.com/image/${encodeURIComponent(userDomain)}`,
                     width: 1200,
                     height: 630,
                     alt: `${userDomain} SeekerID Profile`,
@@ -36,11 +36,9 @@ export async function generateMetadata(
             title: `${userDomain} - SeekerID Profile`,
             description: `Complete SeekerID profile with activation details and analytics.`,
             images: [
-                `https://seeker.solana.charity/image/${encodeURIComponent(userDomain)}`
+                `https://seekertracker.com/image/${encodeURIComponent(userDomain)}`
             ],
         },
-        themeColor: "#e39653",
-
     };
 }
 

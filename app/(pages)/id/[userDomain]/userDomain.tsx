@@ -4,6 +4,8 @@ import styles from './userDomain.module.css'
 import { getOnchainDomainData } from 'app/(utils)/onchainData';
 import { DomainInfo } from 'app/(utils)/constantTypes';
 import Link from 'next/link';
+import Image from 'next/image';
+import { TimeAgo } from 'app/(components)/seekerCard';
 
 
 const UserDomain = ({ userDomain }: { userDomain: string }) => {
@@ -91,6 +93,13 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     </div>
                     <hr />
                     <div className={styles.eachDetail}>
+                        <span className={styles.detailTitle}>Age:</span>
+                        <span className={styles.detailValue}>
+                            <TimeAgo time={domainData.created_at} />
+                        </span>
+                    </div>
+                    <hr />
+                    <div className={styles.eachDetail}>
                         <span className={styles.detailTitle}>Transaction:</span>
                         <Link
                             href={`https://solscan.io/tx/${domainData.subdomain_tx}`}
@@ -116,6 +125,18 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     <hr />
 
                 </div>
+
+            </div>
+            <div className={styles.nameCardCont}>
+                <div className={styles.nameImage}>
+                    <Image
+                        src={`/image/${subdomain}?age=true`}
+                        alt="" width={400}
+                        height={400}
+                        unoptimized // ✅ disables Next.js image cache
+                    />
+                </div>
+                <div className={styles.copyImage}></div>
             </div>
         </div>
     )

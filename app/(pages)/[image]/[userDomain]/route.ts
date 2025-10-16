@@ -13,7 +13,10 @@ export async function GET(request: Request) {
     const pathname = url.pathname; // e.g. "/image/0815user.skr"
     let userDomain = decodeURIComponent(pathname.replace(/^\/image\//, ""));
 
-    // ✅ Ensure it ends with .skr, if not provided
+    // ✅ Get query params (e.g. ?age=true)
+    const showAge = url.searchParams.get("age") === "true";
+    // ✅
+    //  Ensure it ends with .skr, if not provided
     if (!userDomain.includes(".")) {
         userDomain = `${userDomain}.skr`;
     }
@@ -24,7 +27,6 @@ export async function GET(request: Request) {
     const statusText = "Activated";
     const subtitleText = `SeekerID Profile`;
     const domainData = await getApiUserData(userDomain);
-    console.log("domainData", domainData);
     if (!domainData?.owner) {
         return new NextResponse("Not Found", { status: 404 });
     }
@@ -203,11 +205,13 @@ export async function GET(request: Request) {
 
     const drawStats = async (rank: number, createdBefore: string, createdAt: string) => {
 
-        const stats = [
-            { primary: `#${rank}`, label: 'Seeker Rank' },
-            { primary: age, label: 'Age' },
-            { primary: createdAt, label: 'Activated' },
-        ];
+        const stats = [];
+
+        stats.push({ primary: `#${rank}`, label: 'Seeker Rank' });
+        if (showAge) {
+            stats.push({ primary: age, label: 'Age' });
+        }
+        stats.push({ primary: createdAt, label: 'Activated' },)
 
         const visible = stats.slice(0, 3);
         const gap = 24;
@@ -293,13 +297,19 @@ export async function GET(request: Request) {
 
     const uni8 = new Uint8Array(buffer);
     // ✅ Return with correct filename
+
     return new NextResponse(uni8, {
         headers: {
-            "Content-Type": "image/png",
-            "Cache-Control": "public, max-age=3600",
-            "Content-Disposition": `inline; filename="${baseName}.png"`,
+            'Content-Type': 'image/png',
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'Content-Length': buffer.length.toString(),
+            'Access-Control-Allow-Origin': '*',
+            name: `seeker-${baseName}.png`,
         },
     });
+
 }
 
 function getAgeInfo(created_at: string | number | Date) {
