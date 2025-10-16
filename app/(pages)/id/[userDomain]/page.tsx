@@ -18,7 +18,6 @@ export async function generateMetadata(
         headersList.get('x-forwarded-proto') || 'https'; // handles Vercel or proxies
     const webDomain = `${protocol}://${host}`;
 
-    console.log("Host:", host);
     return {
         applicationName: "Seeker",
         title: `${userDomain} - SeekerID Profile`,

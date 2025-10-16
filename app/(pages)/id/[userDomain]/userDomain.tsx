@@ -17,6 +17,10 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
     const subdomain = splitted[0]
     const domain = "." + splitted[1];
 
+    const [copyImageSuccess, setCopyImageSuccess] = useState('');
+    const [copyImageLinkSuccess, setCopyImageLinkSuccess] = useState('');
+    const [copyDomainLinkSuccess, setCopyDomainLinkSuccess] = useState('');
+
     useEffect(() => {
         const fetchDomainData = async () => {
             try {
@@ -45,8 +49,64 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
         return <div className={styles.main}>No domain data found.</div>;
     }
 
+    const host = document.location.host;
+    const protocol =
+        document.location.protocol || 'https';
+    const webDomain = `${protocol}//${host}`;
+
+    const imageLink = `${webDomain}/image/${subdomain}?age=true`;
+
+    const copyToClipboard = async (type: 'imageLink' | 'DomainLink' | 'image') => {
+        if (type === 'image') {
+            try {
+                const imageBlob = await fetch(imageLink).then(res => res.blob());
+                await navigator.clipboard.write([
+                    new ClipboardItem({
+                        [imageBlob.type]: imageBlob
+                    })
+                ]);
+                setCopyImageSuccess('Image copied to clipboard!');
+                setTimeout(() => setCopyImageSuccess(''), 2000);
+            } catch (error) {
+                console.error('Error copying image:', error);
+            }
+        }
+        if (type === 'imageLink') {
+            try {
+                await navigator.clipboard.writeText(imageLink);
+                setCopyImageLinkSuccess('Image link copied to clipboard!');
+                setTimeout(() => setCopyImageLinkSuccess(''), 2000);
+            } catch (err) {
+                setCopyImageLinkSuccess('Failed to copy image link.');
+                setTimeout(() => setCopyImageLinkSuccess(''), 2000);
+                console.error('Error copying image link:', err);
+            }
+        }
+        if (type === 'DomainLink') {
+            try {
+                await navigator.clipboard.writeText(webDomain + '/id/' + userDomain);
+                setCopyDomainLinkSuccess('Domain link copied to clipboard!');
+                setTimeout(() => setCopyDomainLinkSuccess(''), 2000);
+            }
+            catch (err) {
+                setCopyDomainLinkSuccess('Failed to copy domain link.');
+                setTimeout(() => setCopyDomainLinkSuccess(''), 2000);
+                console.error('Error copying domain link:', err);
+            }
+        }
+    };
+
+
+
     return (
         <div className={styles.main}>
+            <div className={styles.backButton}>
+                <Link href={"/"}>
+                    ← Back to Tracker
+                </Link>
+            </div>
+
+            <button className={styles.copyButton} onClick={() => copyToClipboard('DomainLink')}>{copyDomainLinkSuccess ? '✅ Copied!' : 'Copy Link'}</button>
             <div className={styles.activatedName}>
                 <span className={styles.domain}>{userDomain}</span>
                 <span>Seeker Profile</span>
@@ -128,16 +188,38 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
 
             </div>
             <div className={styles.nameCardCont}>
+                <span className={styles.title}>🖼 Share Image</span>
                 <div className={styles.nameImage}>
                     <Image
                         src={`/image/${subdomain}?age=true`}
                         alt="" width={400}
                         height={400}
                         unoptimized // ✅ disables Next.js image cache
+                        onClick={() => copyToClipboard('image')}
                     />
                 </div>
-                <div className={styles.copyImage}></div>
+                <div className={styles.copyImage}>
+                    <span style={{
+                        color: copyImageSuccess ? "#00ffd9" : "#A0A0A0"
+                    }}>{copyImageSuccess ? '✅ Image copied to clipboard!' : 'Click the image to copy it'}</span>
+
+                    <div className={styles.manualCopy}>
+                        <span className={styles.showLink} onClick={() => copyToClipboard('imageLink')}>{imageLink}</span>
+                        <button className={styles.copyButton} onClick={() => copyToClipboard('imageLink')}>{copyImageLinkSuccess ? '✅ Copied!' : 'Copy Image URL'}</button>
+                        <Link href={`https://x.com/intent/tweet?text=${encodeURIComponent(`Check out ${userDomain} on @Seeker_Tracker 🔥 `)}`} target='_blank' rel="noopener noreferrer">
+                            <button className={styles.tweetButton}>Tweet</button>
+                        </Link>
+                    </div>
+
+                    <div className={styles.instructions}>
+                        <span>1. Copy image</span>
+                        <span>2. Click Tweet button</span>
+                        <span>3. Paste image</span>
+                        <span>4. Tweet</span>
+                    </div>
+                </div>
             </div>
+
         </div>
     )
 }

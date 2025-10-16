@@ -36,6 +36,10 @@ const Footer = () => {
                     <Link href={"https://supalab.xyz"} target="_blank" rel="noopener noreferrer">
                         <Image src="/icons/supalabs.png" alt="" width={48} height={48} />
                     </Link>
+                    <span>Domain Managed by</span>
+                    <Link href={"https://alldomains.id/?ref=hmKOC9"} target="_blank" rel="noopener noreferrer">
+                        <Image src="/icons/alldomain.webp" alt="" width={48} height={48} />
+                    </Link>
                 </div>
                 <div className={styles.tokenInfo}>
                     <span>Regional Activity calculated based on the UTC timestamp of .skr SeekerID registrations</span>

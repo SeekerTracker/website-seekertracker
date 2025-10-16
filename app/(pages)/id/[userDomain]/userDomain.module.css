@@ -7,6 +7,18 @@
   gap: 2em;
 }
 
+.backButton {
+  display: flex;
+  background: linear-gradient(45deg, #00ff66, #00cc52);
+  color: black;
+  align-self: flex-start;
+  justify-self: flex-start;
+  padding: 0.5em 1em;
+  font-size: 0.9em;
+  border-radius: 1em;
+  cursor: pointer;
+}
+
 .activatedName {
   display: flex;
   flex-direction: column;
@@ -48,7 +60,7 @@
   background: rgba(17, 17, 17, 0.9);
   border: 1px solid rgba(0, 255, 217, 0.2);
   border-radius: 16px;
-  padding: 1.2rem;
+  padding: 1.25em;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   position: relative;
@@ -56,7 +68,11 @@
   max-width: 95%;
   max-width: 30em;
 }
-
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #00ffd9;
+}
 .Details {
   display: flex;
   flex-direction: column;
@@ -84,38 +100,84 @@
 .nameCardCont {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 0.25em;
   width: 100%;
   max-width: 1200px;
+  background: rgba(17, 17, 17, 0.9);
   border: 1px solid rgba(0, 255, 217, 0.2);
   border-radius: 16px;
-  background: rgba(0, 255, 217, 0.05);
   backdrop-filter: blur(10px);
-  padding: 1em;
+  padding: 1.25em;
 }
 
 .nameImage {
   display: flex;
+  align-self: center;
   align-items: center;
-  justify-content: center;
   width: 30em;
-  max-width: 95%;
-  aspect-ratio: 2/1;
+  max-width: 100%;
   object-fit: contain;
   border: 1px solid rgba(0, 255, 217, 0.2);
   background: rgba(0, 255, 217, 0.05);
   border-radius: 0.75em;
   backdrop-filter: blur(10px);
+  aspect-ratio: 2/1;
 }
 .nameImage img {
   width: unset !important;
   height: unset !important;
-  width: auto;
-  height: auto;
+  height: 100%;
   max-width: 100%;
   border-radius: 12px;
   box-shadow: 0 0 15px rgba(0, 255, 217, 0.2);
+  cursor: pointer;
+}
+
+.copyImage {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.manualCopy {
+  display: flex;
+  gap: 0.5em;
+  width: fit-content;
+}
+.showLink {
+  padding: 0.5em 1em;
+  background-color: rgba(17, 17, 17, 0.9);
+  border-radius: 0.5em;
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  font-size: 0.85em;
+}
+.copyButton {
+  padding: 0.75em 1.25em;
+  background-color: rgba(0, 255, 102, 0.2);
+  outline: 1px solid #00ff66;
+  border: none;
+  color: #00ff66;
+  border-radius: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  min-height: 3em;
+  min-width: 8em;
+}
+.tweetButton {
+  background: #1da1f2;
+  padding: 0.75em 1.5em;
+  border: 1px solid #1da1f2;
+  border-radius: 1em;
+  cursor: pointer;
+  height: 100%;
+}
+.instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  color: #c0c0c0;
+  font-size: 0.9em;
+  align-self: flex-start;
 }
 
 @media screen and (max-width: 768px) {
