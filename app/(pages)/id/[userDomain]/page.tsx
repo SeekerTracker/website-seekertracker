@@ -2,6 +2,7 @@
 import React from 'react'
 import UserDomain from './userDomain';
 import { Metadata } from 'next';
+import { headers } from 'next/headers';
 
 export async function generateMetadata(
     {
@@ -11,6 +12,13 @@ export async function generateMetadata(
     }): Promise<Metadata> {
     const { userDomain } = await params;
 
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol =
+        headersList.get('x-forwarded-proto') || 'https'; // handles Vercel or proxies
+    const webDomain = `${protocol}://${host}`;
+
+    console.log("Host:", host);
     return {
         applicationName: "Seeker",
         title: `${userDomain} - SeekerID Profile`,
@@ -19,11 +27,11 @@ export async function generateMetadata(
             type: "website",
             title: `${userDomain} - SeekerID Profile`,
             description: `🔥 SeekerID Profile for ${userDomain} - View rank, analytics, token holdings and activation details on Seeker Tracker`,
-            url: `https://seekertracker.com/${userDomain}`,
+            url: `${webDomain}/${userDomain}`,
             siteName: "Seeker Tracker",
             images: [
                 {
-                    url: `https://seekertracker.com/image/${encodeURIComponent(userDomain)}`,
+                    url: `${webDomain}/image/${encodeURIComponent(userDomain)}`,
                     width: 1200,
                     height: 630,
                     alt: `${userDomain} SeekerID Profile`,
@@ -36,7 +44,7 @@ export async function generateMetadata(
             title: `${userDomain} - SeekerID Profile`,
             description: `Complete SeekerID profile with activation details and analytics.`,
             images: [
-                `https://seekertracker.com/image/${encodeURIComponent(userDomain)}`
+                `${webDomain}/image/${encodeURIComponent(userDomain)}`
             ],
         },
     };
