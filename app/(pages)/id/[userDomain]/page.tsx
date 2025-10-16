@@ -3,6 +3,7 @@ import React from 'react'
 import UserDomain from './userDomain';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
 
 export async function generateMetadata(
     {
@@ -65,7 +66,7 @@ const Page = async ({
     const subdomain = splitted[0]
     const domain = "." + splitted[1];
     if (!domain || !subdomain) {
-        return <div>Domain not found</div>;
+        return notFound();
     }
 
 
