@@ -6,6 +6,7 @@ import { DomainInfo } from 'app/(utils)/constantTypes';
 import Link from 'next/link';
 import Image from 'next/image';
 import { TimeAgo } from 'app/(components)/seekerCard';
+import { notFound } from 'next/navigation';
 
 
 const UserDomain = ({ userDomain }: { userDomain: string }) => {
@@ -40,13 +41,13 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
 
 
     if (loaded && !domainData) {
-        return <div className={styles.main}>Error loading domain data.</div>;
+        return notFound();
     }
     if (!loaded) {
         return <div className={styles.main}>Loading...</div>;
     }
     if (!domainData) {
-        return <div className={styles.main}>No domain data found.</div>;
+        return notFound();
     }
 
     const host = document.location.host;
