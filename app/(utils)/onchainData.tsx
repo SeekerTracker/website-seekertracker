@@ -25,7 +25,6 @@ export const getOnchainDomainData = async (domain: string, subDomain: string): P
     ])
 
     if (!subDomain_ACC_DataBuff) {
-        console.error("No Subdomain TLD account found")
         return
     }
     const desSub_Acc_data = PA_Deserialize(subDomain_ACC_DataBuff.data);

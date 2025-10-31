@@ -1,10 +1,19 @@
 import { getApiUserData } from "app/(utils)/onchainData";
-import { createCanvas, loadImage } from "canvas";
+import { createCanvas, loadImage, registerFont } from "canvas";
 import { NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
 
-export const runtime = "nodejs";
+
+// ✅ Register monospace font before creating canvas
+registerFont(path.join(process.cwd(), "public", "fonts", "JetBrainsMono-Regular.ttf"), {
+    family: "JetBrainsMono",
+    weight: "normal",
+});
+
+
+
+
 
 export async function GET(request: Request) {
     const url = new URL(request.url);
@@ -35,7 +44,6 @@ export async function GET(request: Request) {
     const { age, formattedDate } = getAgeInfo(createdAt);
 
 
-    console.log("age", age, "formattedDate", formattedDate);
 
 
     // ✅ Prepare canvas
@@ -44,8 +52,8 @@ export async function GET(request: Request) {
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext("2d");
 
-    ctx.font = '20px monospace';
-
+    // Test font rendering to ensure it works
+    ctx.font = '20px JetBrainsMono';
 
     // Background gradient
     const gradient = ctx.createLinearGradient(0, 0, width, height);
