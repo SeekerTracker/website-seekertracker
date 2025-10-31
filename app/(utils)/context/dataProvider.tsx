@@ -24,6 +24,8 @@ const defaultCtx: Ctx = {
     backendHealth: false,
     seekerData: {
         lifeTimeSolFees: 0,
+        token24hVol: 0,
+        fundBalance: 0,
     },
     backendWS: null,
 };

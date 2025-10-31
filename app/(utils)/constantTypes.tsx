@@ -7,6 +7,8 @@ export type BasicDataLib = {
 
 export type SeekerData = {
     lifeTimeSolFees: number;
+    token24hVol: number;
+    fundBalance: number;
 }
 
 export type BagsCreator = {

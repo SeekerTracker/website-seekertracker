@@ -4,12 +4,13 @@ import styles from './footer.module.css'
 import { socialMediaLinks } from './navbar';
 import Image from 'next/image';
 import Link from 'next/link';
+import { SEEKER_TOKEN_ADDRESS } from 'app/(utils)/constant';
 const Footer = () => {
     const [copied, setCopied] = useState(false);
     const [copiedName, setCopiedName] = useState<string | null>(null);
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText('ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS');
+        navigator.clipboard.writeText(SEEKER_TOKEN_ADDRESS);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
     }
@@ -45,7 +46,7 @@ const Footer = () => {
                     <span>Regional Activity calculated based on the UTC timestamp of .skr SeekerID registrations</span>
                     <p>© 2025 Seeker Tracker. All rights reserved. CA:&nbsp;
                         <span className={styles.contractAddress} title="Click to copy" onClick={copyToClipboard}>
-                            {copied ? <strong>Copied</strong> : 'ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS'}
+                            {copied ? <strong>Copied</strong> : SEEKER_TOKEN_ADDRESS}
                         </span></p>
                 </div>
 

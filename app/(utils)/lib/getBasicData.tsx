@@ -34,6 +34,8 @@ const defaultData: BasicDataLib = {
     backendHealth: false,
     seekerData: {
         lifeTimeSolFees: 0,
+        token24hVol: 0,
+        fundBalance: 0,
     },
 };
 
@@ -89,6 +91,8 @@ export async function fetchInitialData() {
 
         const seekerData: SeekerData = {
             lifeTimeSolFees: parseFloat(seekerFund.lifetimeFees.toFixed(2)),
+            token24hVol: seekerFund.token24hVol,
+            fundBalance: seekerFund.fundBalance,
         };
 
         return { solUsdPrice: usdPrice, seekerData };
@@ -99,16 +103,17 @@ export async function fetchInitialData() {
 
 // ------------------ 🏦 Seeker Fund Aggregator ------------------
 const getSeekerFundData = async (usdPrice: number) => {
-    const [lifetimeFees, creators, fundBalance] = await Promise.allSettled([
+    const [lifetimeFees, creators, fundBalance, tokenVolume] = await Promise.allSettled([
         getTokenLifetimeFees(SEEKER_TOKEN_ADDRESS),
         getTokenCreators(SEEKER_TOKEN_ADDRESS),
         getSeekerFundBalance(),
+        fetchTracker24hVolume(),
     ]);
 
     const lf = lifetimeFees.status === "fulfilled" ? lifetimeFees.value : 0;
     const cr = creators.status === "fulfilled" ? creators.value : [];
     const fb = fundBalance.status === "fulfilled" ? fundBalance.value : 0;
-
+    const tv = tokenVolume.status === "fulfilled" ? tokenVolume.value : 0;
     const creator = cr.find((c: BagsCreator) => c.isCreator);
     const feeShareUsers = cr.filter((c: BagsCreator) => !c.isCreator);
 
@@ -137,6 +142,7 @@ const getSeekerFundData = async (usdPrice: number) => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
         }),
+        token24hVol: tv,
         creator,
         feeShareUsers,
         totalUsers: cr.length,
@@ -177,7 +183,7 @@ const getTokenCreators = async (tokenAddress: string): Promise<BagsCreator[]> =>
 
 // ------------------ 💼 Solana Fund Balance ------------------
 const getSeekerFundBalance = async (): Promise<number> => {
-    const SeekerAddress = new PublicKey("ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS");
+    const SeekerAddress = new PublicKey(SEEKER_TOKEN_ADDRESS);
     try {
         const balance = await solanaWSConnection.getBalance(SeekerAddress);
         return balance / 1e9;
@@ -186,3 +192,23 @@ const getSeekerFundBalance = async (): Promise<number> => {
         return 0;
     }
 };
+
+// ------------------ 📊 Dexscreener: 24h Volume (Optional) -----------------
+async function fetchTracker24hVolume() {
+    // Dexscreener pair endpoint. Replace the query with your token/address if different
+    // Assuming token symbol TRACKER exists; if not, set a constant pair address
+    const PAIR_SEARCH = 'TRACKER';
+    try {
+        const res = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(PAIR_SEARCH)}`, { next: { revalidate: 300 } });
+        const data = await res.json();
+        const pair = data?.pairs?.find((p: { baseToken?: { symbol?: string }; quoteToken?: { symbol?: string }; volume?: { h24?: number }; volume24h?: number; txns?: { h24?: { volume?: number } }; fdv?: number; }) => (p.baseToken?.symbol || '').toUpperCase() === 'TRACKER' || (p.quoteToken?.symbol || '').toUpperCase() === 'TRACKER');
+        const vol = pair?.volume?.h24 || pair?.volume24h || pair?.txns?.h24?.volume || pair?.fdv; // try common fields
+        if (typeof vol === 'number') return vol;
+        // Some responses return usdVolume24h
+        const usdVol = pair?.usdVolume24h;
+        if (typeof usdVol === 'number') return usdVol;
+    } catch (e) {
+        console.warn('Dexscreener volume fetch failed', e);
+    }
+    return 0;
+}

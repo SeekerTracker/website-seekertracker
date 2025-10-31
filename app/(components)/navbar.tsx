@@ -4,12 +4,13 @@ import styles from "./navbar.module.css";
 import { useDataContext } from "app/(utils)/context/dataProvider";
 import Image from "next/image";
 import Link from "next/link";
+import { SEEKER_TOKEN_ADDRESS } from "app/(utils)/constant";
 
 export const socialMediaLinks = [
     {
         name: "Bags",
         title: "Bags Token Analytics",
-        url: "https://bags.fm/ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS",
+        url: `https://bags.fm/${SEEKER_TOKEN_ADDRESS}`,
         icon: "/icons/bags-icon.png",
         clickToCopy: false,
     },
@@ -23,13 +24,13 @@ export const socialMediaLinks = [
     {
         name: "RugCheck",
         title: "RugCheck",
-        url: "https://rugcheck.xyz/tokens/ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS",
+        url: `https://rugcheck.xyz/tokens/${SEEKER_TOKEN_ADDRESS}`,
         icon: "/icons/rugcheck.png"
     },
     {
         name: "DexScreener",
         title: "DexScreener",
-        url: "https://dexscreener.com/solana/ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS",
+        url: `https://dexscreener.com/solana/${SEEKER_TOKEN_ADDRESS}`,
         icon: "/icons/dexscreener.png",
     },
     {
@@ -47,7 +48,7 @@ export const socialMediaLinks = [
 ];
 
 const Navbar = () => {
-    const { solPrice, backendHealth, backendWS } = useDataContext();
+    const { solPrice, backendHealth, backendWS, seekerData } = useDataContext();
     const [copiedName, setCopiedName] = useState<string | null>(null);
     const handleCopy = async (name: string, value: string) => {
         try {
@@ -66,7 +67,7 @@ const Navbar = () => {
                     SOL <strong>${solPrice.toFixed(2)}</strong>
                 </span>
                 <span>
-                    $TRACKER 24h <strong>$140</strong>
+                    $TRACKER 24h <strong>${seekerData.token24hVol}</strong>
                 </span>
             </div>
 

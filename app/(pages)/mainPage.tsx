@@ -218,10 +218,12 @@ const MainPage = () => {
                     <strong>{avgSubdomainLength}</strong>
                     <span>Avg Length</span>
                 </div>
-                <div className={style.eachTab}>
-                    <strong>{seekerData.lifeTimeSolFees}&nbsp;SOL</strong>
-                    <span>💰 Seeker Fund</span>
-                </div>
+                <Link href={'/seeker-fund'}>
+                    <div className={style.eachTab}>
+                        <strong>{seekerData.lifeTimeSolFees}&nbsp;SOL</strong>
+                        <span>💰 Seeker Fund</span>
+                    </div>
+                </Link>
                 <div className={style.eachTab}>
                     <strong>15</strong>
                     <span>
