@@ -41,6 +41,30 @@
   gap: 0.5em;
 }
 
+.liveButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.8rem;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: pulse 1.2s infinite;
+}
+/* 🟢 Constantly pulsing green dot */
+.live .dot {
+  background-color: #16a34a;
+  box-shadow: 0 0 8px #16a34a;
+}
+
+/* 🔴 Blinking red dot when reconnecting */
+.offline .dot {
+  background-color: #dc2626;
+  box-shadow: 0 0 8px #dc2626;
+}
+
 .socialLink {
   position: relative;
   display: flex;
@@ -110,5 +134,21 @@
 @media screen and (max-width: 760px) {
   .socialMediaTab {
     display: none;
+  }
+}
+
+/* --- Animations --- */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }

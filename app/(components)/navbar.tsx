@@ -47,9 +47,8 @@ export const socialMediaLinks = [
 ];
 
 const Navbar = () => {
-    const { solPrice, backendHealth } = useDataContext();
+    const { solPrice, backendHealth, backendWS } = useDataContext();
     const [copiedName, setCopiedName] = useState<string | null>(null);
-
     const handleCopy = async (name: string, value: string) => {
         try {
             await navigator.clipboard.writeText(value);
@@ -73,12 +72,15 @@ const Navbar = () => {
 
             <div className={styles.socialMediaTab}>
                 <div
-                    className={styles.liveButton}
-                    style={{
-                        backgroundColor: backendHealth ? "#00ff99" : "#ff5555",
-                    }}
+                    className={`${styles.liveButton} ${backendWS ? styles.live : styles.offline}`}
                     title={backendHealth ? "Backend Healthy" : "Backend Down"}
-                ></div>
+                >
+                    <div
+                        className={styles.dot}
+                    />
+
+                    <span>{backendWS ? "Live" : "Offline"}</span>
+                </div>
 
                 <div className={styles.socialLinks}>
                     {socialMediaLinks.map((link) => {
