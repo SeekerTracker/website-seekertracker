@@ -6,7 +6,7 @@ import fs from "fs/promises";
 
 
 // ✅ Register monospace font before creating canvas
-registerFont(path.join(process.cwd(), "public", "fonts", "JetBrainsMono-Regular.ttf"), {
+registerFont(path.join(process.cwd(), "public", "fonts", "JetBrainsMono-Bold.ttf"), {
     family: "JetBrainsMono",
     weight: "normal",
 });
