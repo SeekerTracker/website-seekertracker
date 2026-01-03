@@ -3,6 +3,7 @@ import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { getBasicData } from "./(utils)/lib/getBasicData";
 import DataProviderClient from "./(utils)/context/dataProvider";
+import { WalletProviderWrapper } from "./(utils)/context/walletProvider";
 import Navbar from "./(components)/navbar";
 import Footer from "./(components)/footer";
 import ToastMessage from "./(components)/toastMessage";
@@ -31,14 +32,16 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${jetBrains.variable}`}>
         <div className={`mainWholeAppContainer`}>
-          <DataProviderClient initialData={basicData}>
-            <div className="gridBG" />
-            <Navbar />
-            <ToastMessage />
-            {children}
-            <Analytics />
-            <Footer />
-          </DataProviderClient>
+          <WalletProviderWrapper>
+            <DataProviderClient initialData={basicData}>
+              <div className="gridBG" />
+              <Navbar />
+              <ToastMessage />
+              {children}
+              <Analytics />
+              <Footer />
+            </DataProviderClient>
+          </WalletProviderWrapper>
         </div>
       </body>
     </html>

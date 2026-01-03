@@ -206,42 +206,55 @@ const MainPage = () => {
             </div>
 
             <div className={style.pageTabs}>
-                <div className={style.eachTab}>
-                    <strong>{totalSeekerIds}</strong>
-                    <span>Total Seeker Ids</span>
+                <div className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>{totalSeekerIds}</strong>
+                        <span>Total Seeker Ids</span>
+                    </div>
                 </div>
-                <div className={style.eachTab}>
-                    <strong>{todaySeekerIds}</strong>
-                    <span>Today</span>
+                <div className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>{todaySeekerIds}</strong>
+                        <span>Today</span>
+                    </div>
                 </div>
-                <div className={style.eachTab}>
-                    <strong>{avgSubdomainLength}</strong>
-                    <span>Avg Length</span>
+                <div className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>{avgSubdomainLength}</strong>
+                        <span>Avg Length</span>
+                    </div>
                 </div>
-                <Link href={'/seeker-fund'}>
+                <Link href={'/seeker-fund'} className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>{seekerData.lifeTimeSolFees}&nbsp;SOL</strong>
                         <span>💰 Seeker Fund</span>
                     </div>
                 </Link>
-                <div className={style.eachTab}>
-                    <strong>15</strong>
-                    <span>
-                        <Image src="/icons/seeker.png" alt="" width={16} height={16} />
-                        Seekers Earned
-                    </span>
+                <div className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>15</strong>
+                        <span>
+                            <Image src="/icons/seeker.png" alt="" width={16} height={16} />
+                            Seekers Earned
+                        </span>
+                    </div>
                 </div>
-                <Link href={"https://store.solanamobile.com/"} target='_blank' rel="noopener noreferrer"                >
+                <Link href={"https://store.solanamobile.com/"} target='_blank' rel="noopener noreferrer" className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <Image src="/icons/sol.png" alt="" width={32} height={32} />
                         <span>💰 Order Seeker</span>
                     </div>
                 </Link>
-
-                <Link href={"https://solyd.store/?ref=tracker"} target='_blank' rel="noopener noreferrer">
+                <Link href={"https://solyd.store/?ref=tracker"} target='_blank' rel="noopener noreferrer" className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <Image src="/icons/seeker.png" alt="" width={32} height={32} />
                         <span>Order Case</span>
+                    </div>
+                </Link>
+                <Link href={"/export"} className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>CSV Export</strong>
+                        <span>Seeker Holders</span>
                     </div>
                 </Link>
             </div>
