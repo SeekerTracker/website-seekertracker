@@ -12,3 +12,6 @@ export const BEPATH = {
     domain: `${BE_URL}/domain`,
     priceData: `${BE_URL}/priceData`,
 }
+
+// Min Required $TRACKER token for gating CSV download
+export const REQUIRED_TRACKER_BALANCE = 100_000;
