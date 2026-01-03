@@ -22,7 +22,7 @@ export default function WalletDropdown({
 }: WalletDropdownProps) {
     const { disconnect } = useConnector();
     const { address } = useAccount();
-    const { trackerBalance, isEligible, isLoadingBalance, refreshBalance } = useWalletContext();
+    const { trackerBalance, isLoadingBalance, refreshBalance } = useWalletContext();
     const [copied, setCopied] = useState(false);
     const [solBalance, setSolBalance] = useState<number | null>(null);
     const [isLoadingSol, setIsLoadingSol] = useState(false);
