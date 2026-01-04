@@ -29,18 +29,33 @@ const Footer = () => {
         <>
             <div className={styles.main}>
                 <div className={styles.sponsorship}>
-                    <span>RPC sponsored by</span>
-                    <Link href={"https://helius.xyz"} target="_blank" rel="noopener noreferrer">
-                        <Image src="/icons/helius.png" alt="" width={48} height={48} />
-                    </Link>
-                    <span>API provided by</span>
-                    <Link href={"https://supalab.xyz"} target="_blank" rel="noopener noreferrer">
-                        <Image src="/icons/supalabs.png" alt="" width={48} height={48} />
-                    </Link>
-                    <span>Domain Managed by</span>
-                    <Link href={"https://alldomains.id/?ref=hmKOC9"} target="_blank" rel="noopener noreferrer">
-                        <Image src="/icons/alldomain.webp" alt="" width={48} height={48} />
-                    </Link>
+                    <div className={styles.sponsor}>
+                        <span>Launched on</span>
+                        <Link href="https://bags.fm/$SEEKER_TRACKER" target="_blank">
+                            <Image src="/icons/bags-icon.png" alt="" width={48} height={48} />
+                        </Link>
+                    </div>
+
+                    <div className={styles.sponsor}>
+                        <span>RPC sponsored by</span>
+                        <Link href="https://helius.xyz" target="_blank">
+                            <Image src="/icons/helius.png" alt="" width={48} height={48} />
+                        </Link>
+                    </div>
+
+                    <div className={styles.sponsor}>
+                        <span>API provided by</span>
+                        <Link href="https://supalab.xyz" target="_blank">
+                            <Image src="/icons/supalabs.png" alt="" width={48} height={48} />
+                        </Link>
+                    </div>
+
+                    <div className={styles.sponsor}>
+                        <span>Domain Managed by</span>
+                        <Link href="https://alldomains.id/?ref=hmKOC9" target="_blank">
+                            <Image src="/icons/alldomain.webp" alt="" width={48} height={48} />
+                        </Link>
+                    </div>
                 </div>
                 <div className={styles.tokenInfo}>
                     <span>Regional Activity calculated based on the UTC timestamp of .skr SeekerID registrations</span>
@@ -49,8 +64,6 @@ const Footer = () => {
                             {copied ? <strong>Copied</strong> : SEEKER_TOKEN_ADDRESS}
                         </span></p>
                 </div>
-
-
             </div>
             <div className={styles.mobileSocialIcons}>
                 {socialMediaLinks.map((link) => {
