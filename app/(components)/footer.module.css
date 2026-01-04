@@ -90,6 +90,16 @@
     white-space: nowrap;
 }
 
+.sponsorship span {
+    font-size: 0.8em;
+}
+
+.sponsorship img {
+    width: 3em;
+    height: 3em;
+    object-fit: contain;
+}
+
 /* MOBILE */
 @media (max-width: 600px) {
     .sponsorship {
