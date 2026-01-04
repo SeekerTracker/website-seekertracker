@@ -10,21 +10,6 @@
   gap: 0.25em;
 }
 
-.sponsorship {
-  display: flex;
-  gap: 0.5em;
-  align-items: center;
-}
-.sponsorship span {
-  font-size: 0.8em;
-}
-
-.sponsorship img {
-  width: 3em;
-  height: 3em;
-  object-fit: contain;
-}
-
 .tokenInfo {
   font-size: 0.8em;
   text-align: center;
@@ -88,6 +73,46 @@
     display: flex;
     flex-wrap: wrap;
   }
+}
+
+.sponsorship {
+    display: grid;
+    grid-template-columns: repeat(4, max-content);
+    gap: 0.75em 1.2em;
+    justify-content: center;
+    align-items: center;
+}
+
+.sponsor {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    white-space: nowrap;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    .sponsorship {
+        grid-template-columns: repeat(2, max-content);
+        row-gap: 0.8em;
+        justify-content: center;
+    }
+
+    .sponsor {
+        justify-content: center;
+    }
+
+    .sponsor span {
+        font-size: 0.75em;
+    }
+
+    .sponsor img {
+        width: 2.6em;
+        height: 2.6em;
+    }
+    .contractAddress {
+        font-size: 0.7rem;
+    }
 }
 
 @media screen and (max-width: 425px) {
