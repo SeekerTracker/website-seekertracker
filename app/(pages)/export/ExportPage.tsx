@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useConnector, useAccount } from "@solana/connector/react";
+import { useTransactionSigner } from "@solana/connector";
 import { useWalletContext } from "../../(utils)/context/walletProvider";
 import { signVerificationTransaction } from "../../(utils)/lib/walletSigning";
 import WalletButton from "../../(components)/wallet/WalletButton";
@@ -13,8 +14,9 @@ import { REQUIRED_TRACKER_BALANCE } from "../../(utils)/constant";
 type FilterType = "all" | "before" | "first";
 
 export default function ExportPage() {
-    const { connected, selectedWallet } = useConnector();
+    const { connected } = useConnector();
     const { address } = useAccount();
+    const { signer, ready: signerReady } = useTransactionSigner();
     const { isEligible } = useWalletContext();
 
     const [filterType, setFilterType] = useState<FilterType>("all");
@@ -26,7 +28,7 @@ export default function ExportPage() {
     const [cooldown, setCooldown] = useState(false);
 
     const handleDownload = async () => {
-        if (!address || !selectedWallet) {
+        if (!address || !signer || !signerReady) {
             setError("Wallet not connected");
             return;
         }
@@ -38,7 +40,7 @@ export default function ExportPage() {
         try {
             // Sign a verification transaction (works with all wallets including Ledger)
             const { signedTransaction, message } = await signVerificationTransaction(
-                selectedWallet,
+                signer,
                 address,
                 "SeekerTracker CSV Export Request"
             );
@@ -137,7 +139,7 @@ export default function ExportPage() {
             </div>
 
             <div className={styles.header}>
-                <h1>Export Seeker Holders</h1>
+                <h1>Export SKR List</h1>
                 <p>Download CSV data of all .skr domain holders</p>
             </div>
 

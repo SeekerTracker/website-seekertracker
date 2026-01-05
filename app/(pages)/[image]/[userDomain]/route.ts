@@ -1,4 +1,5 @@
 import { getApiUserData } from "app/(utils)/onchainData";
+import { generateMetaTagsHtml, isSocialMediaBot } from "app/(utils)/metadata";
 import { createCanvas, loadImage, registerFont } from "canvas";
 import { NextResponse } from "next/server";
 import path from "path";
@@ -31,6 +32,25 @@ export async function GET(request: Request) {
     }
 
     const baseName = userDomain.replace(/\.skr$/i, "").replace(/\.png$/i, "");
+
+    // Check if request is from social media bots - serve HTML with meta tags
+    // Unless ?raw=true is set (used by the meta tags to fetch actual image)
+    const isRawRequest = url.searchParams.get("raw") === "true";
+    const userAgent = request.headers.get("user-agent") || "";
+
+    if (!isRawRequest && isSocialMediaBot(userAgent)) {
+        const protocol = url.protocol;
+        const host = url.host;
+        const webDomain = `${protocol}//${host}`;
+        const html = generateMetaTagsHtml(userDomain, webDomain, showAge);
+
+        return new NextResponse(html, {
+            headers: {
+                "Content-Type": "text/html; charset=utf-8",
+                "Cache-Control": "public, max-age=3600",
+            },
+        });
+    }
 
     const bottomText = "Check yours @SeekerTracker.com";
     const statusText = "Activated";

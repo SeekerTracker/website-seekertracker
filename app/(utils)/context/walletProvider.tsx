@@ -18,22 +18,45 @@ import { getDefaultConfig } from "@solana/connector/headless";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { CONN_RPC_URL, REQUIRED_TRACKER_BALANCE } from "../constant";
 import { getTrackerTokenBalance } from "../lib/tokenBalance";
+import { JupiterProvider } from "./jupiterProvider";
+import WalletModal from "../../(components)/wallet/WalletModal";
 
 type WalletContextType = {
     trackerBalance: number;
     isEligible: boolean;
     isLoadingBalance: boolean;
     refreshBalance: () => Promise<void>;
+    openWalletModal: () => void;
 };
+
+type WalletModalContextType = {
+    isModalOpen: boolean;
+    openModal: () => void;
+    closeModal: () => void;
+};
+
+const WalletModalContext = createContext<WalletModalContextType>({
+    isModalOpen: false,
+    openModal: () => {},
+    closeModal: () => {},
+});
+
+export const useWalletModal = () => useContext(WalletModalContext);
 
 const WalletContext = createContext<WalletContextType>({
     trackerBalance: 0,
     isEligible: false,
     isLoadingBalance: false,
     refreshBalance: async () => {},
+    openWalletModal: () => {},
 });
 
-function WalletContextProvider({ children }: { children: ReactNode }) {
+interface WalletContextProviderProps {
+    children: ReactNode;
+    openWalletModal: () => void;
+}
+
+function WalletContextProvider({ children, openWalletModal }: WalletContextProviderProps) {
     const { connected } = useConnector();
     const { address } = useAccount();
     const [trackerBalance, setTrackerBalance] = useState(0);
@@ -65,8 +88,8 @@ function WalletContextProvider({ children }: { children: ReactNode }) {
     }, [refreshBalance]);
 
     const value = useMemo(
-        () => ({ trackerBalance, isEligible, isLoadingBalance, refreshBalance }),
-        [trackerBalance, isEligible, isLoadingBalance, refreshBalance]
+        () => ({ trackerBalance, isEligible, isLoadingBalance, refreshBalance, openWalletModal }),
+        [trackerBalance, isEligible, isLoadingBalance, refreshBalance, openWalletModal]
     );
 
     return (
@@ -77,6 +100,16 @@ function WalletContextProvider({ children }: { children: ReactNode }) {
 }
 
 export function WalletProviderWrapper({ children }: { children: ReactNode }) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const openModal = useCallback(() => setIsModalOpen(true), []);
+    const closeModal = useCallback(() => setIsModalOpen(false), []);
+
+    const modalValue = useMemo(
+        () => ({ isModalOpen, openModal, closeModal }),
+        [isModalOpen, openModal, closeModal]
+    );
+
     const config = useMemo(() => {
         return getDefaultConfig({
             appName: "Seeker Tracker",
@@ -95,7 +128,14 @@ export function WalletProviderWrapper({ children }: { children: ReactNode }) {
 
     return (
         <AppProvider connectorConfig={config}>
-            <WalletContextProvider>{children}</WalletContextProvider>
+            <WalletModalContext.Provider value={modalValue}>
+                <WalletContextProvider openWalletModal={openModal}>
+                    <JupiterProvider onRequestConnectWallet={openModal}>
+                        {children}
+                        <WalletModal isOpen={isModalOpen} onClose={closeModal} />
+                    </JupiterProvider>
+                </WalletContextProvider>
+            </WalletModalContext.Provider>
         </AppProvider>
     );
 }

@@ -253,7 +253,7 @@ const MainPage = () => {
                 </Link>
                 <Link href={"/export"} className={style.tabWrapper}>
                     <div className={style.eachTab}>
-                        <strong>CSV Export</strong>
+                        <strong>SKR List</strong>
                         <span>Seeker Holders</span>
                     </div>
                 </Link>

@@ -12,6 +12,7 @@ type WalletDropdownProps = {
     onClose: () => void;
     walletIcon?: string;
     walletName?: string;
+    triggerRef?: React.RefObject<HTMLButtonElement | null>;
 };
 
 export default function WalletDropdown({
@@ -19,6 +20,7 @@ export default function WalletDropdown({
     onClose,
     walletIcon,
     walletName,
+    triggerRef,
 }: WalletDropdownProps) {
     const { disconnect } = useConnector();
     const { address } = useAccount();
@@ -51,24 +53,37 @@ export default function WalletDropdown({
         }
     }, [isOpen, address, fetchSolBalance]);
 
+    // Store onClose in a ref to avoid stale closures
+    const onCloseRef = useRef(onClose);
+    onCloseRef.current = onClose;
+
     // Close on click outside
     useEffect(() => {
+        if (!isOpen) return;
+
         const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                onClose();
+            const target = event.target as Node;
+            // Don't close if clicking on the dropdown itself
+            if (dropdownRef.current && dropdownRef.current.contains(target)) {
+                return;
             }
+            // Don't close if clicking on the trigger button (it handles its own toggle)
+            if (triggerRef?.current && triggerRef.current.contains(target)) {
+                return;
+            }
+            onCloseRef.current();
         };
 
-        if (isOpen) {
-            setTimeout(() => {
-                document.addEventListener("mousedown", handleClickOutside);
-            }, 0);
-        }
+        // Add listener on next tick to avoid catching the opening click
+        const timeoutId = setTimeout(() => {
+            document.addEventListener("mousedown", handleClickOutside);
+        }, 0);
 
         return () => {
+            clearTimeout(timeoutId);
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [isOpen, onClose]);
+    }, [isOpen, triggerRef]);
 
     if (!isOpen || !address) return null;
 

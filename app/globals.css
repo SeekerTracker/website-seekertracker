@@ -69,6 +69,7 @@ a {
     linear-gradient(90deg, rgba(0, 255, 217, 0.1) 1px, transparent 1px);
   background-size: 50px 50px;
   z-index: -1;
+  pointer-events: none;
   animation: gridFloat 20s linear infinite;
 }
 

@@ -11,8 +11,8 @@ export async function getTrackerTokenBalance(
         const ata = await getAssociatedTokenAddress(mintPubkey, walletPubkey);
         const account = await getAccount(connection, ata);
 
-        // TRACKER has 6 decimals (standard SPL token)
-        const decimals = 6;
+        // TRACKER has 9 decimals
+        const decimals = 9;
         return Number(account.amount) / Math.pow(10, decimals);
     } catch (error) {
         // Account doesn't exist = 0 balance
