@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { getBasicData } from "./(utils)/lib/getBasicData";
 import DataProviderClient from "./(utils)/context/dataProvider";
@@ -30,6 +31,13 @@ export default async function RootLayout({
   const basicData = await getBasicData();
   return (
     <html lang="en">
+      <head>
+        <Script
+          src="https://plugin.jup.ag/plugin-v1.js"
+          strategy="beforeInteractive"
+          data-preload
+        />
+      </head>
       <body className={`${jetBrains.variable}`}>
         <div className={`mainWholeAppContainer`}>
           <WalletProviderWrapper>

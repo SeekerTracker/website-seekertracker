@@ -223,15 +223,9 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                             <div className={styles.installButtons}>
                                 <button
                                     className={styles.primaryButton}
-                                    onClick={() => window.open("https://phantom.app", "_blank")}
+                                    onClick={() => window.open("https://sal.fun/jup", "_blank")}
                                 >
-                                    Get Phantom
-                                </button>
-                                <button
-                                    className={styles.secondaryButton}
-                                    onClick={() => window.open("https://backpack.app", "_blank")}
-                                >
-                                    Get Backpack
+                                    Get Jupiter
                                 </button>
                             </div>
                         </div>

@@ -15,3 +15,6 @@ export const BEPATH = {
 
 // Min Required $TRACKER token for gating CSV download
 export const REQUIRED_TRACKER_BALANCE = 100_000;
+
+// Jupiter Referral Account
+export const JUP_REFERRAL = 'Fgs9yynnDLCcUqkn3LswxcCrWGb3E1h4qFzEd5A8FJEE'

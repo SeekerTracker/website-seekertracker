@@ -1,4 +1,6 @@
 .main {
+  position: relative;
+  z-index: 100;
   display: flex;
   padding: 1em 2em;
   width: 100%;
@@ -46,6 +48,37 @@
   align-items: center;
   gap: 0.5em;
   font-size: 0.8rem;
+}
+
+.buyButton {
+  position: relative;
+  z-index: 10;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5em 1em;
+  font-size: 0.8em;
+  font-weight: 600;
+  font-family: inherit;
+  color: #000;
+  background: linear-gradient(45deg, #00ffd9, #00ff66);
+  border: none;
+  border-radius: 0.5em;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.buyButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 15px rgba(0, 255, 217, 0.4);
+}
+
+.buyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .dot {
   width: 10px;
@@ -132,6 +165,25 @@
 }
 
 @media screen and (max-width: 760px) {
+  .main {
+    padding: 0.75em 1em;
+    gap: 0.5em;
+  }
+
+  .priceInfo {
+    font-size: 0.65em;
+    padding: 0.4em 0.8em;
+    gap: 0.5em;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .buyButton {
+    font-size: 0.7em;
+    padding: 0.5em 0.75em;
+    flex-shrink: 0;
+  }
+
   .socialMediaTab {
     display: none;
   }

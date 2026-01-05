@@ -1,16 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useConnector, useAccount } from "@solana/connector/react";
 import styles from "./WalletButton.module.css";
-import WalletModal from "./WalletModal";
 import WalletDropdown from "./WalletDropdown";
+import { useWalletModal } from "app/(utils)/context/walletProvider";
 
 export default function WalletButton() {
     const { connected, connecting, selectedWallet, wallets } = useConnector();
     const { formatted } = useAccount();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { openModal } = useWalletModal();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const buttonRef = useRef<HTMLButtonElement>(null);
 
     // Get wallet icon
     const walletWithIcon = wallets.find(w => w.wallet.name === selectedWallet?.name);
@@ -20,7 +21,7 @@ export default function WalletButton() {
         if (connected) {
             setIsDropdownOpen(!isDropdownOpen);
         } else {
-            setIsModalOpen(true);
+            openModal();
         }
     };
 
@@ -37,6 +38,7 @@ export default function WalletButton() {
         <>
             <div className={styles.buttonWrapper}>
                 <button
+                    ref={buttonRef}
                     className={`${styles.button} ${connected ? styles.connected : ""}`}
                     onClick={handleClick}
                 >
@@ -65,11 +67,10 @@ export default function WalletButton() {
                         onClose={() => setIsDropdownOpen(false)}
                         walletIcon={walletIcon}
                         walletName={selectedWallet?.name}
+                        triggerRef={buttonRef}
                     />
                 )}
             </div>
-
-            <WalletModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </>
     );
 }

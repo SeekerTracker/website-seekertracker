@@ -3,7 +3,7 @@ import ExportPage from "./ExportPage";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Export SeekerIDs - Seeker Tracker",
+    title: "Export SKR List - Seeker Tracker",
     description: "Download CSV export of all SeekerID holders",
 };
 

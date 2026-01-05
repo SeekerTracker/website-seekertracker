@@ -110,3 +110,32 @@
     gap: 0.5em;
     color: #a0a0a0;
 }
+
+/* Swap link button */
+.swapLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75em 1.5em;
+    font-size: 0.9em;
+    font-weight: 600;
+    font-family: inherit;
+    color: #000;
+    background: linear-gradient(45deg, #00ffd9, #00ff66);
+    border: none;
+    border-radius: 0.75em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    margin-top: 0.5em;
+}
+
+.swapLink:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 217, 0.4);
+}
+
+.swapLink:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

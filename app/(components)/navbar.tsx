@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import styles from "./navbar.module.css";
 import { useDataContext } from "app/(utils)/context/dataProvider";
+import { useJupiter } from "app/(utils)/context/jupiterProvider";
 import Image from "next/image";
 import Link from "next/link";
 import { SEEKER_TOKEN_ADDRESS } from "app/(utils)/constant";
@@ -49,6 +50,7 @@ export const socialMediaLinks = [
 
 const Navbar = () => {
     const { solPrice, backendHealth, backendWS, seekerData } = useDataContext();
+    const { openJupiter, isJupiterReady } = useJupiter();
     const [copiedName, setCopiedName] = useState<string | null>(null);
     const handleCopy = async (name: string, value: string) => {
         try {
@@ -70,6 +72,15 @@ const Navbar = () => {
                     $TRACKER 24h <strong>${seekerData.token24hVol}</strong>
                 </span>
             </div>
+
+            <button
+                className={styles.buyButton}
+                onClick={openJupiter}
+                disabled={!isJupiterReady}
+                title="Buy $TRACKER"
+            >
+                Buy $TRACKER
+            </button>
 
             <div className={styles.socialMediaTab}>
                 <div

@@ -1,9 +1,9 @@
-
 import React from 'react'
 import UserDomain from './userDomain';
 import { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { getSeekerMetadata } from 'app/(utils)/metadata';
 
 export async function generateMetadata(
     {
@@ -19,21 +19,23 @@ export async function generateMetadata(
         headersList.get('x-forwarded-proto') || 'https'; // handles Vercel or proxies
     const webDomain = `${protocol}://${host}`;
 
+    const meta = getSeekerMetadata(userDomain, webDomain);
+
     return {
         applicationName: "Seeker",
-        title: `${userDomain} - SeekerID Profile`,
-        description: `Complete SeekerID profile with activation details and analytics.`,
+        title: meta.title,
+        description: meta.description,
         openGraph: {
             type: "website",
-            title: `${userDomain} - SeekerID Profile`,
-            description: `🔥 SeekerID Profile for ${userDomain} - View rank, analytics, token holdings and activation details on Seeker Tracker`,
-            url: `${webDomain}/${userDomain}`,
-            siteName: "Seeker Tracker",
+            title: meta.title,
+            description: meta.ogDescription,
+            url: meta.profileUrl,
+            siteName: meta.siteName,
             images: [
                 {
-                    url: `${webDomain}/image/${encodeURIComponent(userDomain)}`,
-                    width: 1200,
-                    height: 630,
+                    url: meta.imageUrl,
+                    width: meta.imageWidth,
+                    height: meta.imageHeight,
                     alt: `${userDomain} SeekerID Profile`,
                     type: "image/png",
                 },
@@ -41,11 +43,9 @@ export async function generateMetadata(
         },
         twitter: {
             card: "summary_large_image",
-            title: `${userDomain} - SeekerID Profile`,
-            description: `Complete SeekerID profile with activation details and analytics.`,
-            images: [
-                `${webDomain}/image/${encodeURIComponent(userDomain)}`
-            ],
+            title: meta.title,
+            description: meta.description,
+            images: [meta.imageUrl],
         },
     };
 }

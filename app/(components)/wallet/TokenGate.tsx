@@ -3,6 +3,7 @@
 import React, { ReactNode, useState, useEffect } from "react";
 import { useConnector } from "@solana/connector/react";
 import { useWalletContext } from "../../(utils)/context/walletProvider";
+import { useJupiter } from "../../(utils)/context/jupiterProvider";
 import { REQUIRED_TRACKER_BALANCE } from "../../(utils)/constant";
 import WalletButton from "./WalletButton";
 import styles from "./WalletButton.module.css";
@@ -20,6 +21,7 @@ export default function TokenGate({
 }: TokenGateProps) {
     const { connected } = useConnector();
     const { trackerBalance, isLoadingBalance } = useWalletContext();
+    const { openJupiter, isJupiterReady } = useJupiter();
     const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
     // Track when we've loaded balance at least once
@@ -70,6 +72,13 @@ export default function TokenGate({
                         tokens to access this feature.
                     </p>
                     <p>Current balance: {trackerBalance.toLocaleString()} $TRACKER</p>
+                    <button
+                        onClick={openJupiter}
+                        disabled={!isJupiterReady}
+                        className={styles.swapLink}
+                    >
+                        {isJupiterReady ? "Buy $TRACKER" : "Loading Jupiter..."}
+                    </button>
                 </div>
             )
         );
