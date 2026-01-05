@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Activity, useState } from "react";
 import { useConnector, useAccount } from "@solana/connector/react";
 import { useTransactionSigner } from "@solana/connector";
 import { useWalletContext } from "../../(utils)/context/walletProvider";
@@ -143,11 +143,11 @@ export default function ExportPage() {
                 <p>Download CSV data of all .skr domain holders</p>
             </div>
 
-            {connected && (
+            <Activity mode={connected ? "visible" : "hidden"}>
                 <div className={styles.walletSection}>
                     <WalletButton />
                 </div>
-            )}
+            </Activity>
 
             <TokenGate requiredBalance={REQUIRED_TRACKER_BALANCE}>
                 <div className={styles.exportSection}>
@@ -222,8 +222,8 @@ export default function ExportPage() {
                         {cooldown
                             ? "100% - Download starting shortly..."
                             : isDownloading
-                              ? `Generating CSV... ${progress}%`
-                              : "Download CSV"}
+                                ? `Generating CSV... ${progress}%`
+                                : "Download CSV"}
                     </button>
 
                     <div className={styles.csvPreview}>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Activity } from "react";
 import { useConnector } from "@solana/connector/react";
 import styles from "./WalletModal.module.css";
 
@@ -32,6 +32,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
     if (!isOpen) return null;
 
     const handleConnect = async (walletName: string) => {
+        if (connecting) return;
         setConnectingWallet(walletName);
         try {
             await select(walletName);
@@ -89,7 +90,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
                 <div className={styles.content}>
                     {/* Primary Installed Wallets */}
-                    {primaryWallets.length > 0 && (
+                    <Activity mode={primaryWallets.length > 0 ? "visible" : "hidden"}>
                         <div className={styles.section}>
                             <div className={styles.walletList}>
                                 {primaryWallets.map((walletInfo) => {
@@ -128,10 +129,10 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                                 })}
                             </div>
                         </div>
-                    )}
+                    </Activity>
 
-                    {/* Other Installed Wallets (collapsible) */}
-                    {otherInstalledWallets.length > 0 && (
+                    <Activity mode={otherInstalledWallets.length > 0 ? "visible" : "hidden"}>
+                        {/* Other Installed Wallets (collapsible) */}
                         <div className={styles.section}>
                             <button
                                 className={styles.accordionButton}
@@ -181,10 +182,10 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                                 </div>
                             )}
                         </div>
-                    )}
+                    </Activity>
 
                     {/* Not Installed Wallets */}
-                    {notInstalledWallets.length > 0 && (
+                    <Activity mode={notInstalledWallets.length > 0 ? "visible" : "hidden"}>
                         <div className={styles.section}>
                             <h3>{installedWallets.length > 0 ? "Get a Wallet" : "Popular Wallets"}</h3>
                             <div className={styles.walletList}>
@@ -212,10 +213,9 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                                 ))}
                             </div>
                         </div>
-                    )}
+                    </Activity>
 
-                    {/* No Wallets */}
-                    {wallets.length === 0 && !connecting && (
+                    <Activity mode={wallets.length === 0 && !connecting ? "visible" : "hidden"}>
                         <div className={styles.noWallets}>
                             <div className={styles.noWalletsIcon}>👛</div>
                             <h3>No Wallets Detected</h3>
@@ -229,7 +229,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                                 </button>
                             </div>
                         </div>
-                    )}
+                    </Activity>
                 </div>
             </div>
         </div>

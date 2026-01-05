@@ -6,6 +6,7 @@ import {
     WS_URL,
     CONN_RPC_URL,
     REQUIRED_TRACKER_BALANCE,
+    BEPATH,
 } from "../../(utils)/constant";
 import { getTrackerTokenBalance } from "../../(utils)/lib/tokenBalance";
 import { DomainInfo } from "../../(utils)/constantTypes";
@@ -40,93 +41,37 @@ function recordSuccessfulCall(walletAddress: string): void {
     successfulCalls.set(walletAddress, Date.now());
 }
 
+
+
 type FetchOptions = {
     maxCount?: number;
     beforeTimestamp?: number;
     onProgress?: (current: number, total: number) => void;
 };
 
-// Fetch domains via WebSocket with early stopping optimization
-async function fetchDomainsViaWebSocket(options: FetchOptions = {}): Promise<DomainInfo[]> {
-    return new Promise((resolve, reject) => {
-        const socket = io(WS_URL, {
-            transports: ["websocket"],
-            timeout: 60000,
-        });
+type fetchAllDomainResponse = {
+    success: boolean;
+    message: string;
+    data: DomainInfo[];
+}
 
-        const LIMIT = 1000;
-        let allDomains: DomainInfo[] = [];
-        let totalDomains = 0;
-        let currentPage = 1;
+const fetchAllDomains = async (options: FetchOptions): Promise<fetchAllDomainResponse> => {
+    const { maxCount, beforeTimestamp, onProgress } = options;
 
-        const timeout = setTimeout(() => {
-            socket.disconnect();
-            reject(new Error("WebSocket timeout - took too long to fetch domains"));
-        }, 300000);
+    const allDomainData = await fetch(`${BEPATH.allDomains}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            // fromLast: false, //true if inverse or last 5k mints like that
+            pageSize: maxCount || 200_000,
+            beforeTimestamp: beforeTimestamp || null
+        })
+    })
+    const domainDataJson = await allDomainData.json();
+    return domainDataJson;
 
-        socket.on("connect", () => {
-            console.log("WebSocket connected, fetching page 1...");
-            socket.emit("getDomains", { sortBy: "oldest", limit: LIMIT, page: currentPage });
-        });
-
-        socket.on("sortedDomains", (data: { data: DomainInfo[]; totalDomains: number }) => {
-            const pageDomains = data.data || [];
-            totalDomains = data.totalDomains || 0;
-
-            if (options.beforeTimestamp) {
-                const filteredDomains = pageDomains.filter(
-                    (d) => new Date(d.created_at).getTime() < options.beforeTimestamp!
-                );
-                allDomains = [...allDomains, ...filteredDomains];
-
-                if (filteredDomains.length < pageDomains.length) {
-                    clearTimeout(timeout);
-                    socket.disconnect();
-                    resolve(allDomains);
-                    return;
-                }
-            } else {
-                allDomains = [...allDomains, ...pageDomains];
-            }
-
-            const targetCount = options.maxCount || totalDomains;
-
-            if (options.onProgress) {
-                options.onProgress(allDomains.length, targetCount);
-            }
-
-            const reachedMaxCount = options.maxCount && allDomains.length >= options.maxCount;
-            const reachedTotal = allDomains.length >= totalDomains;
-            const emptyPage = pageDomains.length === 0;
-
-            if (reachedMaxCount || reachedTotal || emptyPage) {
-                clearTimeout(timeout);
-                socket.disconnect();
-
-                if (options.maxCount && allDomains.length > options.maxCount) {
-                    allDomains = allDomains.slice(0, options.maxCount);
-                }
-
-                resolve(allDomains);
-            } else {
-                currentPage++;
-                socket.emit("getDomains", { sortBy: "oldest", limit: LIMIT, page: currentPage });
-            }
-        });
-
-        socket.on("connect_error", (err) => {
-            clearTimeout(timeout);
-            socket.disconnect();
-            reject(err);
-        });
-
-        socket.on("disconnect", (reason) => {
-            if (reason !== "io client disconnect") {
-                clearTimeout(timeout);
-                reject(new Error(`WebSocket disconnected: ${reason}`));
-            }
-        });
-    });
 }
 
 export async function POST(request: NextRequest) {
@@ -247,23 +192,25 @@ export async function POST(request: NextRequest) {
                     fetchOptions.maxCount = parseInt(filter.firstN);
                 }
 
-                const domains = await fetchDomainsViaWebSocket(fetchOptions);
 
-                if (domains.length === 0) {
-                    await writer.write(encoder.encode("ERROR:No domain data available\n"));
+                const domains = await fetchAllDomains(fetchOptions);
+
+                if (domains.success === false) {
+                    await writer.write(encoder.encode(`ERROR:${domains.message}\n`));
                     await writer.close();
                     return;
                 }
 
                 // Generate CSV
                 const csvHeader = "activation_number,domain,owner,activation_timestamp\n";
-                const csvRows = domains
+                const csvRows = domains.data
                     .map((d) => {
                         const domainName = `${d.subdomain}${d.domain}`;
                         const timestamp = new Date(d.created_at).toISOString();
                         const escapedDomain = domainName.replace(/"/g, '""');
                         const escapedOwner = d.owner.replace(/"/g, '""');
-                        return `${d.rank || 0},"${escapedDomain}","${escapedOwner}","${timestamp}"`;
+                        const domainRank = d.rank || 0;
+                        return `${domainRank},"${escapedDomain}","${escapedOwner}","${timestamp}"`;
                     })
                     .join("\n");
 

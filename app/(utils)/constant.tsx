@@ -10,11 +10,12 @@ export const solanaWSConnection = new Connection(CONN_RPC_URL, "processed")
 export const BEPATH = {
     health: `${BE_URL}/health`,
     domain: `${BE_URL}/domain`,
+    allDomains: `${BE_URL}/allDomains`,
     priceData: `${BE_URL}/priceData`,
 }
 
 // Min Required $TRACKER token for gating CSV download
-export const REQUIRED_TRACKER_BALANCE = 100_000;
+export const REQUIRED_TRACKER_BALANCE = 100 * 1000;
 
 // Jupiter Referral Account
 export const JUP_REFERRAL = 'Fgs9yynnDLCcUqkn3LswxcCrWGb3E1h4qFzEd5A8FJEE'
