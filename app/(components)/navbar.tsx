@@ -9,6 +9,14 @@ import { SEEKER_TOKEN_ADDRESS } from "app/(utils)/constant";
 
 export const socialMediaLinks = [
     {
+        name: "GetApp",
+        title: "Download Mobile App",
+        url: "/getdapp",
+        icon: "/sds-badge.svg",
+        clickToCopy: false,
+        internal: true,
+    },
+    {
         name: "Bags",
         title: "Bags Token Analytics",
         url: `https://bags.fm/${SEEKER_TOKEN_ADDRESS}`,
@@ -130,8 +138,7 @@ const Navbar = () => {
                                 <Link
                                     key={link.name}
                                     href={link.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    {...(link.internal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
                                 >
                                     <Image src={link.icon} alt={link.name} width={32} height={32} />
                                     <span className={styles.hoverName}>{link.title}</span>

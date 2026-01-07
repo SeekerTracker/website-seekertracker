@@ -25,6 +25,30 @@
   color: rgb(74, 222, 128);
 }
 
+.legalLinks {
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  justify-content: center;
+  align-items: center;
+}
+
+.legalLinks a {
+  color: rgba(0, 255, 217, 0.7);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.legalLinks a:hover {
+  color: rgba(0, 255, 217, 1);
+  text-decoration: underline;
+}
+
+.legalLinks span {
+  color: rgba(255, 255, 255, 0.3);
+}
+
 /* mobile bottom seeker version */
 .mobileSocialIcons {
   display: none;

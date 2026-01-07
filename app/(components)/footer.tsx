@@ -63,6 +63,15 @@ const Footer = () => {
                         <span className={styles.contractAddress} title="Click to copy" onClick={copyToClipboard}>
                             {copied ? <strong>Copied</strong> : SEEKER_TOKEN_ADDRESS}
                         </span></p>
+                    <div className={styles.legalLinks}>
+                        <Link href="/privacy">Privacy</Link>
+                        <span>•</span>
+                        <Link href="/license">License</Link>
+                        <span>•</span>
+                        <Link href="/copyright">Copyright</Link>
+                        <span>•</span>
+                        <Link href="/getdapp">Get App</Link>
+                    </div>
                 </div>
             </div>
             <div className={styles.mobileSocialIcons}>
@@ -97,8 +106,7 @@ const Footer = () => {
                         <Link
                             key={link.name}
                             href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            {...(link.internal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
                             className={styles.socialLink}
                         >
                             <Image src={link.icon} alt={link.name} width={32} height={32} title={link.title} />
