@@ -167,7 +167,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                             target='_blank'
                         >
                             <span className={styles.detailValue}>
-                                {domainData.subdomain_tx.slice(0, 5)}...{domainData.subdomain_tx.slice(-5)}
+                                {domainData.subdomain_tx?.slice(0, 5)}...{domainData.subdomain_tx?.slice(-5)}
                             </span>
                         </Link>
                     </div>

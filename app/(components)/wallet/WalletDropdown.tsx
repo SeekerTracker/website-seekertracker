@@ -87,7 +87,7 @@ export default function WalletDropdown({
 
     if (!isOpen || !address) return null;
 
-    const shortAddress = `${address.slice(0, 4)}...${address.slice(-4)}`;
+    const shortAddress = `${address?.slice(0, 4)}...${address?.slice(-4)}`;
 
     const handleCopy = (e: React.MouseEvent) => {
         e.preventDefault();

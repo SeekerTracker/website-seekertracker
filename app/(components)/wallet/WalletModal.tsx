@@ -75,8 +75,8 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
     });
 
     // Primary wallets (first 3), others in collapsible
-    const primaryWallets = sortedInstalledWallets.slice(0, 3);
-    const otherInstalledWallets = sortedInstalledWallets.slice(3);
+    const primaryWallets = sortedInstalledWallets?.slice(0, 3);
+    const otherInstalledWallets = sortedInstalledWallets?.slice(3);
 
     return (
         <div className={styles.backdrop} onClick={handleBackdropClick}>
@@ -189,7 +189,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                         <div className={styles.section}>
                             <h3>{installedWallets.length > 0 ? "Get a Wallet" : "Popular Wallets"}</h3>
                             <div className={styles.walletList}>
-                                {notInstalledWallets.slice(0, 3).map((walletInfo) => (
+                                {notInstalledWallets?.slice(0, 3).map((walletInfo) => (
                                     <button
                                         key={walletInfo.wallet.name}
                                         className={styles.walletItemInstall}

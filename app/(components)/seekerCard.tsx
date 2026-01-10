@@ -60,7 +60,7 @@ const SeekerCard = ({ domainInfo, showRank }: { domainInfo: DomainInfo, showRank
                         href={`https://solscan.io/tx/${domainInfo.subdomain_tx}`}
                         target='_blank'
                     >
-                        <span>{domainInfo.subdomain_tx.slice(0, 5)}...{domainInfo.subdomain_tx.slice(-5)}</span>
+                        <span>{domainInfo.subdomain_tx?.slice(0, 5)}...{domainInfo.subdomain_tx?.slice(-5)}</span>
                     </Link>
                 </div>
                 <div className={styles.eachInfo}>

@@ -241,7 +241,7 @@ export async function GET(request: Request) {
         }
         stats.push({ primary: createdAt, label: 'Activated' },)
 
-        const visible = stats.slice(0, 3);
+        const visible = stats?.slice(0, 3);
         const gap = 24;
         const marginX = 60;
         const cardsTop = height - 250;
