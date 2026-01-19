@@ -7,11 +7,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { TimeAgo } from 'app/(components)/seekerCard';
 import { notFound } from 'next/navigation';
+import { getPortfolio, formatUsd, formatBalance, PortfolioData } from 'app/(utils)/lib/portfolio';
 
 
 const UserDomain = ({ userDomain }: { userDomain: string }) => {
     const [domainData, setDomainData] = useState<DomainInfo | null>(null);
     const [loaded, setLoaded] = useState(false);
+    const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
+    const [portfolioLoading, setPortfolioLoading] = useState(false);
+    const [showAllTokens, setShowAllTokens] = useState(false);
 
 
     const splitted = userDomain.split('.');
@@ -38,6 +42,24 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
         };
         fetchDomainData();
     }, [domain, subdomain, userDomain]);
+
+    // Fetch portfolio when domain data is available
+    useEffect(() => {
+        if (!domainData?.owner) return;
+
+        const fetchPortfolio = async () => {
+            setPortfolioLoading(true);
+            try {
+                const data = await getPortfolio(domainData.owner);
+                setPortfolio(data);
+            } catch (error) {
+                console.error('Error fetching portfolio:', error);
+            } finally {
+                setPortfolioLoading(false);
+            }
+        };
+        fetchPortfolio();
+    }, [domainData?.owner]);
 
 
     if (loaded && !domainData) {
@@ -188,6 +210,78 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                 </div>
 
             </div>
+
+            {/* Portfolio Section */}
+            <div className={styles.portfolioSection}>
+                <span className={styles.title}>💰 Portfolio</span>
+                {portfolioLoading ? (
+                    <div className={styles.portfolioLoading}>Loading portfolio...</div>
+                ) : portfolio ? (
+                    <div className={styles.portfolioContent}>
+                        <div className={styles.portfolioTotal}>
+                            <span className={styles.totalLabel}>Total Value</span>
+                            <span className={styles.totalValue}>{formatUsd(portfolio.totalUsdValue)}</span>
+                        </div>
+
+                        <div className={styles.portfolioBreakdown}>
+                            {/* SOL Balance */}
+                            <div className={styles.tokenRow}>
+                                <div className={styles.tokenInfo}>
+                                    <img
+                                        src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"
+                                        alt="SOL"
+                                        className={styles.tokenLogo}
+                                    />
+                                    <div className={styles.tokenDetails}>
+                                        <span className={styles.tokenSymbol}>SOL</span>
+                                        <span className={styles.tokenBalance}>{formatBalance(portfolio.solBalance)}</span>
+                                    </div>
+                                </div>
+                                <span className={styles.tokenValue}>{formatUsd(portfolio.solUsdValue)}</span>
+                            </div>
+
+                            {/* Token Holdings */}
+                            {portfolio.tokens.slice(0, showAllTokens ? undefined : 5).map((token) => (
+                                <div key={token.mint} className={styles.tokenRow}>
+                                    <div className={styles.tokenInfo}>
+                                        {token.logoURI ? (
+                                            <img
+                                                src={token.logoURI}
+                                                alt={token.symbol}
+                                                className={styles.tokenLogo}
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = '/token-placeholder.png';
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className={styles.tokenLogoPlaceholder}>
+                                                {token.symbol.slice(0, 2)}
+                                            </div>
+                                        )}
+                                        <div className={styles.tokenDetails}>
+                                            <span className={styles.tokenSymbol}>{token.symbol}</span>
+                                            <span className={styles.tokenBalance}>{formatBalance(token.balance)}</span>
+                                        </div>
+                                    </div>
+                                    <span className={styles.tokenValue}>{formatUsd(token.usdValue)}</span>
+                                </div>
+                            ))}
+
+                            {portfolio.tokens.length > 5 && (
+                                <button
+                                    className={styles.showMoreButton}
+                                    onClick={() => setShowAllTokens(!showAllTokens)}
+                                >
+                                    {showAllTokens ? 'Show Less' : `Show ${portfolio.tokens.length - 5} More`}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className={styles.portfolioEmpty}>No portfolio data available</div>
+                )}
+            </div>
+
             <div className={styles.nameCardCont}>
                 <span className={styles.title}>🖼 Share Image</span>
                 <div className={styles.nameImage}>

@@ -230,3 +230,147 @@
     background-position: 400% 50%;
   }
 }
+
+/* Portfolio Section */
+.portfolioSection {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 30em;
+  background: rgba(17, 17, 17, 0.9);
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  border-radius: 16px;
+  padding: 1.25em;
+  backdrop-filter: blur(10px);
+  gap: 1em;
+}
+
+.portfolioLoading {
+  color: #a0a0a0;
+  text-align: center;
+  padding: 2em;
+}
+
+.portfolioEmpty {
+  color: #808080;
+  text-align: center;
+  padding: 1em;
+}
+
+.portfolioContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+
+.portfolioTotal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25em;
+  padding: 1em;
+  background: rgba(0, 255, 217, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 217, 0.1);
+}
+
+.totalLabel {
+  font-size: 0.85em;
+  color: #a0a0a0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.totalValue {
+  font-size: 2em;
+  font-weight: 700;
+  background: linear-gradient(45deg, #00ffd9, #00ff66);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.portfolioBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.tokenRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75em;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.tokenRow:hover {
+  background: rgba(0, 255, 217, 0.05);
+}
+
+.tokenInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+}
+
+.tokenLogo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tokenLogoPlaceholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 255, 217, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75em;
+  font-weight: 600;
+  color: #00ffd9;
+}
+
+.tokenDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.tokenSymbol {
+  font-weight: 600;
+  color: #fff;
+  font-size: 0.95em;
+}
+
+.tokenBalance {
+  font-size: 0.8em;
+  color: #808080;
+}
+
+.tokenValue {
+  font-weight: 500;
+  color: #00ffd9;
+  font-size: 0.95em;
+}
+
+.showMoreButton {
+  margin-top: 0.5em;
+  padding: 0.75em;
+  background: rgba(0, 255, 217, 0.1);
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  border-radius: 8px;
+  color: #00ffd9;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.showMoreButton:hover {
+  background: rgba(0, 255, 217, 0.15);
+  border-color: rgba(0, 255, 217, 0.3);
+}
