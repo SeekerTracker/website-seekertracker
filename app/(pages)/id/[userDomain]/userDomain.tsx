@@ -301,7 +301,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     <div className={styles.manualCopy}>
                         <span className={styles.showLink} onClick={() => copyToClipboard('imageLink')}>{imageLink}</span>
                         <button className={styles.copyButton} onClick={() => copyToClipboard('imageLink')}>{copyImageLinkSuccess ? '✅ Copied!' : 'Copy Image URL'}</button>
-                        <Link href={`https://x.com/intent/tweet?text=${encodeURIComponent(`Check out ${userDomain} on @Seeker_Tracker 🔥 `)}`} target='_blank' rel="noopener noreferrer">
+                        <Link href={`https://x.com/intent/tweet?text=${encodeURIComponent(`Check out ${userDomain} on @Seeker_Tracker 🔥`)}&url=${encodeURIComponent(`https://seekertracker.com/id/${userDomain}`)}`} target='_blank' rel="noopener noreferrer">
                             <button className={styles.tweetButton}>Tweet</button>
                         </Link>
                     </div>

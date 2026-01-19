@@ -24,7 +24,7 @@ const ToastMessage = () => {
             const { subdomain, domain } = data
             const message: ToastMessage = {
                 id: uuid(),
-                message: `New domain found: ${subdomain}${domain}`,
+                message: `New Seeker Activated: ${subdomain}${domain}`,
                 timestamp: Date.now(),
                 link: `/id/${subdomain}${domain}`
             }
