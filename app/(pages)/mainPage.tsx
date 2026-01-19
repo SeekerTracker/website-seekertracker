@@ -6,6 +6,7 @@ import { useDataContext } from 'app/(utils)/context/dataProvider'
 import { DomainInfo } from 'app/(utils)/constantTypes'
 import SeekerCard from 'app/(components)/seekerCard'
 import Link from 'next/link';
+import TelegramModal from 'app/(components)/TelegramModal';
 
 
 const MainPage = () => {
@@ -257,6 +258,12 @@ const MainPage = () => {
                         <span>Seeker Holders</span>
                     </div>
                 </Link>
+                <Link href={"/apps"} className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>Apps</strong>
+                        <span>Our Favourites</span>
+                    </div>
+                </Link>
             </div>
 
             <div className={style.reginalCont}>
@@ -348,6 +355,7 @@ const MainPage = () => {
                 )}
             </div>
 
+            <TelegramModal />
         </div>
     )
 }

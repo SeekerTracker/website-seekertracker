@@ -78,7 +78,7 @@ const Index = () => {
                         <div className={styles.eachInfo}>
                             <div className={styles.creatorTwitter}>
                                 <img src={`https://pbs.twimg.com/profile_images/1917530332145807360/LgkIGAjO.jpg`} alt="Creator Twitter" width={36} height={36} />
-                                <Link href={`https://twitter.com/metasal_`} target="_blank" rel="noopener noreferrer">@metasal_</Link>
+                                <Link href={`https://twitter.com/metasal`} target="_blank" rel="noopener noreferrer">@metasal</Link>
                             </div>
                             <span>0.0% fees</span>
                         </div>
@@ -111,7 +111,7 @@ const Index = () => {
                 </div>
 
                 <div className={styles.creatorCard}>
-                    <span className={styles.title}>📊 Token Informatio</span>
+                    <span className={styles.title}>📊 Token Information</span>
                     <div className={styles.cardInfo}>
                         <div className={styles.eachInfo}>
                             <span className={styles.label}>Token Address:</span>
@@ -129,31 +129,6 @@ const Index = () => {
                             <span className={styles.label}>View on Bags:</span>
                             <Link href={`https://bags.fm/${SEEKER_TOKEN_ADDRESS}`} target="_blank" rel="noopener noreferrer">
                                 <span>open -&gt;</span>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-                <div className={styles.creatorCard}>
-                    <span className={styles.title}>🔗 Related Links</span>
-                    <div className={styles.cardInfo}>
-                        <div className={styles.eachInfo}>
-                            <span className={styles.label}>Seeker Tracker:</span>
-                            <Link href={`/`} >
-                                <span>Home -&gt;</span>
-                            </Link>
-                        </div>
-                        <hr />
-                        <div className={styles.eachInfo}>
-                            <span className={styles.label}>Domain Search:</span>
-                            <Link href={`/`} >
-                                <span>Search Domains -&gt;</span>
-                            </Link>
-                        </div>
-                        <hr />
-                        <div className={styles.eachInfo}>
-                            <span className={styles.label}>Latest Domains:</span>
-                            <Link href={`https://bags.fm/${SEEKER_TOKEN_ADDRESS}`} target="_blank" rel="noopener noreferrer">
-                                <span>View Newest -&gt;</span>
                             </Link>
                         </div>
                     </div>

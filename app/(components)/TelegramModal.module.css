@@ -1,0 +1,102 @@
+.modal {
+    position: fixed;
+    bottom: 1.5em;
+    right: 1.5em;
+    background: #111;
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 1em;
+    width: 280px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.closeButton {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    width: 1.5em;
+    height: 1.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #606060;
+    font-size: 1em;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.closeButton:hover {
+    color: #a0a0a0;
+}
+
+.content {
+    padding: 1.25em;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.content h2 {
+    margin: 0;
+    font-size: 1em;
+    color: #fff;
+    font-weight: 600;
+}
+
+.content p {
+    margin: 0;
+    font-size: 0.8em;
+    color: #a0a0a0;
+    line-height: 1.4;
+}
+
+.joinButton {
+    margin-top: 0.5em;
+    padding: 0.7em 1.5em;
+    background: linear-gradient(45deg, #0088cc, #00a8e8);
+    border: none;
+    border-radius: 0.75em;
+    color: #fff;
+    font-size: 0.85em;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+}
+
+.joinButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 136, 204, 0.4);
+}
+
+.dismissButton {
+    padding: 0.5em;
+    background: transparent;
+    border: none;
+    color: #606060;
+    font-size: 0.75em;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.dismissButton:hover {
+    color: #a0a0a0;
+}
