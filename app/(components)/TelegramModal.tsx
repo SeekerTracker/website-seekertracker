@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./TelegramModal.module.css";
 import Link from "next/link";
+import { analytics } from "app/(utils)/lib/analytics";
 
 const STORAGE_KEY = "seekertracker_telegram_modal_dismissed";
 
@@ -22,6 +23,12 @@ export default function TelegramModal() {
     const handleClose = () => {
         setIsOpen(false);
         localStorage.setItem(STORAGE_KEY, Date.now().toString());
+        analytics.telegramDismiss();
+    };
+
+    const handleJoin = () => {
+        analytics.telegramJoin();
+        handleClose();
     };
 
     if (!isOpen) return null;
@@ -40,7 +47,7 @@ export default function TelegramModal() {
                     href="https://t.me/seekertracker"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={handleClose}
+                    onClick={handleJoin}
                 >
                     <button className={styles.joinButton}>
                         Join Channel

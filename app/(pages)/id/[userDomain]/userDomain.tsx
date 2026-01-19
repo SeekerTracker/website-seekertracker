@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { TimeAgo } from 'app/(components)/seekerCard';
 import { notFound } from 'next/navigation';
 import { getPortfolio, formatUsd, formatBalance, PortfolioData } from 'app/(utils)/lib/portfolio';
+import { analytics } from 'app/(utils)/lib/analytics';
 
 
 const UserDomain = ({ userDomain }: { userDomain: string }) => {
@@ -27,6 +28,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
     const [copyDomainLinkSuccess, setCopyDomainLinkSuccess] = useState('');
 
     useEffect(() => {
+        analytics.domainView(userDomain);
         const fetchDomainData = async () => {
             try {
                 const fetchedData = await getOnchainDomainData(domain, subdomain)
@@ -80,6 +82,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
     const imageLink = `${webDomain}/image/${subdomain}?age=true`;
 
     const copyToClipboard = async (type: 'imageLink' | 'DomainLink' | 'image') => {
+        analytics.domainShare(userDomain, 'copy');
         if (type === 'image') {
             try {
                 const imageBlob = await fetch(imageLink).then(res => res.blob());
@@ -301,7 +304,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     <div className={styles.manualCopy}>
                         <span className={styles.showLink} onClick={() => copyToClipboard('imageLink')}>{imageLink}</span>
                         <button className={styles.copyButton} onClick={() => copyToClipboard('imageLink')}>{copyImageLinkSuccess ? '✅ Copied!' : 'Copy Image URL'}</button>
-                        <Link href={`https://x.com/intent/tweet?text=${encodeURIComponent(`Check out ${userDomain} on @Seeker_Tracker 🔥`)}&url=${encodeURIComponent(`https://seekertracker.com/id/${userDomain}`)}`} target='_blank' rel="noopener noreferrer">
+                        <Link href={`https://x.com/intent/tweet?text=${encodeURIComponent(`Check out ${userDomain} on @Seeker_Tracker 🔥`)}&url=${encodeURIComponent(`https://seekertracker.com/id/${userDomain}`)}`} target='_blank' rel="noopener noreferrer" onClick={() => analytics.domainShare(userDomain, 'tweet')}>
                             <button className={styles.tweetButton}>Tweet</button>
                         </Link>
                     </div>

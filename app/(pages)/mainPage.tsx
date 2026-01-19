@@ -7,6 +7,7 @@ import { DomainInfo } from 'app/(utils)/constantTypes'
 import SeekerCard from 'app/(components)/seekerCard'
 import Link from 'next/link';
 import TelegramModal from 'app/(components)/TelegramModal';
+import { analytics } from 'app/(utils)/lib/analytics';
 
 
 const MainPage = () => {
@@ -190,6 +191,9 @@ const MainPage = () => {
 
     const handleTextSearch = (text: string) => {
         if (!backendWS) return;
+        if (text.trim()) {
+            analytics.domainSearch(text.trim());
+        }
         backendWS.emit("getDomains", {
             query: text,
             limit: pageLimit,
