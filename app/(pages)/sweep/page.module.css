@@ -1,0 +1,303 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    padding: 0 2em;
+    width: 100%;
+    gap: 2em;
+    justify-content: center;
+    align-items: center;
+}
+
+.backButton {
+    display: flex;
+    background: linear-gradient(45deg, #00ff66, #00cc52);
+    color: black;
+    align-self: flex-start;
+    justify-self: flex-start;
+    padding: 0.5em 1em;
+    font-size: 0.9em;
+    border-radius: 1em;
+    cursor: pointer;
+}
+
+.topBar {
+    display: flex;
+    width: 100%;
+    gap: 0.5em;
+    flex-direction: column;
+    align-items: center;
+    padding: 2em 1em;
+    border-radius: 1em;
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    background: rgba(0, 255, 217, 0.05);
+    text-align: center;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    font-size: 2.5em;
+    font-weight: 700;
+    background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.tokenDesc {
+    font-size: 1.2em;
+    color: #a0a0a0;
+}
+
+.infoCards {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(17.5em, 1fr));
+    justify-items: center;
+    gap: 1.5em;
+}
+
+.infoCard {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 1.5em;
+    background: rgba(0, 255, 217, 0.1);
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 0.75em;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    width: calc(min(17.5em, 90%));
+    gap: 0.5em;
+}
+
+.infoCard:hover {
+    transform: translateY(-5px);
+    border-color: #00ffd9;
+    box-shadow: 0 5px 25px rgba(0, 255, 217, 0.2);
+}
+
+.cardIcon {
+    font-size: 2.5em;
+}
+
+.cardTitle {
+    font-size: 0.9rem;
+    color: #c0c0c0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cardValue {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #00ffd9;
+}
+
+.cardDesc {
+    font-size: 0.85rem;
+    color: #808080;
+}
+
+.howItWorks {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 900px;
+    padding: 2em;
+    background: rgba(17, 17, 17, 0.8);
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    border-radius: 0.75em;
+    gap: 1.5em;
+}
+
+.sectionTitle {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #00ffd9;
+    text-align: center;
+}
+
+.steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5em;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5em;
+    padding: 1em;
+}
+
+.stepNumber {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5em;
+    height: 2.5em;
+    background: linear-gradient(45deg, #00ffd9, #00ff66);
+    color: black;
+    font-weight: 700;
+    font-size: 1.25em;
+    border-radius: 50%;
+}
+
+.stepTitle {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #ededed;
+}
+
+.stepDesc {
+    font-size: 0.9em;
+    color: #a0a0a0;
+}
+
+.announcements {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
+    width: 100%;
+    max-width: 700px;
+    padding: 1.5em 2em;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 140, 0, 0.1));
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    border-radius: 1em;
+    animation: announcementPulse 2s ease-in-out infinite;
+}
+
+.announcementIcon {
+    font-size: 2em;
+}
+
+.announcementText {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #ffd700;
+}
+
+.telegramButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6em 1.2em;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(45deg, #0088cc, #00aaff);
+    border: none;
+    border-radius: 0.5em;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.telegramButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 136, 204, 0.4);
+}
+
+@keyframes announcementPulse {
+    0%, 100% {
+        border-color: rgba(255, 215, 0, 0.5);
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+    50% {
+        border-color: rgba(255, 215, 0, 0.8);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+}
+
+.eligibility {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 600px;
+    padding: 2em;
+    background: rgba(17, 17, 17, 0.8);
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    border-radius: 0.75em;
+    gap: 1.5em;
+}
+
+.requirements {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    font-size: 1em;
+    color: #c0c0c0;
+}
+
+.checkmark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5em;
+    height: 1.5em;
+    background: linear-gradient(45deg, #00ff66, #00e6c0);
+    color: black;
+    font-weight: 700;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.disclaimer {
+    font-size: 0.85em;
+    color: #606060;
+    font-style: italic;
+}
+
+@media (max-width: 760px) {
+    .main {
+        padding: 0 1em;
+    }
+
+    .header {
+        font-size: 1.8em;
+    }
+
+    .tokenDesc {
+        font-size: 1em;
+    }
+
+    .infoCards {
+        grid-template-columns: 1fr;
+    }
+
+    .infoCard {
+        width: 100%;
+    }
+
+    .steps {
+        grid-template-columns: 1fr;
+    }
+
+    .howItWorks,
+    .eligibility {
+        padding: 1.5em;
+    }
+
+    .announcements {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.2em;
+    }
+
+    .announcementText {
+        font-size: 1em;
+    }
+}

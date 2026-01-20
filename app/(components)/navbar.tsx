@@ -81,14 +81,19 @@ const Navbar = () => {
                 </span>
             </div>
 
-            <button
-                className={styles.buyButton}
-                onClick={openJupiter}
-                disabled={!isJupiterReady}
-                title="Buy $TRACKER"
-            >
-                Buy $TRACKER
-            </button>
+            <div className={styles.navButtons}>
+                <Link href="/sweep" className={styles.sweepButton}>
+                    Sweep
+                </Link>
+                <button
+                    className={styles.buyButton}
+                    onClick={openJupiter}
+                    disabled={!isJupiterReady}
+                    title="Buy $TRACKER"
+                >
+                    Buy $TRACKER
+                </button>
+            </div>
 
             <div className={styles.socialMediaTab}>
                 <div
