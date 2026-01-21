@@ -52,11 +52,26 @@ export async function GET() {
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%)",
+                    background: "linear-gradient(135deg, #003333 0%, #001a1a 50%, #000000 100%)",
                     fontFamily: "system-ui, sans-serif",
+                    position: "relative",
                 }}
             >
-                {/* Border glow effect */}
+                {/* Grid pattern overlay */}
+                <div
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundImage: "linear-gradient(rgba(0, 255, 217, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 217, 0.08) 1px, transparent 1px)",
+                        backgroundSize: "50px 50px",
+                        display: "flex",
+                    }}
+                />
+
+                {/* Content card */}
                 <div
                     style={{
                         display: "flex",
@@ -65,9 +80,9 @@ export async function GET() {
                         justifyContent: "center",
                         padding: "40px 60px",
                         borderRadius: "24px",
-                        border: "2px solid rgba(0, 255, 217, 0.5)",
-                        background: "rgba(0, 0, 0, 0.6)",
-                        boxShadow: "0 0 60px rgba(0, 255, 217, 0.2)",
+                        border: "2px solid rgba(0, 255, 217, 0.4)",
+                        background: "linear-gradient(135deg, rgba(0, 51, 51, 0.8) 0%, rgba(0, 26, 26, 0.9) 100%)",
+                        boxShadow: "0 0 80px rgba(0, 255, 217, 0.15), inset 0 0 60px rgba(0, 255, 217, 0.05)",
                     }}
                 >
                     {/* Title */}
@@ -106,19 +121,21 @@ export async function GET() {
                                 flexDirection: "column",
                                 alignItems: "center",
                                 padding: "24px 40px",
-                                background: "rgba(0, 255, 217, 0.1)",
+                                background: "linear-gradient(135deg, rgba(0, 255, 217, 0.1) 0%, rgba(0, 255, 102, 0.1) 100%)",
                                 borderRadius: "16px",
                                 border: "1px solid rgba(0, 255, 217, 0.3)",
                             }}
                         >
-                            <span style={{ fontSize: "20px", color: "#a0a0a0", marginBottom: "8px" }}>
-                                STAKERS
+                            <span style={{ fontSize: "18px", color: "#a0a0a0", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                Stakers
                             </span>
                             <span
                                 style={{
                                     fontSize: "48px",
                                     fontWeight: "bold",
-                                    color: "#00ffd9",
+                                    background: "linear-gradient(45deg, #00ffd9, #00ff66)",
+                                    backgroundClip: "text",
+                                    color: "transparent",
                                 }}
                             >
                                 {formatNumber(data.stakerCount)}
@@ -132,19 +149,21 @@ export async function GET() {
                                 flexDirection: "column",
                                 alignItems: "center",
                                 padding: "24px 40px",
-                                background: "rgba(0, 255, 217, 0.1)",
+                                background: "linear-gradient(135deg, rgba(0, 255, 217, 0.1) 0%, rgba(0, 255, 102, 0.1) 100%)",
                                 borderRadius: "16px",
                                 border: "1px solid rgba(0, 255, 217, 0.3)",
                             }}
                         >
-                            <span style={{ fontSize: "20px", color: "#a0a0a0", marginBottom: "8px" }}>
-                                ALLOCATIONS
+                            <span style={{ fontSize: "18px", color: "#a0a0a0", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                Allocations
                             </span>
                             <span
                                 style={{
                                     fontSize: "48px",
                                     fontWeight: "bold",
-                                    color: "#00ffd9",
+                                    background: "linear-gradient(45deg, #00ffd9, #00ff66)",
+                                    backgroundClip: "text",
+                                    color: "transparent",
                                 }}
                             >
                                 {formatNumber(data.totalAllocations)}
@@ -158,19 +177,21 @@ export async function GET() {
                                 flexDirection: "column",
                                 alignItems: "center",
                                 padding: "24px 40px",
-                                background: "rgba(0, 255, 217, 0.1)",
+                                background: "linear-gradient(135deg, rgba(0, 255, 217, 0.1) 0%, rgba(0, 255, 102, 0.1) 100%)",
                                 borderRadius: "16px",
                                 border: "1px solid rgba(0, 255, 217, 0.3)",
                             }}
                         >
-                            <span style={{ fontSize: "20px", color: "#a0a0a0", marginBottom: "8px" }}>
-                                TOTAL SKR
+                            <span style={{ fontSize: "18px", color: "#a0a0a0", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                Total SKR
                             </span>
                             <span
                                 style={{
                                     fontSize: "48px",
                                     fontWeight: "bold",
-                                    color: "#00ffd9",
+                                    background: "linear-gradient(45deg, #00ffd9, #00ff66)",
+                                    backgroundClip: "text",
+                                    color: "transparent",
                                 }}
                             >
                                 {formatNumber(data.grandTotal)}
@@ -183,8 +204,9 @@ export async function GET() {
                         style={{
                             display: "flex",
                             marginTop: "20px",
-                            color: "#606060",
-                            fontSize: "18px",
+                            color: "#00ffd9",
+                            fontSize: "20px",
+                            opacity: 0.7,
                         }}
                     >
                         seekertracker.com/skr
