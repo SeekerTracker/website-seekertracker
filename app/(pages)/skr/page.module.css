@@ -49,6 +49,108 @@
     color: #a0a0a0;
 }
 
+.vaultSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5em 2em;
+    background: linear-gradient(135deg, rgba(0, 255, 217, 0.1), rgba(0, 255, 102, 0.1));
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 1em;
+    gap: 0.75em;
+    width: 100%;
+    max-width: 400px;
+}
+
+.vaultHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+}
+
+.vaultTitle {
+    font-size: 1em;
+    font-weight: 600;
+    color: #a0a0a0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.refreshButton {
+    padding: 0.25em 0.5em;
+    font-size: 1.1em;
+    background: transparent;
+    color: #00ffd9;
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 0.3em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.refreshButton:hover:not(:disabled) {
+    background: rgba(0, 255, 217, 0.1);
+    border-color: #00ffd9;
+}
+
+.refreshButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vaultContent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.vaultBalance {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+}
+
+.vaultAmount {
+    font-size: 2.5em;
+    font-weight: 700;
+    background: linear-gradient(45deg, #00ffd9, #00ff66);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.vaultToken {
+    font-size: 1.25em;
+    font-weight: 600;
+    color: #00ffd9;
+}
+
+.vaultUsd {
+    font-size: 1.1em;
+    color: #c0c0c0;
+}
+
+.vaultAddress {
+    font-size: 0.85em;
+    color: #808080;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.vaultAddress:hover {
+    color: #00ffd9;
+}
+
+.vaultLoading {
+    color: #808080;
+    font-style: italic;
+}
+
+.vaultError {
+    color: #ff6b6b;
+    font-size: 0.9em;
+}
+
 .searchSection {
     display: flex;
     flex-direction: column;

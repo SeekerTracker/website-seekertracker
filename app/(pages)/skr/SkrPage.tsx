@@ -20,6 +20,16 @@ interface AllocationData {
     currentBalance: number;
 }
 
+interface VaultData {
+    success: boolean;
+    vault: string;
+    skrMint: string;
+    skrBalance: number;
+    skrUsdValue: number;
+    skrPrice: number;
+    lastUpdated: number;
+}
+
 const SkrPage = () => {
     const searchParams = useSearchParams();
     const [input, setInput] = useState("");
@@ -29,6 +39,29 @@ const SkrPage = () => {
     const [resolvedWallet, setResolvedWallet] = useState<string | null>(null);
     const [resolvedDomain, setResolvedDomain] = useState<string | null>(null);
     const [initialSearchDone, setInitialSearchDone] = useState(false);
+    const [vaultData, setVaultData] = useState<VaultData | null>(null);
+    const [vaultLoading, setVaultLoading] = useState(true);
+
+    // Fetch vault balance
+    const fetchVault = async () => {
+        setVaultLoading(true);
+        try {
+            const res = await fetch("/api/skr/vault");
+            if (res.ok) {
+                const data = await res.json();
+                setVaultData(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch vault:", err);
+        } finally {
+            setVaultLoading(false);
+        }
+    };
+
+    // Fetch vault balance on mount
+    useEffect(() => {
+        fetchVault();
+    }, []);
 
     const isSkrDomain = (value: string): boolean => {
         return value.toLowerCase().includes(".skr") || !value.includes(".");
@@ -201,6 +234,45 @@ const SkrPage = () => {
                 <span className={styles.tokenDesc}>
                     Check your SKR token allocation by .skr domain or wallet address
                 </span>
+            </div>
+
+            <div className={styles.vaultSection}>
+                <div className={styles.vaultHeader}>
+                    <span className={styles.vaultTitle}>Seeker Vault Balance</span>
+                    <button
+                        className={styles.refreshButton}
+                        onClick={fetchVault}
+                        disabled={vaultLoading}
+                        title="Refresh"
+                    >
+                        {vaultLoading ? "..." : "↻"}
+                    </button>
+                </div>
+                {vaultLoading ? (
+                    <span className={styles.vaultLoading}>Loading...</span>
+                ) : vaultData ? (
+                    <div className={styles.vaultContent}>
+                        <div className={styles.vaultBalance}>
+                            <span className={styles.vaultAmount}>
+                                {formatNumber(Math.floor(vaultData.skrBalance))}
+                            </span>
+                            <span className={styles.vaultToken}>SKR</span>
+                        </div>
+                        <span className={styles.vaultUsd}>
+                            ${vaultData.skrUsdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                        </span>
+                        <Link
+                            href={`https://solscan.io/account/${vaultData.vault}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.vaultAddress}
+                        >
+                            {vaultData.vault.slice(0, 4)}...{vaultData.vault.slice(-4)}
+                        </Link>
+                    </div>
+                ) : (
+                    <span className={styles.vaultError}>Failed to load vault balance</span>
+                )}
             </div>
 
             <div className={styles.searchSection}>
