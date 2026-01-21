@@ -187,7 +187,7 @@ export async function GET() {
                             fontSize: "18px",
                         }}
                     >
-                        seekertracker.xyz/skr
+                        seekertracker.com/skr
                     </div>
                 </div>
             </div>
