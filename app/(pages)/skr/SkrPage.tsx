@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { getOnchainDomainData } from "../../(utils)/onchainData";
@@ -20,12 +21,14 @@ interface AllocationData {
 }
 
 const SkrPage = () => {
+    const searchParams = useSearchParams();
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [allocationData, setAllocationData] = useState<AllocationData | null>(null);
     const [resolvedWallet, setResolvedWallet] = useState<string | null>(null);
     const [resolvedDomain, setResolvedDomain] = useState<string | null>(null);
+    const [initialSearchDone, setInitialSearchDone] = useState(false);
 
     const isSkrDomain = (value: string): boolean => {
         return value.toLowerCase().includes(".skr") || !value.includes(".");
@@ -34,6 +37,23 @@ const SkrPage = () => {
     const isValidSolanaAddress = (value: string): boolean => {
         return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value);
     };
+
+    // Auto-search if query parameter is provided
+    useEffect(() => {
+        const query = searchParams.get("q");
+        if (query && !initialSearchDone) {
+            setInput(query);
+            setInitialSearchDone(true);
+        }
+    }, [searchParams, initialSearchDone]);
+
+    // Trigger search when input is set from query param
+    useEffect(() => {
+        if (initialSearchDone && input && !loading && !allocationData) {
+            handleSearch();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialSearchDone, input]);
 
     const handleSearch = async () => {
         const trimmedInput = input.trim();

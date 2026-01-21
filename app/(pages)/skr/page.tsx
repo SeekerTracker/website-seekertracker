@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import SkrPage from "./SkrPage";
 import type { Metadata } from "next";
 
@@ -8,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-    return <SkrPage />;
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <SkrPage />
+        </Suspense>
+    );
 }

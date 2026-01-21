@@ -212,6 +212,9 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
 
                 </div>
 
+                <Link href={`/skr?q=${userDomain}`} className={styles.skrButton}>
+                    Check SKR Allocation
+                </Link>
             </div>
 
             {/* Portfolio Section */}
