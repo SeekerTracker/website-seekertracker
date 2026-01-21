@@ -75,7 +75,7 @@ const Sweep = () => {
             <div className={styles.announcements}>
                 <span className={styles.announcementIcon}>📢</span>
                 <span className={styles.announcementText}>Winners announced hourly in our Telegram channel</span>
-                <Link href="https://t.me/seekertracker" target="_blank" rel="noopener noreferrer" className={styles.telegramButton}>
+                <Link href="https://t.me/seeker_tracker" target="_blank" rel="noopener noreferrer" className={styles.telegramButton}>
                     Join Telegram
                 </Link>
             </div>

@@ -44,7 +44,7 @@ export default function TelegramModal() {
                     Join our Telegram channel for real-time alerts and alpha.
                 </p>
                 <Link
-                    href="https://t.me/seekertracker"
+                    href="https://t.me/seeker_tracker"
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={handleJoin}

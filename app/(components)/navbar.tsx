@@ -45,7 +45,7 @@ export const socialMediaLinks = [
     {
         name: "Telegram",
         title: "Official Telegram Channel",
-        url: "https://t.me/SeekerTracker",
+        url: "https://t.me/seeker_tracker",
         icon: "/icons/tg.png",
     },
     {
