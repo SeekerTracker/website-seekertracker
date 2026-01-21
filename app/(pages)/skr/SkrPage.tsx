@@ -178,6 +178,19 @@ const SkrPage = () => {
         return num.toLocaleString();
     };
 
+    const formatCompact = (num: number): string => {
+        if (num >= 1_000_000_000) {
+            return (num / 1_000_000_000).toFixed(2) + 'B';
+        }
+        if (num >= 1_000_000) {
+            return (num / 1_000_000).toFixed(2) + 'M';
+        }
+        if (num >= 1_000) {
+            return (num / 1_000).toFixed(1) + 'K';
+        }
+        return num.toLocaleString();
+    };
+
     const [copied, setCopied] = useState<string | null>(null);
     const [showStats, setShowStats] = useState(false);
     const [statsData, setStatsData] = useState<{
@@ -257,27 +270,27 @@ const SkrPage = () => {
             {vaultData && (
                 <div className={styles.tokenStatsContainer}>
                     <div className={styles.tokenStatItem}>
-                        <span className={styles.tokenStatLabel}>Total Supply</span>
+                        <span className={styles.tokenStatLabel}>Price</span>
                         <span className={styles.tokenStatValue}>
-                            {formatNumber(Math.floor(vaultData.totalSupply))} SKR
+                            ${vaultData.skrPrice.toFixed(6)}
                         </span>
                     </div>
                     <div className={styles.tokenStatItem}>
                         <span className={styles.tokenStatLabel}>Market Cap</span>
                         <span className={styles.tokenStatValue}>
-                            ${vaultData.marketCap.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            ${formatCompact(vaultData.marketCap)}
                         </span>
                     </div>
                     <div className={styles.tokenStatItem}>
-                        <span className={styles.tokenStatLabel}>Total Holders</span>
+                        <span className={styles.tokenStatLabel}>Supply</span>
                         <span className={styles.tokenStatValue}>
-                            {formatNumber(vaultData.totalHolders)}
+                            {formatCompact(vaultData.totalSupply)}
                         </span>
                     </div>
                     <div className={styles.tokenStatItem}>
-                        <span className={styles.tokenStatLabel}>Price</span>
+                        <span className={styles.tokenStatLabel}>Holders</span>
                         <span className={styles.tokenStatValue}>
-                            ${vaultData.skrPrice.toFixed(6)}
+                            {formatCompact(vaultData.totalHolders)}
                         </span>
                     </div>
                 </div>
