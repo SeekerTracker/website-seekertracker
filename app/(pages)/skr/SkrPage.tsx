@@ -332,7 +332,7 @@ const SkrPage = () => {
                 <span className={styles.shareLabel}>Share SKR Stats</span>
                 <div className={styles.shareButtons}>
                     <a
-                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out SKR Season 1 Stats!")}&url=${encodeURIComponent("https://seekertracker.xyz/skr")}`}
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out SKR Season 1 Stats!")}&url=${encodeURIComponent("https://seekertracker.com/skr")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.shareButtonX}
@@ -340,7 +340,7 @@ const SkrPage = () => {
                         Share on X
                     </a>
                     <a
-                        href={`https://t.me/share/url?url=${encodeURIComponent("https://seekertracker.xyz/skr")}&text=${encodeURIComponent("Check out SKR Season 1 Stats!")}`}
+                        href={`https://t.me/share/url?url=${encodeURIComponent("https://seekertracker.com/skr")}&text=${encodeURIComponent("Check out SKR Season 1 Stats!")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.shareButtonTg}
