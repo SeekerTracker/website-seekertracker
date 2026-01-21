@@ -82,6 +82,9 @@ const Navbar = () => {
             </div>
 
             <div className={styles.navButtons}>
+                <Link href="/skr" className={styles.skrButton}>
+                    SKR
+                </Link>
                 <Link href="/sweep" className={styles.sweepButton}>
                     Sweep
                 </Link>

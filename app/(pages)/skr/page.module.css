@@ -1,0 +1,381 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    padding: 0 2em;
+    width: 100%;
+    gap: 2em;
+    justify-content: center;
+    align-items: center;
+}
+
+.backButton {
+    display: flex;
+    background: linear-gradient(45deg, #00ff66, #00cc52);
+    color: black;
+    align-self: flex-start;
+    justify-self: flex-start;
+    padding: 0.5em 1em;
+    font-size: 0.9em;
+    border-radius: 1em;
+    cursor: pointer;
+}
+
+.topBar {
+    display: flex;
+    width: 100%;
+    gap: 0.5em;
+    flex-direction: column;
+    align-items: center;
+    padding: 2em 1em;
+    border-radius: 1em;
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    background: rgba(0, 255, 217, 0.05);
+    text-align: center;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    font-size: 2.5em;
+    font-weight: 700;
+    background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.tokenDesc {
+    font-size: 1.2em;
+    color: #a0a0a0;
+}
+
+.searchSection {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 700px;
+    gap: 1em;
+}
+
+.searchBox {
+    display: flex;
+    gap: 0.5em;
+    width: 100%;
+}
+
+.searchInput {
+    flex: 1;
+    padding: 1em 1.5em;
+    font-size: 1em;
+    font-family: inherit;
+    background: rgba(17, 17, 17, 0.8);
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 0.75em;
+    color: #ededed;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+    border-color: #00ffd9;
+    box-shadow: 0 0 15px rgba(0, 255, 217, 0.2);
+}
+
+.searchInput::placeholder {
+    color: #606060;
+}
+
+.searchButton {
+    padding: 1em 2em;
+    font-size: 1em;
+    font-weight: 600;
+    font-family: inherit;
+    background: linear-gradient(45deg, #00ffd9, #00ff66);
+    color: #000;
+    border: none;
+    border-radius: 0.75em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.searchButton:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 217, 0.4);
+}
+
+.searchButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.error {
+    padding: 1em;
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    border-radius: 0.5em;
+    color: #ff6b6b;
+    text-align: center;
+}
+
+.statsButton {
+    padding: 0.75em 1.5em;
+    font-size: 1em;
+    font-weight: 600;
+    font-family: inherit;
+    background: linear-gradient(45deg, #ffd700, #ff8c00);
+    color: #000;
+    border: none;
+    border-radius: 0.75em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.statsButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+}
+
+.resultsSection {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 700px;
+    gap: 1.5em;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.resolvedInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+    padding: 0.75em 1.5em;
+    background: rgba(0, 255, 217, 0.1);
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 2em;
+}
+
+.resolvedDomain {
+    font-weight: 600;
+    color: #00ffd9;
+}
+
+.resolvedArrow {
+    color: #606060;
+}
+
+.resolvedWallet {
+    color: #a0a0a0;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.resolvedWallet:hover {
+    color: #00ffd9;
+}
+
+.statusBadge {
+    display: flex;
+    justify-content: center;
+}
+
+.claimStatus {
+    padding: 0.5em 1.5em;
+    font-size: 1em;
+    font-weight: 600;
+    border-radius: 2em;
+}
+
+.claimed {
+    background: linear-gradient(45deg, #00ff66, #00e6c0);
+    color: #000;
+}
+
+.unclaimed {
+    background: rgba(255, 165, 0, 0.2);
+    border: 1px solid rgba(255, 165, 0, 0.5);
+    color: #ffa500;
+}
+
+.infoCards {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    justify-items: center;
+    gap: 1.5em;
+}
+
+.infoCard {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 1.5em;
+    background: rgba(0, 255, 217, 0.1);
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 0.75em;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    width: calc(min(15em, 90%));
+    gap: 0.5em;
+}
+
+.infoCard:hover {
+    transform: translateY(-5px);
+    border-color: #00ffd9;
+    box-shadow: 0 5px 25px rgba(0, 255, 217, 0.2);
+}
+
+.cardTitle {
+    font-size: 0.9rem;
+    color: #c0c0c0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.cardValue {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #00ffd9;
+}
+
+.cardDesc {
+    font-size: 0.85rem;
+    color: #808080;
+}
+
+.detailsSection {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 700px;
+    padding: 2em;
+    background: rgba(17, 17, 17, 0.8);
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    border-radius: 0.75em;
+    gap: 1.5em;
+}
+
+.sectionTitle {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #00ffd9;
+    text-align: center;
+}
+
+.detailsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.detailRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75em 0;
+    border-bottom: 1px solid rgba(0, 255, 217, 0.1);
+}
+
+.detailRow:last-child {
+    border-bottom: none;
+}
+
+.detailLabel {
+    font-size: 0.95em;
+    color: #a0a0a0;
+}
+
+.detailValue {
+    font-size: 0.95em;
+    color: #ededed;
+    text-decoration: none;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.detailValue:hover {
+    color: #00ffd9;
+}
+
+.addressGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.copyButton {
+    padding: 0.3em 0.6em;
+    font-size: 0.8em;
+    font-family: inherit;
+    background: rgba(0, 255, 217, 0.2);
+    color: #00ffd9;
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 0.3em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.copyButton:hover {
+    background: rgba(0, 255, 217, 0.3);
+    border-color: #00ffd9;
+}
+
+.disclaimer {
+    font-size: 0.85em;
+    color: #606060;
+    font-style: italic;
+    text-align: center;
+    max-width: 500px;
+}
+
+@media (max-width: 760px) {
+    .main {
+        padding: 0 1em;
+    }
+
+    .header {
+        font-size: 1.8em;
+    }
+
+    .tokenDesc {
+        font-size: 1em;
+    }
+
+    .searchBox {
+        flex-direction: column;
+    }
+
+    .searchButton {
+        width: 100%;
+    }
+
+    .infoCards {
+        grid-template-columns: 1fr;
+    }
+
+    .infoCard {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .detailsSection {
+        padding: 1.5em;
+    }
+
+    .detailRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5em;
+    }
+
+    .detailValue {
+        max-width: 100%;
+        text-align: left;
+    }
+}

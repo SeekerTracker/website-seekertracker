@@ -1,0 +1,289 @@
+"use client";
+
+import React, { useState } from "react";
+import styles from "./page.module.css";
+import Link from "next/link";
+import { getOnchainDomainData } from "../../(utils)/onchainData";
+
+interface AllocationData {
+    success: boolean;
+    wallet: string;
+    claimStatusPDA: string;
+    hasClaimed: boolean;
+    claimDetails: {
+        lockedAmount: number;
+        lockedWithdrawn: number;
+        unlockedAmount: number;
+        totalAllocation: number;
+    };
+    currentBalance: number;
+}
+
+const SkrPage = () => {
+    const [input, setInput] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [allocationData, setAllocationData] = useState<AllocationData | null>(null);
+    const [resolvedWallet, setResolvedWallet] = useState<string | null>(null);
+    const [resolvedDomain, setResolvedDomain] = useState<string | null>(null);
+
+    const isSkrDomain = (value: string): boolean => {
+        return value.toLowerCase().includes(".skr") || !value.includes(".");
+    };
+
+    const isValidSolanaAddress = (value: string): boolean => {
+        return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value);
+    };
+
+    const handleSearch = async () => {
+        const trimmedInput = input.trim();
+        if (!trimmedInput) {
+            setError("Please enter a .skr domain or wallet address");
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+        setAllocationData(null);
+        setResolvedWallet(null);
+        setResolvedDomain(null);
+
+        try {
+            let walletAddress: string;
+
+            if (isValidSolanaAddress(trimmedInput)) {
+                walletAddress = trimmedInput;
+            } else {
+                let domainName = trimmedInput.toLowerCase();
+                if (!domainName.endsWith(".skr")) {
+                    domainName = domainName + ".skr";
+                }
+                setResolvedDomain(domainName);
+
+                const parts = domainName.split(".");
+                const subdomain = parts[0];
+                const domain = "." + parts[1];
+
+                const domainData = await getOnchainDomainData(domain, subdomain);
+                if (!domainData || !domainData.owner) {
+                    setError(`Could not find owner for ${domainName}`);
+                    setLoading(false);
+                    return;
+                }
+
+                walletAddress = domainData.owner;
+                setResolvedWallet(walletAddress);
+            }
+
+            const response = await fetch(`/api/allocation/${walletAddress}`);
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    setError("No allocation found for this wallet");
+                } else {
+                    setError("Failed to fetch allocation data");
+                }
+                setLoading(false);
+                return;
+            }
+
+            const data: AllocationData = await response.json();
+            setAllocationData(data);
+        } catch (err) {
+            console.error("Error fetching allocation:", err);
+            setError("An error occurred while fetching data");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            handleSearch();
+        }
+    };
+
+    const formatNumber = (num: number): string => {
+        return num.toLocaleString();
+    };
+
+    const [copied, setCopied] = useState<string | null>(null);
+    const [showComingSoon, setShowComingSoon] = useState(false);
+
+    const handleStatsClick = () => {
+        setShowComingSoon(true);
+        setTimeout(() => setShowComingSoon(false), 2000);
+    };
+
+    const copyToClipboard = async (text: string, label: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(label);
+            setTimeout(() => setCopied(null), 2000);
+        } catch (err) {
+            console.error("Failed to copy:", err);
+        }
+    };
+
+    return (
+        <div className={styles.main}>
+            <div className={styles.backButton}>
+                <Link href="/">← Back to Tracker</Link>
+            </div>
+
+            <div className={styles.topBar}>
+                <span className={styles.header}>SKR Allocation Checker</span>
+                <span className={styles.tokenDesc}>
+                    Check your SKR token allocation by .skr domain or wallet address
+                </span>
+            </div>
+
+            <div className={styles.searchSection}>
+                <div className={styles.searchBox}>
+                    <input
+                        type="text"
+                        placeholder="Enter .skr domain (e.g. sal.skr) or wallet address"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className={styles.searchInput}
+                    />
+                    <button
+                        onClick={handleSearch}
+                        disabled={loading}
+                        className={styles.searchButton}
+                    >
+                        {loading ? "Searching..." : "Check Allocation"}
+                    </button>
+                </div>
+
+                {error && <div className={styles.error}>{error}</div>}
+
+                <button className={styles.statsButton} onClick={handleStatsClick}>
+                    {showComingSoon ? "Coming Soon!" : "SKR Szn 1 Stats"}
+                </button>
+            </div>
+
+            {allocationData && (
+                <div className={styles.resultsSection}>
+                    {resolvedDomain && resolvedWallet && (
+                        <div className={styles.resolvedInfo}>
+                            <span className={styles.resolvedDomain}>{resolvedDomain}</span>
+                            <span className={styles.resolvedArrow}>→</span>
+                            <Link
+                                href={`https://solscan.io/account/${resolvedWallet}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.resolvedWallet}
+                            >
+                                {resolvedWallet.slice(0, 4)}...{resolvedWallet.slice(-4)}
+                            </Link>
+                        </div>
+                    )}
+
+                    <div className={styles.statusBadge}>
+                        <span
+                            className={`${styles.claimStatus} ${
+                                allocationData.hasClaimed ? styles.claimed : styles.unclaimed
+                            }`}
+                        >
+                            {allocationData.hasClaimed ? "Claimed" : "Not Claimed"}
+                        </span>
+                    </div>
+
+                    <div className={styles.infoCards}>
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>Total Allocation</span>
+                            <span className={styles.cardValue}>
+                                {formatNumber(allocationData.claimDetails?.totalAllocation ?? 0)}
+                            </span>
+                            <span className={styles.cardDesc}>SKR tokens allocated</span>
+                        </div>
+
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>Unlocked Amount</span>
+                            <span className={styles.cardValue}>
+                                {formatNumber(allocationData.claimDetails?.unlockedAmount ?? 0)}
+                            </span>
+                            <span className={styles.cardDesc}>Available to claim</span>
+                        </div>
+
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>Locked Amount</span>
+                            <span className={styles.cardValue}>
+                                {formatNumber(allocationData.claimDetails?.lockedAmount ?? 0)}
+                            </span>
+                            <span className={styles.cardDesc}>Still locked</span>
+                        </div>
+
+                        <div className={styles.infoCard}>
+                            <span className={styles.cardTitle}>Current Balance</span>
+                            <span className={styles.cardValue}>
+                                {formatNumber(allocationData.currentBalance ?? 0)}
+                            </span>
+                            <span className={styles.cardDesc}>SKR in wallet</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.detailsSection}>
+                        <span className={styles.sectionTitle}>Details</span>
+                        <div className={styles.detailsList}>
+                            <div className={styles.detailRow}>
+                                <span className={styles.detailLabel}>Wallet</span>
+                                <div className={styles.addressGroup}>
+                                    <Link
+                                        href={`https://solscan.io/account/${allocationData.wallet}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={styles.detailValue}
+                                    >
+                                        {allocationData.wallet.slice(0, 8)}...{allocationData.wallet.slice(-8)}
+                                    </Link>
+                                    <button
+                                        className={styles.copyButton}
+                                        onClick={() => copyToClipboard(allocationData.wallet, "wallet")}
+                                    >
+                                        {copied === "wallet" ? "Copied!" : "Copy"}
+                                    </button>
+                                </div>
+                            </div>
+                            {allocationData.claimStatusPDA && (
+                                <div className={styles.detailRow}>
+                                    <span className={styles.detailLabel}>Claim Status PDA</span>
+                                    <div className={styles.addressGroup}>
+                                        <Link
+                                            href={`https://solscan.io/account/${allocationData.claimStatusPDA}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={styles.detailValue}
+                                        >
+                                            {allocationData.claimStatusPDA.slice(0, 8)}...{allocationData.claimStatusPDA.slice(-8)}
+                                        </Link>
+                                        <button
+                                            className={styles.copyButton}
+                                            onClick={() => copyToClipboard(allocationData.claimStatusPDA, "pda")}
+                                        >
+                                            {copied === "pda" ? "Copied!" : "Copy"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            <div className={styles.detailRow}>
+                                <span className={styles.detailLabel}>Locked Withdrawn</span>
+                                <span className={styles.detailValue}>
+                                    {formatNumber(allocationData.claimDetails?.lockedWithdrawn ?? 0)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <span className={styles.disclaimer}>
+                        * There is a 48-hour cooling off period when you stake, so the information displayed may be inaccurate during this time.
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default SkrPage;
