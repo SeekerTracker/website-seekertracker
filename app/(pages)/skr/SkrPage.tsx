@@ -128,11 +128,39 @@ const SkrPage = () => {
     };
 
     const [copied, setCopied] = useState<string | null>(null);
-    const [showComingSoon, setShowComingSoon] = useState(false);
+    const [showStats, setShowStats] = useState(false);
+    const [statsData, setStatsData] = useState<{
+        generated: string;
+        summary: {
+            totalAllocations: number;
+            totalLocked: number;
+            totalLockedWithdrawn: number;
+            totalUnlocked: number;
+            grandTotal: number;
+        };
+        tiers: { amount: number; count: number; totalTokens: number }[];
+    } | null>(null);
+    const [statsLoading, setStatsLoading] = useState(false);
 
-    const handleStatsClick = () => {
-        setShowComingSoon(true);
-        setTimeout(() => setShowComingSoon(false), 2000);
+    const handleStatsClick = async () => {
+        if (showStats) {
+            setShowStats(false);
+            return;
+        }
+
+        if (!statsData) {
+            setStatsLoading(true);
+            try {
+                const response = await fetch("/skr-stats.json");
+                const data = await response.json();
+                setStatsData(data);
+            } catch (err) {
+                console.error("Failed to load stats:", err);
+            } finally {
+                setStatsLoading(false);
+            }
+        }
+        setShowStats(true);
     };
 
     const copyToClipboard = async (text: string, label: string) => {
@@ -180,9 +208,52 @@ const SkrPage = () => {
                 {error && <div className={styles.error}>{error}</div>}
 
                 <button className={styles.statsButton} onClick={handleStatsClick}>
-                    {showComingSoon ? "Coming Soon!" : "SKR Szn 1 Stats"}
+                    {statsLoading ? "Loading..." : showStats ? "Hide Stats" : "SKR Szn 1 Stats"}
                 </button>
             </div>
+
+            {showStats && statsData && (
+                <div className={styles.statsSection}>
+                    <span className={styles.sectionTitle}>SKR Season 1 Stats</span>
+                    <span className={styles.statsGenerated}>
+                        Generated: {new Date(statsData.generated).toLocaleString()}
+                    </span>
+
+                    <div className={styles.summaryCards}>
+                        <div className={styles.summaryCard}>
+                            <span className={styles.summaryLabel}>Total Wallets</span>
+                            <span className={styles.summaryValue}>
+                                {formatNumber(statsData.summary.totalAllocations)}
+                            </span>
+                        </div>
+                        <div className={styles.summaryCard}>
+                            <span className={styles.summaryLabel}>Total SKR Allocated</span>
+                            <span className={styles.summaryValue}>
+                                {formatNumber(statsData.summary.grandTotal)}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className={styles.tiersSection}>
+                        <span className={styles.tiersTitle}>Allocation Tiers</span>
+                        <div className={styles.tiersList}>
+                            {statsData.tiers.map((tier) => (
+                                <div key={tier.amount} className={styles.tierRow}>
+                                    <span className={styles.tierAmount}>
+                                        {formatNumber(tier.amount)} SKR
+                                    </span>
+                                    <span className={styles.tierCount}>
+                                        {formatNumber(tier.count)} wallets
+                                    </span>
+                                    <span className={styles.tierTotal}>
+                                        {formatNumber(tier.totalTokens)} total
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {allocationData && (
                 <div className={styles.resultsSection}>

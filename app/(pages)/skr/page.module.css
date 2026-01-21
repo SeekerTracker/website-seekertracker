@@ -137,6 +137,97 @@
     box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
 }
 
+.statsSection {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 700px;
+    padding: 2em;
+    background: rgba(17, 17, 17, 0.8);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 0.75em;
+    gap: 1.5em;
+    align-items: center;
+}
+
+.statsGenerated {
+    font-size: 0.85em;
+    color: #606060;
+}
+
+.summaryCards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1em;
+    width: 100%;
+}
+
+.summaryCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5em;
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 0.75em;
+    gap: 0.5em;
+}
+
+.summaryLabel {
+    font-size: 0.9em;
+    color: #a0a0a0;
+    text-transform: uppercase;
+}
+
+.summaryValue {
+    font-size: 1.75em;
+    font-weight: 700;
+    color: #ffd700;
+}
+
+.tiersSection {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1em;
+}
+
+.tiersTitle {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #ffd700;
+    text-align: center;
+}
+
+.tiersList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
+.tierRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    padding: 0.75em 1em;
+    background: rgba(255, 215, 0, 0.05);
+    border-radius: 0.5em;
+    text-align: center;
+}
+
+.tierAmount {
+    font-weight: 600;
+    color: #ffd700;
+}
+
+.tierCount {
+    color: #c0c0c0;
+}
+
+.tierTotal {
+    color: #808080;
+    font-size: 0.9em;
+}
+
 .resultsSection {
     display: flex;
     flex-direction: column;
@@ -362,6 +453,15 @@
     .infoCard {
         width: 100%;
         max-width: 100%;
+    }
+
+    .summaryCards {
+        grid-template-columns: 1fr;
+    }
+
+    .tierRow {
+        grid-template-columns: 1fr;
+        gap: 0.25em;
     }
 
     .detailsSection {
