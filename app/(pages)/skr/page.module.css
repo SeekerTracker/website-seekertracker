@@ -155,6 +155,12 @@
     color: #606060;
 }
 
+.statsCache {
+    font-size: 0.8em;
+    color: #808080;
+    font-style: italic;
+}
+
 .summaryCards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

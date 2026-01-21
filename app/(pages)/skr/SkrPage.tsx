@@ -132,6 +132,7 @@ const SkrPage = () => {
     const [statsData, setStatsData] = useState<{
         generated: string;
         summary: {
+            totalClaimers: number;
             totalAllocations: number;
             totalLocked: number;
             totalLockedWithdrawn: number;
@@ -141,6 +142,7 @@ const SkrPage = () => {
         tiers: { amount: number; count: number; totalTokens: number }[];
     } | null>(null);
     const [statsLoading, setStatsLoading] = useState(false);
+    const [statsError, setStatsError] = useState<string | null>(null);
 
     const handleStatsClick = async () => {
         if (showStats) {
@@ -148,19 +150,34 @@ const SkrPage = () => {
             return;
         }
 
-        if (!statsData) {
-            setStatsLoading(true);
-            try {
-                const response = await fetch("/skr-stats.json");
-                const data = await response.json();
-                setStatsData(data);
-            } catch (err) {
-                console.error("Failed to load stats:", err);
-            } finally {
-                setStatsLoading(false);
+        setStatsLoading(true);
+        setStatsError(null);
+        try {
+            // Fetch summary from live API and tiers from static JSON
+            const [summaryRes, tiersRes] = await Promise.all([
+                fetch("/api/skr/summary"),
+                fetch("/skr-stats.json"),
+            ]);
+
+            if (!summaryRes.ok) {
+                throw new Error("Failed to fetch stats");
             }
+
+            const summaryData = await summaryRes.json();
+            const tiersData = await tiersRes.json();
+
+            setStatsData({
+                generated: summaryData.generated,
+                summary: summaryData,
+                tiers: tiersData.tiers || [],
+            });
+            setShowStats(true);
+        } catch (err) {
+            console.error("Failed to load stats:", err);
+            setStatsError("Data is loading from chain, please try again in ~30 seconds");
+        } finally {
+            setStatsLoading(false);
         }
-        setShowStats(true);
     };
 
     const copyToClipboard = async (text: string, label: string) => {
@@ -208,8 +225,10 @@ const SkrPage = () => {
                 {error && <div className={styles.error}>{error}</div>}
 
                 <button className={styles.statsButton} onClick={handleStatsClick}>
-                    {statsLoading ? "Loading..." : showStats ? "Hide Stats" : "SKR Szn 1 Stats"}
+                    {statsLoading ? "Loading (may take ~30s)..." : showStats ? "Hide Stats" : "SKR Szn 1 Stats"}
                 </button>
+
+                {statsError && <div className={styles.error}>{statsError}</div>}
             </div>
 
             {showStats && statsData && (
@@ -218,10 +237,17 @@ const SkrPage = () => {
                     <span className={styles.statsGenerated}>
                         Generated: {new Date(statsData.generated).toLocaleString()}
                     </span>
+                    <span className={styles.statsCache}>Data cached for 5 minutes</span>
 
                     <div className={styles.summaryCards}>
                         <div className={styles.summaryCard}>
-                            <span className={styles.summaryLabel}>Total Wallets</span>
+                            <span className={styles.summaryLabel}>Total Claimers</span>
+                            <span className={styles.summaryValue}>
+                                {formatNumber(statsData.summary.totalClaimers || 0)}
+                            </span>
+                        </div>
+                        <div className={styles.summaryCard}>
+                            <span className={styles.summaryLabel}>Total Allocations</span>
                             <span className={styles.summaryValue}>
                                 {formatNumber(statsData.summary.totalAllocations)}
                             </span>
@@ -232,26 +258,34 @@ const SkrPage = () => {
                                 {formatNumber(statsData.summary.grandTotal)}
                             </span>
                         </div>
-                    </div>
-
-                    <div className={styles.tiersSection}>
-                        <span className={styles.tiersTitle}>Allocation Tiers</span>
-                        <div className={styles.tiersList}>
-                            {statsData.tiers.map((tier) => (
-                                <div key={tier.amount} className={styles.tierRow}>
-                                    <span className={styles.tierAmount}>
-                                        {formatNumber(tier.amount)} SKR
-                                    </span>
-                                    <span className={styles.tierCount}>
-                                        {formatNumber(tier.count)} wallets
-                                    </span>
-                                    <span className={styles.tierTotal}>
-                                        {formatNumber(tier.totalTokens)} total
-                                    </span>
-                                </div>
-                            ))}
+                        <div className={styles.summaryCard}>
+                            <span className={styles.summaryLabel}>Total Unlocked</span>
+                            <span className={styles.summaryValue}>
+                                {formatNumber(statsData.summary.totalUnlocked)}
+                            </span>
                         </div>
                     </div>
+
+                    {statsData.tiers.length > 0 && (
+                        <div className={styles.tiersSection}>
+                            <span className={styles.tiersTitle}>Allocation Tiers</span>
+                            <div className={styles.tiersList}>
+                                {statsData.tiers.map((tier) => (
+                                    <div key={tier.amount} className={styles.tierRow}>
+                                        <span className={styles.tierAmount}>
+                                            {formatNumber(tier.amount)} SKR
+                                        </span>
+                                        <span className={styles.tierCount}>
+                                            {formatNumber(tier.count)} wallets
+                                        </span>
+                                        <span className={styles.tierTotal}>
+                                            {formatNumber(tier.totalTokens)} total
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
