@@ -22,11 +22,18 @@ interface AllocationData {
 
 interface VaultData {
     success: boolean;
-    vault: string;
     skrMint: string;
-    skrBalance: number;
-    skrUsdValue: number;
     skrPrice: number;
+    vault: {
+        address: string;
+        skrBalance: number;
+        skrUsdValue: number;
+    };
+    stakedVault: {
+        address: string;
+        skrBalance: number;
+        skrUsdValue: number;
+    };
     lastUpdated: number;
 }
 
@@ -41,15 +48,23 @@ const SkrPage = () => {
     const [initialSearchDone, setInitialSearchDone] = useState(false);
     const [vaultData, setVaultData] = useState<VaultData | null>(null);
     const [vaultLoading, setVaultLoading] = useState(true);
+    const [stakerCount, setStakerCount] = useState<number | null>(null);
 
-    // Fetch vault balance
+    // Fetch vault balance and staker count
     const fetchVault = async () => {
         setVaultLoading(true);
         try {
-            const res = await fetch("/api/skr/vault");
-            if (res.ok) {
-                const data = await res.json();
+            const [vaultRes, stakersRes] = await Promise.all([
+                fetch("/api/skr/vault"),
+                fetch("/api/skr/stakers"),
+            ]);
+            if (vaultRes.ok) {
+                const data = await vaultRes.json();
                 setVaultData(data);
+            }
+            if (stakersRes.ok) {
+                const data = await stakersRes.json();
+                setStakerCount(data.stakerCount);
             }
         } catch (err) {
             console.error("Failed to fetch vault:", err);
@@ -236,43 +251,103 @@ const SkrPage = () => {
                 </span>
             </div>
 
-            <div className={styles.vaultSection}>
-                <div className={styles.vaultHeader}>
-                    <span className={styles.vaultTitle}>Seeker Vault Balance</span>
-                    <button
-                        className={styles.refreshButton}
-                        onClick={fetchVault}
-                        disabled={vaultLoading}
-                        title="Refresh"
-                    >
-                        {vaultLoading ? "..." : "↻"}
-                    </button>
-                </div>
-                {vaultLoading ? (
-                    <span className={styles.vaultLoading}>Loading...</span>
-                ) : vaultData ? (
-                    <div className={styles.vaultContent}>
-                        <div className={styles.vaultBalance}>
-                            <span className={styles.vaultAmount}>
-                                {formatNumber(Math.floor(vaultData.skrBalance))}
-                            </span>
-                            <span className={styles.vaultToken}>SKR</span>
-                        </div>
-                        <span className={styles.vaultUsd}>
-                            ${vaultData.skrUsdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
-                        </span>
-                        <Link
-                            href={`https://solscan.io/account/${vaultData.vault}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.vaultAddress}
+            <div className={styles.vaultsContainer}>
+                <div className={styles.vaultSection}>
+                    <div className={styles.vaultHeader}>
+                        <span className={styles.vaultTitle}>Seeker Vault</span>
+                        <button
+                            className={styles.refreshButton}
+                            onClick={fetchVault}
+                            disabled={vaultLoading}
+                            title="Refresh"
                         >
-                            {vaultData.vault.slice(0, 4)}...{vaultData.vault.slice(-4)}
-                        </Link>
+                            {vaultLoading ? "..." : "↻"}
+                        </button>
                     </div>
-                ) : (
-                    <span className={styles.vaultError}>Failed to load vault balance</span>
-                )}
+                    {vaultLoading ? (
+                        <span className={styles.vaultLoading}>Loading...</span>
+                    ) : vaultData ? (
+                        <div className={styles.vaultContent}>
+                            <div className={styles.vaultBalance}>
+                                <span className={styles.vaultAmount}>
+                                    {formatNumber(Math.floor(vaultData.vault.skrBalance))}
+                                </span>
+                                <span className={styles.vaultToken}>SKR</span>
+                            </div>
+                            <span className={styles.vaultUsd}>
+                                ${vaultData.vault.skrUsdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                            </span>
+                            <Link
+                                href={`https://solscan.io/account/${vaultData.vault.address}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.vaultAddress}
+                            >
+                                {vaultData.vault.address.slice(0, 4)}...{vaultData.vault.address.slice(-4)}
+                            </Link>
+                        </div>
+                    ) : (
+                        <span className={styles.vaultError}>Failed to load</span>
+                    )}
+                </div>
+
+                <div className={styles.vaultSection}>
+                    <div className={styles.vaultHeader}>
+                        <span className={styles.vaultTitle}>Staked Vault</span>
+                    </div>
+                    {vaultLoading ? (
+                        <span className={styles.vaultLoading}>Loading...</span>
+                    ) : vaultData ? (
+                        <div className={styles.vaultContent}>
+                            <div className={styles.vaultBalance}>
+                                <span className={styles.vaultAmount}>
+                                    {formatNumber(Math.floor(vaultData.stakedVault.skrBalance))}
+                                </span>
+                                <span className={styles.vaultToken}>SKR</span>
+                            </div>
+                            <span className={styles.vaultUsd}>
+                                ${vaultData.stakedVault.skrUsdValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                            </span>
+                            {stakerCount !== null && (
+                                <span className={styles.stakerCount}>
+                                    {formatNumber(stakerCount)} stakers
+                                </span>
+                            )}
+                            <Link
+                                href={`https://solscan.io/account/${vaultData.stakedVault.address}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.vaultAddress}
+                            >
+                                {vaultData.stakedVault.address.slice(0, 4)}...{vaultData.stakedVault.address.slice(-4)}
+                            </Link>
+                        </div>
+                    ) : (
+                        <span className={styles.vaultError}>Failed to load</span>
+                    )}
+                </div>
+            </div>
+
+            <div className={styles.shareSection}>
+                <span className={styles.shareLabel}>Share SKR Stats</span>
+                <div className={styles.shareButtons}>
+                    <a
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out SKR Season 1 Stats!")}&url=${encodeURIComponent("https://seekertracker.xyz/skr")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.shareButtonX}
+                    >
+                        Share on X
+                    </a>
+                    <a
+                        href={`https://t.me/share/url?url=${encodeURIComponent("https://seekertracker.xyz/skr")}&text=${encodeURIComponent("Check out SKR Season 1 Stats!")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.shareButtonTg}
+                    >
+                        Share on Telegram
+                    </a>
+                </div>
             </div>
 
             <div className={styles.searchSection}>
