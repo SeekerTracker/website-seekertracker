@@ -24,6 +24,9 @@ interface VaultData {
     success: boolean;
     skrMint: string;
     skrPrice: number;
+    totalSupply: number;
+    totalHolders: number;
+    marketCap: number;
     vault: {
         address: string;
         skrBalance: number;
@@ -251,6 +254,35 @@ const SkrPage = () => {
                 </span>
             </div>
 
+            {vaultData && (
+                <div className={styles.tokenStatsContainer}>
+                    <div className={styles.tokenStatItem}>
+                        <span className={styles.tokenStatLabel}>Total Supply</span>
+                        <span className={styles.tokenStatValue}>
+                            {formatNumber(Math.floor(vaultData.totalSupply))} SKR
+                        </span>
+                    </div>
+                    <div className={styles.tokenStatItem}>
+                        <span className={styles.tokenStatLabel}>Market Cap</span>
+                        <span className={styles.tokenStatValue}>
+                            ${vaultData.marketCap.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                    </div>
+                    <div className={styles.tokenStatItem}>
+                        <span className={styles.tokenStatLabel}>Total Holders</span>
+                        <span className={styles.tokenStatValue}>
+                            {formatNumber(vaultData.totalHolders)}
+                        </span>
+                    </div>
+                    <div className={styles.tokenStatItem}>
+                        <span className={styles.tokenStatLabel}>Price</span>
+                        <span className={styles.tokenStatValue}>
+                            ${vaultData.skrPrice.toFixed(6)}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             <div className={styles.vaultsContainer}>
                 <div className={styles.vaultSection}>
                     <div className={styles.vaultHeader}>
@@ -422,6 +454,11 @@ const SkrPage = () => {
                                         <span className={styles.tierAmount}>
                                             {formatNumber(tier.amount)} SKR
                                         </span>
+                                        {vaultData && (
+                                            <span className={styles.tierValue}>
+                                                ${(tier.amount * vaultData.skrPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </span>
+                                        )}
                                         <span className={styles.tierCount}>
                                             {formatNumber(tier.count)} wallets
                                         </span>
