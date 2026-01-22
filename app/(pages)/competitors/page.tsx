@@ -87,9 +87,8 @@ export default function CompetitorsPage() {
 
     // Calculate Solana Mobile's position
     const solanaMobile = data.find(d => d.isSolana);
-    const solanaRank = data
-        .sort((a, b) => b.marketCap - a.marketCap)
-        .findIndex(d => d.isSolana) + 1;
+    const sortedData = [...data].sort((a, b) => b.marketCap - a.marketCap);
+    const solanaRank = sortedData.findIndex(d => d.isSolana) + 1;
 
     // Calculate multipliers
     const getMultiplier = (targetCap: number, currentCap: number): string => {
@@ -159,7 +158,7 @@ export default function CompetitorsPage() {
                 <div className={styles.chartContainer}>
                     <ResponsiveContainer width="100%" height={400}>
                         <BarChart
-                            data={displayData.sort((a, b) => b.marketCap - a.marketCap)}
+                            data={[...displayData].sort((a, b) => b.marketCap - a.marketCap)}
                             layout="vertical"
                             margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                         >
@@ -184,7 +183,7 @@ export default function CompetitorsPage() {
                                 labelStyle={{ color: "#fff" }}
                             />
                             <Bar dataKey="marketCap" radius={[0, 4, 4, 0]}>
-                                {displayData
+                                {[...displayData]
                                     .sort((a, b) => b.marketCap - a.marketCap)
                                     .map((entry, index) => (
                                         <Cell
@@ -215,7 +214,7 @@ export default function CompetitorsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {data
+                            {[...data]
                                 .sort((a, b) => b.marketCap - a.marketCap)
                                 .map((company, index) => (
                                     <tr
