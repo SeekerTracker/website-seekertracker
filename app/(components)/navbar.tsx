@@ -88,6 +88,9 @@ const Navbar = () => {
                 <Link href="/sweep" className={styles.sweepButton}>
                     Sweep
                 </Link>
+                <Link href="/competitors" className={styles.competitorsButton}>
+                    Competitors
+                </Link>
                 <button
                     className={styles.buyButton}
                     onClick={openJupiter}
