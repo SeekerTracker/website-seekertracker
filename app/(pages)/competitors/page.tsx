@@ -175,7 +175,7 @@ export default function CompetitorsPage() {
                                 width={90}
                             />
                             <Tooltip
-                                formatter={(value: number) => [formatMarketCap(value), "Market Cap"]}
+                                formatter={(value) => [formatMarketCap(Number(value) || 0), "Market Cap"]}
                                 contentStyle={{
                                     backgroundColor: "#1a1a1a",
                                     border: "1px solid #333",
