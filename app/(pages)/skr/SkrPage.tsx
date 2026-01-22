@@ -296,6 +296,27 @@ const SkrPage = () => {
                 </div>
             )}
 
+            {vaultData && (
+                <div className={styles.stakedPercentageContainer}>
+                    <div className={styles.stakedPercentageHeader}>
+                        <span className={styles.stakedPercentageLabel}>Staked</span>
+                        <span className={styles.stakedPercentageValue}>
+                            {((vaultData.stakedVault.skrBalance / vaultData.totalSupply) * 100).toFixed(1)}%
+                        </span>
+                    </div>
+                    <div className={styles.stakedProgressBar}>
+                        <div
+                            className={styles.stakedProgressFill}
+                            style={{ width: `${(vaultData.stakedVault.skrBalance / vaultData.totalSupply) * 100}%` }}
+                        />
+                    </div>
+                    <div className={styles.stakedProgressLabels}>
+                        <span>{formatCompact(vaultData.stakedVault.skrBalance)} staked</span>
+                        <span>{formatCompact(vaultData.totalSupply)} total</span>
+                    </div>
+                </div>
+            )}
+
             <div className={styles.vaultsContainer}>
                 <div className={styles.vaultSection}>
                     <div className={styles.vaultHeader}>
