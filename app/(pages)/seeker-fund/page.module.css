@@ -8,18 +8,6 @@
   align-items: center;
 }
 
-.backButton {
-  display: flex;
-  background: linear-gradient(45deg, #00ff66, #00cc52);
-  color: black;
-  align-self: flex-start;
-  justify-self: flex-start;
-  padding: 0.5em 1em;
-  font-size: 0.9em;
-  border-radius: 1em;
-  cursor: pointer;
-}
-
 .topBar {
   display: flex;
   width: 100%;

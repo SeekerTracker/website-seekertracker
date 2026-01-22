@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import React from "react";
+import Backbutton from "./(components)/shared/Backbutton";
 
 const Custom404 = () => {
     return (
@@ -17,22 +18,7 @@ const Custom404 = () => {
 
             }}
         >
-            <div style={{
-                display: "flex",
-                alignItems: "center",
-                width: "fit-content",
-                justifyContent: "center",
-                padding: "1em",
-                borderRadius: "1em",
-                background: "linear-gradient(45deg, #00ff66, #00cc52)",
-                color: "black",
-                fontSize: "0.9em",
-                cursor: "pointer",
-            }}>
-                <Link href={"/"}>
-                    ← Back to Tracker
-                </Link>
-            </div>
+            <Backbutton />
 
             <img src="/error.svg" alt="Error Image" width="600px" style={
                 {

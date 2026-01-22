@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { SEEKER_TOKEN_ADDRESS } from 'app/(utils)/constant'
 import { useDataContext } from 'app/(utils)/context/dataProvider'
+import Backbutton from 'app/(components)/shared/Backbutton'
 const Index = () => {
     const [isCopied, setIsCopied] = useState(false);
     const { solPrice, seekerData } = useDataContext();
@@ -25,11 +26,7 @@ const Index = () => {
 
     return (
         <div className={styles.main}>
-            <div className={styles.backButton}>
-                <Link href={"/"}>
-                    ← Back to Tracker
-                </Link>
-            </div>
+            <Backbutton />
             <div className={styles.topBar}>
                 <span className={styles.header}>
                     <Image src="/icons/bags-icon.png" alt="Bags" width={36} height={36} />

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import Link from "next/link";
 import { getOnchainDomainData } from "../../(utils)/onchainData";
+import Backbutton from "app/(components)/shared/Backbutton";
 
 interface AllocationData {
     success: boolean;
@@ -103,7 +104,7 @@ const SkrPage = () => {
         if (initialSearchDone && input && !loading && !allocationData) {
             handleSearch();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialSearchDone, input]);
 
     const handleSearch = async () => {
@@ -256,9 +257,7 @@ const SkrPage = () => {
 
     return (
         <div className={styles.main}>
-            <div className={styles.backButton}>
-                <Link href="/">← Back to Tracker</Link>
-            </div>
+            <Backbutton />
 
             <div className={styles.topBar}>
                 <span className={styles.header}>SKR Allocation Checker</span>
@@ -526,9 +525,8 @@ const SkrPage = () => {
 
                     <div className={styles.statusBadge}>
                         <span
-                            className={`${styles.claimStatus} ${
-                                allocationData.hasClaimed ? styles.claimed : styles.unclaimed
-                            }`}
+                            className={`${styles.claimStatus} ${allocationData.hasClaimed ? styles.claimed : styles.unclaimed
+                                }`}
                         >
                             {allocationData.hasClaimed ? "Claimed" : "Not Claimed"}
                         </span>

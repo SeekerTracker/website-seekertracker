@@ -1,225 +1,202 @@
 .main {
-    display: flex;
-    flex-direction: column;
-    padding: 0 2em;
-    width: 100%;
-    gap: 2em;
-    justify-content: center;
-    align-items: center;
-    min-height: 60vh;
-}
-
-.backButton {
-    display: flex;
-    align-self: flex-start;
-}
-
-.backButton a {
-    display: flex;
-    background: linear-gradient(45deg, #00ff66, #00cc52);
-    color: black;
-    padding: 0.5em 1em;
-    font-size: 0.9em;
-    border-radius: 1em;
-    cursor: pointer;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.backButton a:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 255, 102, 0.3);
+  display: flex;
+  flex-direction: column;
+  padding: 0 2em;
+  width: 100%;
+  gap: 2em;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
 }
 
 .header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5em;
 }
 
 .header h1 {
-    font-size: 2.5em;
-    font-weight: 700;
-    background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0;
+  font-size: 2.5em;
+  font-weight: 700;
+  background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
 }
 
 .header p {
-    font-size: 1.1em;
-    color: #a0a0a0;
-    margin: 0;
+  font-size: 1.1em;
+  color: #a0a0a0;
+  margin: 0;
 }
 
 .walletSection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
 }
 
 .exportSection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5em;
-    padding: 2em;
-    background: rgba(0, 255, 217, 0.05);
-    border: 1px solid rgba(0, 255, 217, 0.2);
-    border-radius: 1em;
-    width: 100%;
-    max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5em;
+  padding: 2em;
+  background: rgba(0, 255, 217, 0.05);
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  border-radius: 1em;
+  width: 100%;
+  max-width: 500px;
 }
 
 .exportSection h2 {
-    font-size: 1.3em;
-    color: #00ffd9;
-    margin: 0;
+  font-size: 1.3em;
+  color: #00ffd9;
+  margin: 0;
 }
 
 .filterOptions {
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  width: 100%;
 }
 
 .radioOption {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25em;
-    padding: 1em;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.5em;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  padding: 1em;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5em;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .radioOption:hover {
-    border-color: rgba(0, 255, 217, 0.3);
-    background: rgba(0, 255, 217, 0.05);
+  border-color: rgba(0, 255, 217, 0.3);
+  background: rgba(0, 255, 217, 0.05);
 }
 
 .radioOption:has(input:checked) {
-    border-color: rgba(0, 255, 217, 0.5);
-    background: rgba(0, 255, 217, 0.1);
+  border-color: rgba(0, 255, 217, 0.5);
+  background: rgba(0, 255, 217, 0.1);
 }
 
 .radioOption input[type="radio"] {
-    display: none;
+  display: none;
 }
 
 .radioOption span {
-    font-size: 1em;
-    font-weight: 600;
-    color: #fff;
+  font-size: 1em;
+  font-weight: 600;
+  color: #fff;
 }
 
 .radioOption small {
-    font-size: 0.8em;
-    color: #808080;
+  font-size: 0.8em;
+  color: #808080;
 }
 
 .dateInput,
 .numberInput {
-    width: 100%;
-    padding: 0.75em 1em;
-    margin-top: 0.5em;
-    font-size: 0.9em;
-    font-family: inherit;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(0, 255, 217, 0.3);
-    border-radius: 0.5em;
-    color: #fff;
-    outline: none;
+  width: 100%;
+  padding: 0.75em 1em;
+  margin-top: 0.5em;
+  font-size: 0.9em;
+  font-family: inherit;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 0.5em;
+  color: #fff;
+  outline: none;
 }
 
 .dateInput:focus,
 .numberInput:focus {
-    border-color: #00ffd9;
-    box-shadow: 0 0 10px rgba(0, 255, 217, 0.2);
+  border-color: #00ffd9;
+  box-shadow: 0 0 10px rgba(0, 255, 217, 0.2);
 }
 
 .error {
-    display: flex;
-    padding: 0.75em 1em;
-    background: rgba(255, 100, 100, 0.1);
-    border: 1px solid rgba(255, 100, 100, 0.3);
-    border-radius: 0.5em;
-    color: #ff6464;
-    font-size: 0.9em;
-    width: 100%;
-    text-align: center;
-    justify-content: center;
+  display: flex;
+  padding: 0.75em 1em;
+  background: rgba(255, 100, 100, 0.1);
+  border: 1px solid rgba(255, 100, 100, 0.3);
+  border-radius: 0.5em;
+  color: #ff6464;
+  font-size: 0.9em;
+  width: 100%;
+  text-align: center;
+  justify-content: center;
 }
 
 .downloadButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5em;
-    width: 100%;
-    padding: 1em 2em;
-    font-size: 1em;
-    font-weight: 600;
-    font-family: inherit;
-    color: #000;
-    background: linear-gradient(45deg, #00ffd9, #00ff66);
-    border: none;
-    border-radius: 0.5em;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  width: 100%;
+  padding: 1em 2em;
+  font-size: 1em;
+  font-weight: 600;
+  font-family: inherit;
+  color: #000;
+  background: linear-gradient(45deg, #00ffd9, #00ff66);
+  border: none;
+  border-radius: 0.5em;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .downloadButton:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 25px rgba(0, 255, 217, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 25px rgba(0, 255, 217, 0.4);
 }
 
 .downloadButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .csvPreview {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-    width: 100%;
-    padding: 1em;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 0.5em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  width: 100%;
+  padding: 1em;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 0.5em;
 }
 
 .csvPreview h3 {
-    font-size: 0.9em;
-    color: #a0a0a0;
-    margin: 0;
+  font-size: 0.9em;
+  color: #a0a0a0;
+  margin: 0;
 }
 
 .csvPreview code {
-    font-size: 0.8em;
-    color: #00ffd9;
-    word-break: break-all;
+  font-size: 0.8em;
+  color: #00ffd9;
+  word-break: break-all;
 }
 
 @media screen and (max-width: 600px) {
-    .main {
-        padding: 0 1em;
-    }
+  .main {
+    padding: 0 1em;
+  }
 
-    .header h1 {
-        font-size: 1.8em;
-    }
+  .header h1 {
+    font-size: 1.8em;
+  }
 
-    .exportSection {
-        padding: 1.5em;
-    }
+  .exportSection {
+    padding: 1.5em;
+  }
 }

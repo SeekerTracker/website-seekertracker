@@ -9,6 +9,7 @@ import { TimeAgo } from 'app/(components)/seekerCard';
 import { notFound } from 'next/navigation';
 import { getPortfolio, formatUsd, formatBalance, PortfolioData } from 'app/(utils)/lib/portfolio';
 import { analytics } from 'app/(utils)/lib/analytics';
+import Backbutton from 'app/(components)/shared/Backbutton';
 
 
 const UserDomain = ({ userDomain }: { userDomain: string }) => {
@@ -126,11 +127,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
 
     return (
         <div className={styles.main}>
-            <div className={styles.backButton}>
-                <Link href={"/"}>
-                    ← Back to Tracker
-                </Link>
-            </div>
+            <Backbutton />
 
             <button className={styles.copyButton} onClick={() => copyToClipboard('DomainLink')}>{copyDomainLinkSuccess ? '✅ Copied!' : 'Copy Link'}</button>
             <div className={styles.activatedName}>

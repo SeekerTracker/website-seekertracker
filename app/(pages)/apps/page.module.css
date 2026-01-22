@@ -1,56 +1,44 @@
 .main {
-    display: flex;
-    flex-direction: column;
-    padding: 0 2em;
-    width: 100%;
-    min-height: 60vh;
-    gap: 2em;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-.backButton {
-    display: flex;
-    background: linear-gradient(45deg, #00ff66, #00cc52);
-    color: black;
-    align-self: flex-start;
-    justify-self: flex-start;
-    padding: 0.5em 1em;
-    font-size: 0.9em;
-    border-radius: 1em;
-    cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: 0 2em;
+  width: 100%;
+  min-height: 60vh;
+  gap: 2em;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .comingSoon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 4em 2em;
-    border-radius: 1em;
-    border: 1px solid rgba(0, 255, 217, 0.2);
-    background: rgba(0, 255, 217, 0.05);
-    width: 100%;
-    max-width: 500px;
-    gap: 0.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4em 2em;
+  border-radius: 1em;
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  background: rgba(0, 255, 217, 0.05);
+  width: 100%;
+  max-width: 500px;
+  gap: 0.5em;
 }
 
 .icon {
-    font-size: 4em;
-    margin-bottom: 0.25em;
+  font-size: 4em;
+  margin-bottom: 0.25em;
 }
 
 .header {
-    font-size: 2.5em;
-    font-weight: 700;
-    background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  font-size: 2.5em;
+  font-weight: 700;
+  background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .desc {
-    font-size: 1em;
-    color: #a0a0a0;
+  font-size: 1em;
+  color: #a0a0a0;
 }

@@ -10,6 +10,7 @@ import TokenGate from "../../(components)/wallet/TokenGate";
 import Link from "next/link";
 import styles from "./page.module.css";
 import { REQUIRED_TRACKER_BALANCE } from "../../(utils)/constant";
+import Backbutton from "app/(components)/shared/Backbutton";
 
 type FilterType = "all" | "before" | "first";
 
@@ -134,9 +135,7 @@ export default function ExportPage() {
 
     return (
         <div className={styles.main}>
-            <div className={styles.backButton}>
-                <Link href="/">Back to Tracker</Link>
-            </div>
+            <Backbutton />
 
             <div className={styles.header}>
                 <h1>Export SKR List</h1>

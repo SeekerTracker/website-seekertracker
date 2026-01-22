@@ -275,6 +275,36 @@ a.tabWrapper {
   padding: 0.5em 0;
 }
 
+.showAll {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: auto;
+  padding: 0.5rem 0.6rem;
+  background: rgba(0, 255, 217, 0.1);
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  color: #001a18;
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  color: #00ffd9;
+  border-radius: 0.75em;
+  cursor: pointer;
+}
+.showAll:hover {
+  background: rgba(0, 255, 217, 0.3);
+}
+.showAll.active {
+  background: rgba(0, 255, 217, 0.2);
+  border: 1px solid #00ffd9;
+}
+.showAll hr {
+  height: 2em;
+  border: 1px solid #a0a0a0;
+}
+.showAll svg {
+  rotate: 215deg;
+}
+
 @media screen and (max-width: 760px) {
   .main {
     padding: 0 1.5em;

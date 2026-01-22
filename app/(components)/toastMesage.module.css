@@ -9,7 +9,7 @@
   overflow: hidden;
   justify-content: flex-end;
   align-items: flex-end;
-  z-index: 10;
+  z-index: 15;
 }
 
 .toastMessages {

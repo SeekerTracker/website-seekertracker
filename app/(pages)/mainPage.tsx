@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from 'react'
+import React, { Activity, useEffect, useRef, useState } from 'react'
 import style from './mainPage.module.css'
 import Image from 'next/image'
 import { useDataContext } from 'app/(utils)/context/dataProvider'
@@ -8,6 +8,7 @@ import SeekerCard from 'app/(components)/seekerCard'
 import Link from 'next/link';
 import TelegramModal from 'app/(components)/TelegramModal';
 import { analytics } from 'app/(utils)/lib/analytics';
+import { IoArrowDownOutline } from 'react-icons/io5';
 
 
 const MainPage = () => {
@@ -43,7 +44,7 @@ const MainPage = () => {
     useEffect(() => {
         if (!backendWS) return;
 
-        backendWS.emit("getDomains", { sortBy: "newest" })
+        backendWS.emit("getDomains", { sortBy: "newest", limit: pageLimit });
 
         backendWS.on("sortedDomains", (data: {
             totalDomains: number,
@@ -52,7 +53,13 @@ const MainPage = () => {
             domainsByTimeRange: Record<string, number>,
             data: DomainInfo[]
         }) => {
-            const { totalDomains, data: domains, avgSubdomainLength, domainsByDate, domainsByTimeRange } = data;
+            const {
+                totalDomains,
+                data: domains,
+                avgSubdomainLength,
+                domainsByDate,
+                domainsByTimeRange
+            } = data;
             setTotalSeekerIds(totalDomains)
             currSkrIdCount.current = totalDomains;
 
@@ -140,6 +147,7 @@ const MainPage = () => {
             limit: pageLimit
         });
     }
+
     const handlePageLimitChange = (newLimit: number) => {
         setPageLimit(newLimit);
 
@@ -152,8 +160,6 @@ const MainPage = () => {
             page: currentPage, // optional: reset to first page when limit changes
         });
     };
-
-
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -346,11 +352,18 @@ const MainPage = () => {
 
                     </div>
                 </div>
-                <div className={style.seekerCardOuter}>
-                    {uiSeekerData.length > 0 && uiSeekerData.map((domain) => (
-                        <SeekerCard key={domain.name_account} domainInfo={domain} showRank={filterRank! > 0} />
-                    ))}
-                </div>
+                {uiSeekerData.length > 0 && (
+                    <>
+                        <div className={style.seekerCardOuter}>
+                            {uiSeekerData.map((domain) => (
+                                <SeekerCard key={domain.name_account} domainInfo={domain} showRank={filterRank! > 0} />
+                            ))}
+                        </div>
+                        <Link href="/explore" className={style.showAllLink}>
+                            <button className={style.showAll}>View all <IoArrowDownOutline /></button>
+                        </Link>
+                    </>
+                )}
                 {uiSeekerData.length === 0 && (
                     <div className={style.noResult}>
                         <span className={style.maginifyingGlass}>🔍</span>

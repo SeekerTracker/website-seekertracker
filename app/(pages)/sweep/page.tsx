@@ -4,15 +4,12 @@ import React from 'react'
 import styles from './page.module.css'
 import Link from 'next/link'
 import Image from 'next/image'
+import Backbutton from 'app/(components)/shared/Backbutton'
 
 const Sweep = () => {
     return (
         <div className={styles.main}>
-            <div className={styles.backButton}>
-                <Link href={"/"}>
-                    ← Back to Tracker
-                </Link>
-            </div>
+            <Backbutton />
             <div className={styles.topBar}>
                 <span className={styles.header}>
                     <Image src="/icons/bags-icon.png" alt="Sweep" width={36} height={36} />

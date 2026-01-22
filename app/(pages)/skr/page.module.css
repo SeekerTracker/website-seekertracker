@@ -1,792 +1,801 @@
 .main {
-    display: flex;
-    flex-direction: column;
-    padding: 0 2em;
-    width: 100%;
-    gap: 2em;
-    justify-content: center;
-    align-items: center;
-}
-
-.backButton {
-    display: flex;
-    background: linear-gradient(45deg, #00ff66, #00cc52);
-    color: black;
-    align-self: flex-start;
-    justify-self: flex-start;
-    padding: 0.5em 1em;
-    font-size: 0.9em;
-    border-radius: 1em;
-    cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: 0 2em;
+  width: 100%;
+  gap: 2em;
+  justify-content: center;
+  align-items: center;
 }
 
 .topBar {
-    display: flex;
-    width: 100%;
-    gap: 0.5em;
-    flex-direction: column;
-    align-items: center;
-    padding: 2em 1em;
-    border-radius: 1em;
-    border: 1px solid rgba(0, 255, 217, 0.2);
-    background: rgba(0, 255, 217, 0.05);
-    text-align: center;
+  display: flex;
+  width: 100%;
+  gap: 0.5em;
+  flex-direction: column;
+  align-items: center;
+  padding: 2em 1em;
+  border-radius: 1em;
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  background: rgba(0, 255, 217, 0.05);
+  text-align: center;
 }
 
 .header {
-    display: flex;
-    align-items: center;
-    font-size: 2.5em;
-    font-weight: 700;
-    background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  display: flex;
+  align-items: center;
+  font-size: 2.5em;
+  font-weight: 700;
+  background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .tokenDesc {
-    font-size: 1.2em;
-    color: #a0a0a0;
+  font-size: 1.2em;
+  color: #a0a0a0;
 }
 
 .tokenStatsContainer {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5em;
-    width: 100%;
-    max-width: 800px;
-    padding: 1.25em 1.5em;
-    background: linear-gradient(135deg, rgba(0, 255, 102, 0.08), rgba(0, 255, 217, 0.08));
-    border: 1px solid rgba(0, 255, 102, 0.25);
-    border-radius: 0.75em;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5em;
+  width: 100%;
+  max-width: 800px;
+  padding: 1.25em 1.5em;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 102, 0.08),
+    rgba(0, 255, 217, 0.08)
+  );
+  border: 1px solid rgba(0, 255, 102, 0.25);
+  border-radius: 0.75em;
 }
 
 .tokenStatItem {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35em;
-    padding: 0.5em 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  padding: 0.5em 0;
 }
 
 .tokenStatLabel {
-    font-size: 0.75em;
-    color: #909090;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 500;
+  font-size: 0.75em;
+  color: #909090;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
 }
 
 .tokenStatValue {
-    font-size: 1.35em;
-    font-weight: 700;
-    color: #00ff66;
-    white-space: nowrap;
+  font-size: 1.35em;
+  font-weight: 700;
+  color: #00ff66;
+  white-space: nowrap;
 }
 
 .stakedPercentageContainer {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 800px;
-    padding: 1.25em 1.5em;
-    background: linear-gradient(135deg, rgba(0, 255, 217, 0.08), rgba(0, 200, 255, 0.08));
-    border: 1px solid rgba(0, 255, 217, 0.25);
-    border-radius: 0.75em;
-    gap: 0.75em;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  padding: 1.25em 1.5em;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 217, 0.08),
+    rgba(0, 200, 255, 0.08)
+  );
+  border: 1px solid rgba(0, 255, 217, 0.25);
+  border-radius: 0.75em;
+  gap: 0.75em;
 }
 
 .stakedPercentageHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .stakedPercentageLabel {
-    font-size: 0.9em;
-    color: #a0a0a0;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  font-size: 0.9em;
+  color: #a0a0a0;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .stakedPercentageValue {
-    font-size: 1.5em;
-    font-weight: 700;
-    color: #00ffd9;
+  font-size: 1.5em;
+  font-weight: 700;
+  color: #00ffd9;
 }
 
 .stakedProgressBar {
-    width: 100%;
-    height: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 6px;
-    overflow: hidden;
-    position: relative;
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
 }
 
 .stakedProgressFill {
-    height: 100%;
-    background: linear-gradient(90deg, #00ffd9, #00ff66);
-    border-radius: 6px;
-    transition: width 0.5s ease;
-    box-shadow: 0 0 10px rgba(0, 255, 217, 0.5);
+  height: 100%;
+  background: linear-gradient(90deg, #00ffd9, #00ff66);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(0, 255, 217, 0.5);
 }
 
 .stakedProgressLabels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8em;
-    color: #808080;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  color: #808080;
 }
 
 .vaultsContainer {
-    display: flex;
-    gap: 1.5em;
-    width: 100%;
-    max-width: 900px;
-    justify-content: center;
+  display: flex;
+  gap: 1.5em;
+  width: 100%;
+  max-width: 900px;
+  justify-content: center;
 }
 
 .vaultSection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.5em 2.5em;
-    background: linear-gradient(135deg, rgba(0, 255, 217, 0.1), rgba(0, 255, 102, 0.1));
-    border: 1px solid rgba(0, 255, 217, 0.3);
-    border-radius: 1em;
-    gap: 0.75em;
-    flex: 1;
-    min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5em 2.5em;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 255, 217, 0.1),
+    rgba(0, 255, 102, 0.1)
+  );
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 1em;
+  gap: 0.75em;
+  flex: 1;
+  min-width: 280px;
 }
 
 .vaultHeader {
-    display: flex;
-    align-items: center;
-    gap: 0.75em;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
 }
 
 .vaultTitle {
-    font-size: 1em;
-    font-weight: 600;
-    color: #a0a0a0;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  font-size: 1em;
+  font-weight: 600;
+  color: #a0a0a0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .refreshButton {
-    padding: 0.25em 0.5em;
-    font-size: 1.1em;
-    background: transparent;
-    color: #00ffd9;
-    border: 1px solid rgba(0, 255, 217, 0.3);
-    border-radius: 0.3em;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  padding: 0.25em 0.5em;
+  font-size: 1.1em;
+  background: transparent;
+  color: #00ffd9;
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 0.3em;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .refreshButton:hover:not(:disabled) {
-    background: rgba(0, 255, 217, 0.1);
-    border-color: #00ffd9;
+  background: rgba(0, 255, 217, 0.1);
+  border-color: #00ffd9;
 }
 
 .refreshButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .vaultContent {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
 }
 
 .vaultBalance {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
 }
 
 .vaultAmount {
-    font-size: 2em;
-    font-weight: 700;
-    background: linear-gradient(45deg, #00ffd9, #00ff66);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    white-space: nowrap;
+  font-size: 2em;
+  font-weight: 700;
+  background: linear-gradient(45deg, #00ffd9, #00ff66);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
 }
 
 .vaultToken {
-    font-size: 1.25em;
-    font-weight: 600;
-    color: #00ffd9;
+  font-size: 1.25em;
+  font-weight: 600;
+  color: #00ffd9;
 }
 
 .vaultUsd {
-    font-size: 1.1em;
-    color: #c0c0c0;
+  font-size: 1.1em;
+  color: #c0c0c0;
 }
 
 .vaultAddress {
-    font-size: 0.85em;
-    color: #808080;
-    text-decoration: none;
-    transition: color 0.2s ease;
+  font-size: 0.85em;
+  color: #808080;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .vaultAddress:hover {
-    color: #00ffd9;
+  color: #00ffd9;
 }
 
 .stakerCount {
-    font-size: 0.95em;
-    color: #00ffd9;
-    font-weight: 600;
+  font-size: 0.95em;
+  color: #00ffd9;
+  font-weight: 600;
 }
 
 .shareSection {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75em;
 }
 
 .shareLabel {
-    font-size: 0.9em;
-    color: #808080;
+  font-size: 0.9em;
+  color: #808080;
 }
 
 .shareButtons {
-    display: flex;
-    gap: 1em;
+  display: flex;
+  gap: 1em;
 }
 
 .shareButtonX {
-    padding: 0.6em 1.25em;
-    font-size: 0.9em;
-    font-weight: 600;
-    background: #000;
-    color: #fff;
-    border: 1px solid #333;
-    border-radius: 0.5em;
-    text-decoration: none;
-    transition: all 0.2s ease;
+  padding: 0.6em 1.25em;
+  font-size: 0.9em;
+  font-weight: 600;
+  background: #000;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 0.5em;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
 .shareButtonX:hover {
-    background: #1a1a1a;
-    border-color: #555;
+  background: #1a1a1a;
+  border-color: #555;
 }
 
 .shareButtonTg {
-    padding: 0.6em 1.25em;
-    font-size: 0.9em;
-    font-weight: 600;
-    background: #0088cc;
-    color: #fff;
-    border: none;
-    border-radius: 0.5em;
-    text-decoration: none;
-    transition: all 0.2s ease;
+  padding: 0.6em 1.25em;
+  font-size: 0.9em;
+  font-weight: 600;
+  background: #0088cc;
+  color: #fff;
+  border: none;
+  border-radius: 0.5em;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
 .shareButtonTg:hover {
-    background: #006699;
+  background: #006699;
 }
 
 .vaultLoading {
-    color: #808080;
-    font-style: italic;
+  color: #808080;
+  font-style: italic;
 }
 
 .vaultError {
-    color: #ff6b6b;
-    font-size: 0.9em;
+  color: #ff6b6b;
+  font-size: 0.9em;
 }
 
 .searchSection {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 700px;
-    gap: 1em;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 700px;
+  gap: 1em;
 }
 
 .searchBox {
-    display: flex;
-    gap: 0.5em;
-    width: 100%;
+  display: flex;
+  gap: 0.5em;
+  width: 100%;
 }
 
 .searchInput {
-    flex: 1;
-    padding: 1em 1.5em;
-    font-size: 1em;
-    font-family: inherit;
-    background: rgba(17, 17, 17, 0.8);
-    border: 1px solid rgba(0, 255, 217, 0.3);
-    border-radius: 0.75em;
-    color: #ededed;
-    outline: none;
-    transition: all 0.3s ease;
+  flex: 1;
+  padding: 1em 1.5em;
+  font-size: 1em;
+  font-family: inherit;
+  background: rgba(17, 17, 17, 0.8);
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 0.75em;
+  color: #ededed;
+  outline: none;
+  transition: all 0.3s ease;
 }
 
 .searchInput:focus {
-    border-color: #00ffd9;
-    box-shadow: 0 0 15px rgba(0, 255, 217, 0.2);
+  border-color: #00ffd9;
+  box-shadow: 0 0 15px rgba(0, 255, 217, 0.2);
 }
 
 .searchInput::placeholder {
-    color: #606060;
+  color: #606060;
 }
 
 .searchButton {
-    padding: 1em 2em;
-    font-size: 1em;
-    font-weight: 600;
-    font-family: inherit;
-    background: linear-gradient(45deg, #00ffd9, #00ff66);
-    color: #000;
-    border: none;
-    border-radius: 0.75em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
+  padding: 1em 2em;
+  font-size: 1em;
+  font-weight: 600;
+  font-family: inherit;
+  background: linear-gradient(45deg, #00ffd9, #00ff66);
+  color: #000;
+  border: none;
+  border-radius: 0.75em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .searchButton:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(0, 255, 217, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 255, 217, 0.4);
 }
 
 .searchButton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .error {
-    padding: 1em;
-    background: rgba(255, 68, 68, 0.1);
-    border: 1px solid rgba(255, 68, 68, 0.3);
-    border-radius: 0.5em;
-    color: #ff6b6b;
-    text-align: center;
+  padding: 1em;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.3);
+  border-radius: 0.5em;
+  color: #ff6b6b;
+  text-align: center;
 }
 
 .statsButton {
-    padding: 0.75em 1.5em;
-    font-size: 1em;
-    font-weight: 600;
-    font-family: inherit;
-    background: linear-gradient(45deg, #ffd700, #ff8c00);
-    color: #000;
-    border: none;
-    border-radius: 0.75em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
+  padding: 0.75em 1.5em;
+  font-size: 1em;
+  font-weight: 600;
+  font-family: inherit;
+  background: linear-gradient(45deg, #ffd700, #ff8c00);
+  color: #000;
+  border: none;
+  border-radius: 0.75em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .statsButton:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
 }
 
 .statsSection {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 700px;
-    padding: 2em;
-    background: rgba(17, 17, 17, 0.8);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 0.75em;
-    gap: 1.5em;
-    align-items: center;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 700px;
+  padding: 2em;
+  background: rgba(17, 17, 17, 0.8);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 0.75em;
+  gap: 1.5em;
+  align-items: center;
 }
 
 .statsGenerated {
-    font-size: 0.85em;
-    color: #606060;
+  font-size: 0.85em;
+  color: #606060;
 }
 
 .statsCache {
-    font-size: 0.8em;
-    color: #808080;
-    font-style: italic;
+  font-size: 0.8em;
+  color: #808080;
+  font-style: italic;
 }
 
 .summaryCards {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1em;
-    width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1em;
+  width: 100%;
 }
 
 .summaryCard {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.5em;
-    background: rgba(255, 215, 0, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 0.75em;
-    gap: 0.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5em;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 0.75em;
+  gap: 0.5em;
 }
 
 .summaryLabel {
-    font-size: 0.9em;
-    color: #a0a0a0;
-    text-transform: uppercase;
+  font-size: 0.9em;
+  color: #a0a0a0;
+  text-transform: uppercase;
 }
 
 .summaryValue {
-    font-size: 1.75em;
-    font-weight: 700;
-    color: #ffd700;
+  font-size: 1.75em;
+  font-weight: 700;
+  color: #ffd700;
 }
 
 .tiersSection {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 1em;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 1em;
 }
 
 .tiersTitle {
-    font-size: 1.2em;
-    font-weight: 600;
-    color: #ffd700;
-    text-align: center;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #ffd700;
+  text-align: center;
 }
 
 .tiersList {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
 }
 
 .tierRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    padding: 0.75em 1em;
-    background: rgba(255, 215, 0, 0.05);
-    border-radius: 0.5em;
-    text-align: center;
-    align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 0.75em 1em;
+  background: rgba(255, 215, 0, 0.05);
+  border-radius: 0.5em;
+  text-align: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  padding: 0.75em 1em;
+  background: rgba(255, 215, 0, 0.05);
+  border-radius: 0.5em;
+  text-align: center;
+  align-items: center;
 }
 
 .tierAmount {
-    font-weight: 600;
-    color: #ffd700;
+  font-weight: 600;
+  color: #ffd700;
 }
 
 .tierValue {
-    font-weight: 600;
-    color: #00ff66;
-    font-size: 0.95em;
+  font-weight: 600;
+  color: #00ff66;
+  font-size: 0.95em;
 }
 
 .tierCount {
-    color: #c0c0c0;
+  color: #c0c0c0;
 }
 
 .tierTotal {
-    color: #808080;
-    font-size: 0.9em;
+  color: #808080;
+  font-size: 0.9em;
 }
 
 .resultsSection {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 700px;
-    gap: 1.5em;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 700px;
+  gap: 1.5em;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .resolvedInfo {
-    display: flex;
-    align-items: center;
-    gap: 0.75em;
-    padding: 0.75em 1.5em;
-    background: rgba(0, 255, 217, 0.1);
-    border: 1px solid rgba(0, 255, 217, 0.3);
-    border-radius: 2em;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.75em 1.5em;
+  background: rgba(0, 255, 217, 0.1);
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 2em;
 }
 
 .resolvedDomain {
-    font-weight: 600;
-    color: #00ffd9;
+  font-weight: 600;
+  color: #00ffd9;
 }
 
 .resolvedArrow {
-    color: #606060;
+  color: #606060;
 }
 
 .resolvedWallet {
-    color: #a0a0a0;
-    text-decoration: none;
-    transition: color 0.2s ease;
+  color: #a0a0a0;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .resolvedWallet:hover {
-    color: #00ffd9;
+  color: #00ffd9;
 }
 
 .statusBadge {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 .claimStatus {
-    padding: 0.5em 1.5em;
-    font-size: 1em;
-    font-weight: 600;
-    border-radius: 2em;
+  padding: 0.5em 1.5em;
+  font-size: 1em;
+  font-weight: 600;
+  border-radius: 2em;
 }
 
 .claimed {
-    background: linear-gradient(45deg, #00ff66, #00e6c0);
-    color: #000;
+  background: linear-gradient(45deg, #00ff66, #00e6c0);
+  color: #000;
 }
 
 .unclaimed {
-    background: rgba(255, 165, 0, 0.2);
-    border: 1px solid rgba(255, 165, 0, 0.5);
-    color: #ffa500;
+  background: rgba(255, 165, 0, 0.2);
+  border: 1px solid rgba(255, 165, 0, 0.5);
+  color: #ffa500;
 }
 
 .infoCards {
-    display: grid;
-    width: 100%;
-    grid-template-columns: repeat(2, 1fr);
-    justify-items: center;
-    gap: 1.5em;
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, 1fr);
+  justify-items: center;
+  gap: 1.5em;
 }
 
 .infoCard {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 1.5em;
-    background: rgba(0, 255, 217, 0.1);
-    border: 1px solid rgba(0, 255, 217, 0.3);
-    border-radius: 0.75em;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    width: calc(min(15em, 90%));
-    gap: 0.5em;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1.5em;
+  background: rgba(0, 255, 217, 0.1);
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 0.75em;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  width: calc(min(15em, 90%));
+  gap: 0.5em;
 }
 
 .infoCard:hover {
-    transform: translateY(-5px);
-    border-color: #00ffd9;
-    box-shadow: 0 5px 25px rgba(0, 255, 217, 0.2);
+  transform: translateY(-5px);
+  border-color: #00ffd9;
+  box-shadow: 0 5px 25px rgba(0, 255, 217, 0.2);
 }
 
 .cardTitle {
-    font-size: 0.9rem;
-    color: #c0c0c0;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  font-size: 0.9rem;
+  color: #c0c0c0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .cardValue {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #00ffd9;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #00ffd9;
 }
 
 .cardDesc {
-    font-size: 0.85rem;
-    color: #808080;
+  font-size: 0.85rem;
+  color: #808080;
 }
 
 .detailsSection {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 700px;
-    padding: 2em;
-    background: rgba(17, 17, 17, 0.8);
-    border: 1px solid rgba(0, 255, 217, 0.2);
-    border-radius: 0.75em;
-    gap: 1.5em;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 700px;
+  padding: 2em;
+  background: rgba(17, 17, 17, 0.8);
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  border-radius: 0.75em;
+  gap: 1.5em;
 }
 
 .sectionTitle {
-    font-size: 1.5em;
-    font-weight: 600;
-    color: #00ffd9;
-    text-align: center;
+  font-size: 1.5em;
+  font-weight: 600;
+  color: #00ffd9;
+  text-align: center;
 }
 
 .detailsList {
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 }
 
 .detailRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75em 0;
-    border-bottom: 1px solid rgba(0, 255, 217, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75em 0;
+  border-bottom: 1px solid rgba(0, 255, 217, 0.1);
 }
 
 .detailRow:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .detailLabel {
-    font-size: 0.95em;
-    color: #a0a0a0;
+  font-size: 0.95em;
+  color: #a0a0a0;
 }
 
 .detailValue {
-    font-size: 0.95em;
-    color: #ededed;
-    text-decoration: none;
-    white-space: nowrap;
-    text-align: right;
+  font-size: 0.95em;
+  color: #ededed;
+  text-decoration: none;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .detailValue:hover {
-    color: #00ffd9;
+  color: #00ffd9;
 }
 
 .addressGroup {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 
 .copyButton {
-    padding: 0.3em 0.6em;
-    font-size: 0.8em;
-    font-family: inherit;
-    background: rgba(0, 255, 217, 0.2);
-    color: #00ffd9;
-    border: 1px solid rgba(0, 255, 217, 0.3);
-    border-radius: 0.3em;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
+  padding: 0.3em 0.6em;
+  font-size: 0.8em;
+  font-family: inherit;
+  background: rgba(0, 255, 217, 0.2);
+  color: #00ffd9;
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  border-radius: 0.3em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .copyButton:hover {
-    background: rgba(0, 255, 217, 0.3);
-    border-color: #00ffd9;
+  background: rgba(0, 255, 217, 0.3);
+  border-color: #00ffd9;
 }
 
 .disclaimer {
-    font-size: 0.85em;
-    color: #606060;
-    font-style: italic;
-    text-align: center;
-    max-width: 500px;
+  font-size: 0.85em;
+  color: #606060;
+  font-style: italic;
+  text-align: center;
+  max-width: 500px;
 }
 
 @media (max-width: 760px) {
-    .main {
-        padding: 0 1em;
-    }
+  .main {
+    padding: 0 1em;
+  }
 
-    .header {
-        font-size: 1.8em;
-    }
+  .header {
+    font-size: 1.8em;
+  }
 
-    .tokenDesc {
-        font-size: 1em;
-    }
+  .tokenDesc {
+    font-size: 1em;
+  }
+  .tokenDesc {
+    font-size: 1em;
+  }
 
-    .tokenStatsContainer {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1em;
-        padding: 1em;
-    }
+  .tokenStatsContainer {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1em;
+    padding: 1em;
+  }
 
-    .tokenStatItem {
-        padding: 0.25em 0;
-    }
+  .tokenStatItem {
+    padding: 0.25em 0;
+  }
 
-    .tokenStatValue {
-        font-size: 1.15em;
-    }
+  .tokenStatValue {
+    font-size: 1.15em;
+  }
 
-    .stakedPercentageContainer {
-        padding: 1em;
-    }
+  .stakedPercentageContainer {
+    padding: 1em;
+  }
 
-    .stakedPercentageValue {
-        font-size: 1.3em;
-    }
+  .stakedPercentageValue {
+    font-size: 1.3em;
+  }
 
-    .stakedProgressBar {
-        height: 10px;
-    }
+  .stakedProgressBar {
+    height: 10px;
+  }
 
-    .vaultsContainer {
-        flex-direction: column;
-    }
+  .vaultsContainer {
+    flex-direction: column;
+  }
 
-    .vaultAmount {
-        font-size: 1.5em;
-    }
+  .vaultAmount {
+    font-size: 1.5em;
+  }
 
-    .vaultSection {
-        min-width: unset;
-        padding: 1.25em 1.5em;
-    }
+  .vaultSection {
+    min-width: unset;
+    padding: 1.25em 1.5em;
+  }
 
-    .searchBox {
-        flex-direction: column;
-    }
+  .searchBox {
+    flex-direction: column;
+  }
 
-    .searchButton {
-        width: 100%;
-    }
+  .searchButton {
+    width: 100%;
+  }
 
-    .infoCards {
-        grid-template-columns: 1fr;
-    }
+  .infoCards {
+    grid-template-columns: 1fr;
+  }
 
-    .infoCard {
-        width: 100%;
-        max-width: 100%;
-    }
+  .infoCard {
+    width: 100%;
+    max-width: 100%;
+  }
 
-    .summaryCards {
-        grid-template-columns: 1fr;
-    }
+  .summaryCards {
+    grid-template-columns: 1fr;
+  }
 
-    .tierRow {
-        grid-template-columns: 1fr;
-        gap: 0.25em;
-    }
+  .tierRow {
+    grid-template-columns: 1fr;
+    gap: 0.25em;
+  }
 
-    .detailsSection {
-        padding: 1.5em;
-    }
+  .detailsSection {
+    padding: 1.5em;
+  }
 
-    .detailRow {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5em;
-    }
+  .detailRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5em;
+  }
 
-    .detailValue {
-        max-width: 100%;
-        text-align: left;
-    }
+  .detailValue {
+    max-width: 100%;
+    text-align: left;
+  }
 }

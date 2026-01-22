@@ -2,6 +2,7 @@ import React from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./page.module.css";
+import Backbutton from "app/(components)/shared/Backbutton";
 
 export const metadata: Metadata = {
     title: "Privacy Policy - Seeker Tracker",
@@ -11,11 +12,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
     return (
         <div className={styles.main}>
-            <div className={styles.backButton}>
-                <Link href={"/"}>
-                    ← Back to Tracker
-                </Link>
-            </div>
+            <Backbutton />
             <div className={styles.container}>
                 <h1 className={styles.title}>Privacy Policy</h1>
                 <div className={styles.content}>

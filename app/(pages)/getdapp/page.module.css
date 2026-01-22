@@ -1,229 +1,218 @@
 .main {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    min-height: calc(100vh - 200px);
-}
-
-.backButton {
-    margin-bottom: 20px;
-}
-
-.backButton a {
-    color: #0070f3;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.backButton a:hover {
-    text-decoration: underline;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: calc(100vh - 200px);
 }
 
 .container {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 40px;
-    backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 40px;
+  backdrop-filter: blur(10px);
 }
 
 .title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 30px;
-    color: #fff;
-    text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #fff;
+  text-align: center;
 }
 
 .content {
-    line-height: 1.8;
-    color: #e0e0e0;
+  line-height: 1.8;
+  color: #e0e0e0;
 }
 
 .hero {
-    text-align: center;
-    margin-bottom: 40px;
-    padding: 30px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
 }
 
 .logo {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .description {
-    font-size: 18px;
-    color: #fff;
-    font-weight: 500;
+  font-size: 18px;
+  color: #fff;
+  font-weight: 500;
 }
 
 .downloadSection {
-    text-align: center;
-    margin-bottom: 40px;
-    padding: 30px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
 }
 
 .downloadSection h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #fff;
 }
 
 .downloadSection p {
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: #e0e0e0;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #e0e0e0;
 }
 
 .downloadBadge {
-    display: inline-block;
-    transition: transform 0.2s, opacity 0.2s;
+  display: inline-block;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
 }
 
 .downloadBadge:hover {
-    transform: scale(1.05);
-    opacity: 0.9;
+  transform: scale(1.05);
+  opacity: 0.9;
 }
 
 .feature {
-    margin-bottom: 40px;
+  margin-bottom: 40px;
 }
 
 .feature h2 {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #fff;
 }
 
 .feature p {
-    margin-bottom: 15px;
-    font-size: 14px;
+  margin-bottom: 15px;
+  font-size: 14px;
 }
 
 .ctaButton {
-    display: inline-block;
-    background: #0070f3;
-    color: #fff;
-    padding: 12px 30px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    margin-top: 10px;
-    transition: background 0.2s;
+  display: inline-block;
+  background: #0070f3;
+  color: #fff;
+  padding: 12px 30px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  margin-top: 10px;
+  transition: background 0.2s;
 }
 
 .ctaButton:hover {
-    background: #0051cc;
+  background: #0051cc;
 }
 
 .steps {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .step {
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
 }
 
 .stepNumber {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: #0070f3;
-    color: #fff;
-    border-radius: 50%;
-    font-weight: 700;
-    font-size: 18px;
-    flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #0070f3;
+  color: #fff;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
 }
 
 .step h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
 }
 
 .step p {
-    font-size: 14px;
-    color: #e0e0e0;
-    margin: 0;
+  font-size: 14px;
+  color: #e0e0e0;
+  margin: 0;
 }
 
 .featureList,
 .requirements {
-    margin-left: 0;
-    padding-left: 0;
-    list-style: none;
+  margin-left: 0;
+  padding-left: 0;
+  list-style: none;
 }
 
 .featureList li,
 .requirements li {
-    padding: 10px 15px;
-    margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    font-size: 14px;
+  padding: 10px 15px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 14px;
 }
 
 .links {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
 }
 
 .link {
-    display: block;
-    padding: 15px 20px;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
-    color: #fff;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background 0.2s;
-    text-align: center;
+  display: block;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+  text-align: center;
 }
 
 .link:hover {
-    background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 768px) {
-    .container {
-        padding: 20px;
-    }
+  .container {
+    padding: 20px;
+  }
 
-    .title {
-        font-size: 24px;
-    }
+  .title {
+    font-size: 24px;
+  }
 
-    .feature h2 {
-        font-size: 20px;
-    }
+  .feature h2 {
+    font-size: 20px;
+  }
 
-    .hero {
-        padding: 20px;
-    }
+  .hero {
+    padding: 20px;
+  }
 
-    .description {
-        font-size: 16px;
-    }
+  .description {
+    font-size: 16px;
+  }
 
-    .links {
-        grid-template-columns: 1fr;
-    }
+  .links {
+    grid-template-columns: 1fr;
+  }
 }

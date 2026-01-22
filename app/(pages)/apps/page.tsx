@@ -3,15 +3,12 @@
 import React from 'react'
 import styles from './page.module.css'
 import Link from 'next/link'
+import Backbutton from 'app/(components)/shared/Backbutton'
 
 const Apps = () => {
     return (
         <div className={styles.main}>
-            <div className={styles.backButton}>
-                <Link href={"/"}>
-                    ← Back to Tracker
-                </Link>
-            </div>
+            <Backbutton />
             <div className={styles.comingSoon}>
                 <span className={styles.icon}>🚀</span>
                 <span className={styles.header}>Coming Soon</span>

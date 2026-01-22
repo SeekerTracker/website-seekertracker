@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./page.module.css";
+import Backbutton from "app/(components)/shared/Backbutton";
 
 export const metadata: Metadata = {
     title: "Get DApp - Seeker Tracker",
@@ -12,11 +13,7 @@ export const metadata: Metadata = {
 export default function GetDappPage() {
     return (
         <div className={styles.main}>
-            <div className={styles.backButton}>
-                <Link href={"/"}>
-                    ← Back to Tracker
-                </Link>
-            </div>
+            <Backbutton />
             <div className={styles.container}>
                 <h1 className={styles.title}>Get Started with Seeker Tracker</h1>
                 <div className={styles.content}>

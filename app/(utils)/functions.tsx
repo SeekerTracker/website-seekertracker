@@ -59,3 +59,44 @@ export async function getFirstTxHash(account: string | PublicKey): Promise<{ has
     }
 
 }
+
+export const getPaginationItems = (
+    currentPage: number,
+    totalPages: number,
+    siblingCount: number = 2
+) => {
+    const firstPage = 1;
+    const lastPage = totalPages;
+
+    const leftRange = Math.max(currentPage - siblingCount, firstPage);
+    const rightRange = Math.min(currentPage + siblingCount, lastPage);
+
+    const items = new Set<number>();
+    items.add(firstPage);
+    items.add(lastPage);
+
+    for (let i = leftRange; i <= rightRange; i++) {
+        items.add(i);
+    }
+
+    const sortedNumbers = Array.from(items).sort((a, b) => a - b);
+    const paginationWithDots: (number | string)[] = [];
+
+    for (let i = 0; i < sortedNumbers.length; i++) {
+        const num = sortedNumbers[i];
+
+        if (i > 0) {
+            const prevNum = sortedNumbers[i - 1];
+            if (num - prevNum === 2) {
+                paginationWithDots.push(prevNum + 1);
+            }
+            else if (num - prevNum > 2) {
+                paginationWithDots.push("...");
+            }
+        }
+
+        paginationWithDots.push(num);
+    }
+
+    return paginationWithDots;
+};

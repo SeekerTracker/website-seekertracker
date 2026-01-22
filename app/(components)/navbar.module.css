@@ -2,10 +2,15 @@
   position: relative;
   z-index: 100;
   display: flex;
+  gap: 1em;
   padding: 1em 2em;
   width: 100%;
   justify-content: space-between;
   align-items: center;
+
+  flex-wrap: wrap;
+  justify-content: space-around;
+  /* flex-direction: row-reverse; */
 }
 
 .priceInfo {
@@ -30,6 +35,8 @@
 
 .socialMediaTab {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
   align-items: center;
   gap: 1em;
   padding: 0.5em 1em;
@@ -40,6 +47,8 @@
 
 .socialLinks {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5em;
 }
 
@@ -78,7 +87,9 @@
 
 .skrButton:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 0 15px rgba(0, 255, 217, 0.5), 0 0 30px rgba(0, 255, 102, 0.3);
+  box-shadow:
+    0 0 15px rgba(0, 255, 217, 0.5),
+    0 0 30px rgba(0, 255, 102, 0.3);
 }
 
 .sweepButton {
@@ -100,13 +111,19 @@
   text-decoration: none;
   transition: all 0.3s ease;
   white-space: nowrap;
-  animation: sweepGlow 2s ease-in-out infinite, gradientShift 3s ease infinite;
-  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5), 0 0 30px rgba(255, 140, 0, 0.3);
+  animation:
+    sweepGlow 2s ease-in-out infinite,
+    gradientShift 3s ease infinite;
+  box-shadow:
+    0 0 15px rgba(255, 215, 0, 0.5),
+    0 0 30px rgba(255, 140, 0, 0.3);
 }
 
 .sweepButton:hover {
   transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 140, 0, 0.5);
+  box-shadow:
+    0 0 20px rgba(255, 215, 0, 0.8),
+    0 0 40px rgba(255, 140, 0, 0.5);
 }
 
 .competitorsButton {
@@ -238,7 +255,9 @@
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
   z-index: -1;
 }
 
@@ -290,9 +309,9 @@
     flex-shrink: 0;
   }
 
-  .socialMediaTab {
+  /* .socialMediaTab {
     display: none;
-  }
+  } */
 }
 
 /* --- Animations --- */
@@ -312,11 +331,17 @@
 }
 
 @keyframes sweepGlow {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5), 0 0 30px rgba(255, 140, 0, 0.3);
+  0%,
+  100% {
+    box-shadow:
+      0 0 15px rgba(255, 215, 0, 0.5),
+      0 0 30px rgba(255, 140, 0, 0.3);
   }
   50% {
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.8), 0 0 50px rgba(255, 140, 0, 0.5), 0 0 70px rgba(255, 102, 0, 0.3);
+    box-shadow:
+      0 0 25px rgba(255, 215, 0, 0.8),
+      0 0 50px rgba(255, 140, 0, 0.5),
+      0 0 70px rgba(255, 102, 0, 0.3);
   }
 }
 
