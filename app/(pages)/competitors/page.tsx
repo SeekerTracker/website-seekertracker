@@ -40,8 +40,10 @@ export default function CompetitorsPage() {
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [viewMode, setViewMode] = useState<"all" | "zoomed">("all");
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         fetchLiveData();
         // Refresh every 5 minutes
         const interval = setInterval(fetchLiveData, 5 * 60 * 1000);
@@ -87,10 +89,8 @@ export default function CompetitorsPage() {
 
     // Calculate Solana Mobile's position
     const solanaMobile = data.find(d => d.isSolana);
-    // ✅ CORRECT: Creates a copy first ([...data])
-    const solanaRank = [...data]
-        .sort((a, b) => b.marketCap - a.marketCap)
-        .findIndex(d => d.isSolana) + 1;
+    const sortedData = [...data].sort((a, b) => b.marketCap - a.marketCap);
+    const solanaRank = sortedData.findIndex(d => d.isSolana) + 1;
 
     // Calculate multipliers
     const getMultiplier = (targetCap: number, currentCap: number): string => {
@@ -158,47 +158,53 @@ export default function CompetitorsPage() {
                 </div>
 
                 <div className={styles.chartContainer}>
-                    <ResponsiveContainer width="100%" height={400}>
-                        <BarChart
-                            data={[...displayData].sort((a, b) => b.marketCap - a.marketCap)}
-                            layout="vertical"
-                            margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-                        >
-                            <XAxis
-                                type="number"
-                                tickFormatter={formatAxisValue}
-                                stroke="#808080"
-                            />
-                            <YAxis
-                                type="category"
-                                dataKey="name"
-                                stroke="#808080"
-                                width={90}
-                            />
-                            <Tooltip
-                                formatter={(value) => [formatMarketCap(Number(value) || 0), "Market Cap"]}
-                                contentStyle={{
-                                    backgroundColor: "#1a1a1a",
-                                    border: "1px solid #333",
-                                    borderRadius: "8px",
-                                }}
-                                labelStyle={{ color: "#fff" }}
-                            />
-                            <Bar dataKey="marketCap" radius={[0, 4, 4, 0]}>
-                                {displayData
-                                    .sort((a, b) => b.marketCap - a.marketCap)
-                                    .map((entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={entry.isSolana ? "#14F195" : entry.color}
-                                            opacity={entry.isSolana ? 1 : 0.7}
-                                            stroke={entry.isSolana ? "#14F195" : "none"}
-                                            strokeWidth={entry.isSolana ? 2 : 0}
-                                        />
-                                    ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {mounted ? (
+                        <ResponsiveContainer width="100%" height={400}>
+                            <BarChart
+                                data={[...displayData].sort((a, b) => b.marketCap - a.marketCap)}
+                                layout="vertical"
+                                margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                            >
+                                <XAxis
+                                    type="number"
+                                    tickFormatter={formatAxisValue}
+                                    stroke="#808080"
+                                />
+                                <YAxis
+                                    type="category"
+                                    dataKey="name"
+                                    stroke="#808080"
+                                    width={90}
+                                />
+                                <Tooltip
+                                    formatter={(value) => [formatMarketCap(Number(value) || 0), "Market Cap"]}
+                                    contentStyle={{
+                                        backgroundColor: "#1a1a1a",
+                                        border: "1px solid #333",
+                                        borderRadius: "8px",
+                                    }}
+                                    labelStyle={{ color: "#fff" }}
+                                />
+                                <Bar dataKey="marketCap" radius={[0, 4, 4, 0]}>
+                                    {[...displayData]
+                                        .sort((a, b) => b.marketCap - a.marketCap)
+                                        .map((entry, index) => (
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={entry.isSolana ? "#14F195" : entry.color}
+                                                opacity={entry.isSolana ? 1 : 0.7}
+                                                stroke={entry.isSolana ? "#14F195" : "none"}
+                                                strokeWidth={entry.isSolana ? 2 : 0}
+                                            />
+                                        ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div style={{ height: 400, display: "flex", alignItems: "center", justifyContent: "center", color: "#808080" }}>
+                            Loading chart...
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -216,7 +222,7 @@ export default function CompetitorsPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {data
+                            {[...data]
                                 .sort((a, b) => b.marketCap - a.marketCap)
                                 .map((company, index) => (
                                     <tr
