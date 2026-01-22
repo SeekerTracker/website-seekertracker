@@ -76,27 +76,84 @@ async function fetchMarketCap(slug: string): Promise<number | null> {
     }
 }
 
+const SKR_TOKEN_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
+const HELIUS_RPC = "https://mainnet.helius-rpc.com/?api-key=38d87a91-14f5-45fa-b517-09d7c89ace29";
+// Known holder wallet for price lookup
+const SKR_HOLDER = "CYPdPHMh1mD6ioFFVva7L2rFeKLBpcefVv5yv1p6iRqB";
+
+async function fetchSolanaMarketCap(): Promise<number> {
+    try {
+        // Fetch supply from metasal API
+        const supplyRes = await fetch(`https://api.metasal.xyz/api/supply/${SKR_TOKEN_MINT}`);
+        if (!supplyRes.ok) return 0.125;
+
+        const supplyText = await supplyRes.text();
+        const totalSupply = parseFloat(supplyText);
+        if (isNaN(totalSupply) || totalSupply <= 0) return 0.125;
+
+        // Fetch price from Helius DAS (getAssetsByOwner returns price_info)
+        const priceRes = await fetch(HELIUS_RPC, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                jsonrpc: "2.0",
+                id: "price",
+                method: "getAssetsByOwner",
+                params: {
+                    ownerAddress: SKR_HOLDER,
+                    displayOptions: { showFungible: true },
+                },
+            }),
+        });
+
+        if (!priceRes.ok) return 0.125;
+
+        const priceData = await priceRes.json();
+        const items = priceData?.result?.items || [];
+
+        // Find SKR token
+        const skrToken = items.find((item: { id: string }) => item.id === SKR_TOKEN_MINT);
+        const price = skrToken?.token_info?.price_info?.price_per_token || 0;
+
+        if (price > 0) {
+            const marketCapUsd = price * totalSupply;
+            const marketCapBillions = marketCapUsd / 1_000_000_000;
+            return Math.round(marketCapBillions * 1000) / 1000; // Round to 3 decimals
+        }
+
+        return 0.125;
+    } catch (error) {
+        console.error("Failed to fetch Solana Mobile market cap:", error);
+        return 0.125;
+    }
+}
+
 async function fetchLiveData(): Promise<CompetitorData[]> {
     const results: CompetitorData[] = [];
 
-    // Fetch all companies in parallel
-    const promises = COMPANIES.map(async (company) => {
-        const marketCap = await fetchMarketCap(company.slug);
-        return {
-            name: company.name,
-            ticker: company.ticker,
-            marketCap: marketCap ?? company.fallback,
-            color: company.color,
-        };
-    });
+    // Fetch all companies and Solana Mobile in parallel
+    const [companiesData, solanaMarketCap] = await Promise.all([
+        Promise.all(
+            COMPANIES.map(async (company) => {
+                const marketCap = await fetchMarketCap(company.slug);
+                return {
+                    name: company.name,
+                    ticker: company.ticker,
+                    marketCap: marketCap ?? company.fallback,
+                    color: company.color,
+                };
+            })
+        ),
+        fetchSolanaMarketCap(),
+    ]);
 
-    const fetched = await Promise.all(promises);
-    results.push(...fetched);
+    results.push(...companiesData);
 
-    // Add Solana Mobile (static value)
+    // Add Solana Mobile with live market cap
     results.push({
         name: "Solana Mobile",
-        marketCap: 0.125,
+        ticker: "SKR",
+        marketCap: solanaMarketCap,
         color: "#14F195",
         isSolana: true,
     });
