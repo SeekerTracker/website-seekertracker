@@ -256,7 +256,7 @@ export default function CompetitorsPage() {
                     Sources: companiesmarketcap.com, Yahoo Finance
                 </span>
                 <span className={styles.disclaimer}>
-                    Note: Huawei is private (no public market cap). Solana Mobile valuation is estimated.
+                    Note: Huawei is private (no public market cap). Solana Mobile is live from SKR token.
                 </span>
             </div>
         </div>
