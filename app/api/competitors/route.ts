@@ -22,6 +22,24 @@ const COMPANIES: { name: string; slug: string; ticker: string; color: string; fa
     { name: "HTC", slug: "htc", ticker: "2498.TW", color: "#84BD00", fallback: 1.2 },
 ];
 
+// Generate fallback data from COMPANIES config
+function getFallbackData(): CompetitorData[] {
+    const data: CompetitorData[] = COMPANIES.map(c => ({
+        name: c.name,
+        ticker: c.ticker,
+        marketCap: c.fallback,
+        color: c.color,
+    }));
+    data.push({
+        name: "Solana Mobile",
+        ticker: "SKR",
+        marketCap: 0.125,
+        color: "#14F195",
+        isSolana: true,
+    });
+    return data;
+}
+
 // Cache for live data
 let cachedData: CompetitorData[] | null = null;
 let lastFetch = 0;
@@ -177,7 +195,7 @@ export async function GET() {
         try {
             companies = await fetchLiveData();
         } catch {
-            companies = STATIC_DATA;
+            companies = getFallbackData();
         }
 
         // Update cache
@@ -192,7 +210,7 @@ export async function GET() {
     } catch (error) {
         console.error("Competitors API error:", error);
         return NextResponse.json({
-            companies: STATIC_DATA,
+            companies: getFallbackData(),
             lastUpdated: Date.now(),
             error: "Using static data",
         });
