@@ -91,6 +91,14 @@ const Navbar = () => {
                 <Link href="/competitors" className={styles.competitorsButton}>
                     Competitors
                 </Link>
+                <a
+                    href="https://stake.seekertracker.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.stakeButton}
+                >
+                    Stake
+                </a>
                 <button
                     className={styles.buyButton}
                     onClick={openJupiter}
