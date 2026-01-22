@@ -8,66 +8,70 @@ interface CompetitorData {
     isSolana?: boolean;
 }
 
-// Static fallback data (billions USD)
-const STATIC_DATA: CompetitorData[] = [
-    { name: "Apple", ticker: "AAPL", marketCap: 3645, color: "#A2AAAD" },
-    { name: "Samsung", ticker: "005930.KS", marketCap: 658, color: "#1428A0" },
-    { name: "Sony", ticker: "SONY", marketCap: 142, color: "#000000" },
-    { name: "Xiaomi", ticker: "1810.HK", marketCap: 116, color: "#FF6900" },
-    { name: "Foxconn", ticker: "2317.TW", marketCap: 98, color: "#E31937" },
-    { name: "ZTE", ticker: "000063.SZ", marketCap: 27, color: "#0066B3" },
-    { name: "Lenovo", ticker: "0992.HK", marketCap: 14, color: "#E2231A" },
-    { name: "Asus", ticker: "2357.TW", marketCap: 12, color: "#00539B" },
-    { name: "Transsion", ticker: "688036.SS", marketCap: 11, color: "#FF9933" },
-    { name: "HTC", ticker: "2498.TW", marketCap: 1.2, color: "#84BD00" },
-    { name: "Solana Mobile", marketCap: 0.125, color: "#14F195", isSolana: true },
+// Company config with companiesmarketcap.com slugs
+const COMPANIES: { name: string; slug: string; ticker: string; color: string; fallback: number }[] = [
+    { name: "Apple", slug: "apple", ticker: "AAPL", color: "#A2AAAD", fallback: 3645 },
+    { name: "Samsung", slug: "samsung", ticker: "005930.KS", color: "#1428A0", fallback: 658 },
+    { name: "Sony", slug: "sony", ticker: "SONY", color: "#000000", fallback: 142 },
+    { name: "Xiaomi", slug: "xiaomi", ticker: "1810.HK", color: "#FF6900", fallback: 116 },
+    { name: "Foxconn", slug: "foxconn", ticker: "2317.TW", color: "#E31937", fallback: 98 },
+    { name: "ZTE", slug: "zte", ticker: "000063.SZ", color: "#0066B3", fallback: 27 },
+    { name: "Lenovo", slug: "lenovo", ticker: "0992.HK", color: "#E2231A", fallback: 14 },
+    { name: "Asus", slug: "asus", ticker: "2357.TW", color: "#00539B", fallback: 12 },
+    { name: "Transsion", slug: "transsion-holdings", ticker: "688036.SS", color: "#FF9933", fallback: 11 },
+    { name: "HTC", slug: "htc", ticker: "2498.TW", color: "#84BD00", fallback: 1.2 },
 ];
-
-// Ticker mapping for Yahoo Finance API
-const YAHOO_TICKERS: { [key: string]: string } = {
-    "Apple": "AAPL",
-    "Samsung": "005930.KS",
-    "Sony": "SONY",
-    "Xiaomi": "1810.HK",
-    "Foxconn": "2317.TW",
-    "ZTE": "000063.SZ",
-    "Lenovo": "0992.HK",
-    "Asus": "2357.TW",
-    "Transsion": "688036.SS",
-    "HTC": "2498.TW",
-};
 
 // Cache for live data
 let cachedData: CompetitorData[] | null = null;
 let lastFetch = 0;
-const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
 
-async function fetchYahooQuote(ticker: string): Promise<number | null> {
+async function fetchMarketCap(slug: string): Promise<number | null> {
     try {
         const response = await fetch(
-            `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`,
+            `https://companiesmarketcap.com/${slug}/marketcap/`,
             {
                 headers: {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 },
             }
         );
 
         if (!response.ok) return null;
 
-        const data = await response.json();
-        const meta = data.chart?.result?.[0]?.meta;
+        const html = await response.text();
 
-        if (meta?.marketCap) {
-            return meta.marketCap / 1_000_000_000; // Convert to billions
+        // Find all market cap values and pick the first reasonable one
+        // Pattern: $XXX.XX B or $X.XXX T (company market caps)
+        const allMatches = html.matchAll(/\$([0-9,.]+)\s*([BTM])\b/gi);
+
+        for (const match of allMatches) {
+            const value = parseFloat(match[1].replace(/,/g, ""));
+            const unit = match[2].toUpperCase();
+
+            let billions = 0;
+            if (unit === "T") {
+                billions = value * 1000;
+            } else if (unit === "B") {
+                billions = value;
+            } else if (unit === "M") {
+                billions = value / 1000;
+            }
+
+            // Skip obviously wrong values (global market caps > $50T)
+            if (billions > 50000) continue;
+
+            // Return first reasonable value
+            if (billions > 0) {
+                return Math.round(billions * 100) / 100; // Round to 2 decimals
+            }
         }
 
-        // Fallback: calculate from price and shares
-        const price = meta?.regularMarketPrice || meta?.previousClose;
-        // This won't work without share count, so return null
         return null;
     } catch (error) {
-        console.error(`Failed to fetch ${ticker}:`, error);
+        console.error(`Failed to fetch ${slug}:`, error);
         return null;
     }
 }
@@ -75,28 +79,27 @@ async function fetchYahooQuote(ticker: string): Promise<number | null> {
 async function fetchLiveData(): Promise<CompetitorData[]> {
     const results: CompetitorData[] = [];
 
-    // Fetch US stocks (more reliable)
-    const usStocks = ["Apple", "Sony"];
+    // Fetch all companies in parallel
+    const promises = COMPANIES.map(async (company) => {
+        const marketCap = await fetchMarketCap(company.slug);
+        return {
+            name: company.name,
+            ticker: company.ticker,
+            marketCap: marketCap ?? company.fallback,
+            color: company.color,
+        };
+    });
 
-    for (const company of STATIC_DATA) {
-        if (company.isSolana) {
-            // Solana Mobile - keep static or fetch from another source
-            results.push(company);
-            continue;
-        }
+    const fetched = await Promise.all(promises);
+    results.push(...fetched);
 
-        const ticker = YAHOO_TICKERS[company.name];
-        if (ticker && usStocks.includes(company.name)) {
-            const marketCap = await fetchYahooQuote(ticker);
-            if (marketCap) {
-                results.push({ ...company, marketCap });
-                continue;
-            }
-        }
-
-        // Fallback to static data
-        results.push(company);
-    }
+    // Add Solana Mobile (static value)
+    results.push({
+        name: "Solana Mobile",
+        marketCap: 0.125,
+        color: "#14F195",
+        isSolana: true,
+    });
 
     return results;
 }
