@@ -1,0 +1,358 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    padding: 0 2em;
+    width: 100%;
+    gap: 2em;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 3em;
+}
+
+.backButton {
+    display: flex;
+    background: linear-gradient(45deg, #14F195, #9945FF);
+    color: black;
+    align-self: flex-start;
+    justify-self: flex-start;
+    padding: 0.5em 1em;
+    font-size: 0.9em;
+    border-radius: 1em;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.topBar {
+    display: flex;
+    width: 100%;
+    gap: 0.5em;
+    flex-direction: column;
+    align-items: center;
+    padding: 2em 1em;
+    border-radius: 1em;
+    border: 1px solid rgba(20, 241, 149, 0.2);
+    background: rgba(20, 241, 149, 0.05);
+    text-align: center;
+}
+
+.header {
+    font-size: 2.5em;
+    font-weight: 700;
+    background: linear-gradient(45deg, #14F195, #9945FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subheader {
+    font-size: 1.2em;
+    color: #a0a0a0;
+}
+
+.solanaHighlight {
+    display: flex;
+    align-items: center;
+    gap: 2em;
+    width: 100%;
+    max-width: 900px;
+    padding: 1.5em 2em;
+    background: linear-gradient(135deg, rgba(20, 241, 149, 0.15), rgba(153, 69, 255, 0.15));
+    border: 2px solid #14F195;
+    border-radius: 1em;
+    box-shadow: 0 0 30px rgba(20, 241, 149, 0.2);
+}
+
+.solanaLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #14F195, #9945FF);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.solanaIcon {
+    font-size: 2em;
+    font-weight: 700;
+    color: #000;
+}
+
+.solanaInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    flex: 1;
+}
+
+.solanaName {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #14F195;
+}
+
+.solanaCap {
+    font-size: 2em;
+    font-weight: 700;
+    color: #fff;
+}
+
+.solanaRank {
+    font-size: 0.9em;
+    color: #808080;
+}
+
+.solanaMultipliers {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    padding: 1em;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0.5em;
+}
+
+.multiplierLabel {
+    font-size: 0.8em;
+    color: #808080;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25em;
+}
+
+.multiplierRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5em;
+    font-size: 0.9em;
+    color: #c0c0c0;
+}
+
+.multiplierValue {
+    font-weight: 700;
+    color: #14F195;
+}
+
+.chartSection {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 900px;
+    padding: 1.5em;
+    background: rgba(17, 17, 17, 0.8);
+    border: 1px solid rgba(20, 241, 149, 0.2);
+    border-radius: 1em;
+    gap: 1em;
+}
+
+.chartHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1em;
+}
+
+.chartTitle {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #fff;
+}
+
+.viewToggle {
+    display: flex;
+    gap: 0.5em;
+}
+
+.toggleBtn {
+    padding: 0.5em 1em;
+    font-size: 0.85em;
+    font-family: inherit;
+    background: transparent;
+    color: #808080;
+    border: 1px solid #333;
+    border-radius: 0.5em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toggleBtn:hover {
+    border-color: #14F195;
+    color: #14F195;
+}
+
+.toggleBtn.active {
+    background: rgba(20, 241, 149, 0.2);
+    border-color: #14F195;
+    color: #14F195;
+}
+
+.chartContainer {
+    width: 100%;
+    min-height: 400px;
+}
+
+.tableSection {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 900px;
+    gap: 1em;
+}
+
+.tableTitle {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #fff;
+}
+
+.tableContainer {
+    overflow-x: auto;
+    border-radius: 0.75em;
+    border: 1px solid rgba(20, 241, 149, 0.2);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+}
+
+.table th {
+    padding: 1em;
+    text-align: left;
+    background: rgba(20, 241, 149, 0.1);
+    color: #14F195;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 0.05em;
+}
+
+.table td {
+    padding: 0.75em 1em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #c0c0c0;
+}
+
+.table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.solanaRow td {
+    background: rgba(20, 241, 149, 0.1);
+    color: #fff;
+    font-weight: 600;
+}
+
+.solanaRow:hover td {
+    background: rgba(20, 241, 149, 0.15);
+}
+
+.colorDot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 0.5em;
+    vertical-align: middle;
+}
+
+.ticker {
+    font-family: monospace;
+    font-size: 0.85em;
+    color: #808080;
+}
+
+.marketCapCell {
+    font-weight: 600;
+    color: #fff;
+}
+
+.multiplierCell {
+    color: #14F195;
+    font-weight: 600;
+}
+
+.footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    margin-top: 1em;
+}
+
+.lastUpdated {
+    font-size: 0.85em;
+    color: #606060;
+}
+
+.sources {
+    font-size: 0.8em;
+    color: #808080;
+}
+
+.disclaimer {
+    font-size: 0.8em;
+    color: #606060;
+    font-style: italic;
+    text-align: center;
+    max-width: 600px;
+}
+
+@media (max-width: 760px) {
+    .main {
+        padding: 0 1em;
+    }
+
+    .header {
+        font-size: 1.8em;
+    }
+
+    .subheader {
+        font-size: 1em;
+    }
+
+    .solanaHighlight {
+        flex-direction: column;
+        gap: 1em;
+        padding: 1.25em;
+        text-align: center;
+    }
+
+    .solanaInfo {
+        align-items: center;
+    }
+
+    .solanaMultipliers {
+        width: 100%;
+    }
+
+    .chartSection {
+        padding: 1em;
+    }
+
+    .chartHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .chartContainer {
+        min-height: 350px;
+    }
+
+    .table th,
+    .table td {
+        padding: 0.5em 0.75em;
+        font-size: 0.85em;
+    }
+
+    .table th:nth-child(3),
+    .table td:nth-child(3) {
+        display: none;
+    }
+}
