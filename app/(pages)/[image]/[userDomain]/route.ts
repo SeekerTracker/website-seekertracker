@@ -187,31 +187,64 @@ export async function GET(request: Request) {
         ctx.textBaseline = 'top';
     }
 
-    // Title text    
+    // Title text - auto-scales font for long names
     const drawWrappedText = (x: number, y: number, lineHeight: number) => {
         ctx.fillStyle = '#00FFD9';
-        ctx.font = 'bold 110px sans-serif';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
 
-        const maxWidth = width - 120;
-        const words = userDomain.split(' ');
-        let line = '';
-        let currentY = y;
-        for (let i = 0; i < words.length; i++) {
-            const testLine = line ? line + ' ' + words[i] : words[i];
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && i > 0) {
-                ctx.fillText(line, x, currentY);
-                line = words[i];
-                currentY += lineHeight;
-            } else {
-                line = testLine;
-            }
+        const maxWidth = width - 180; // Leave room for logo
+        const maxFontSize = 110;
+        const minFontSize = 48;
+
+        // Find the right font size to fit the text
+        let fontSize = maxFontSize;
+        ctx.font = `bold ${fontSize}px sans-serif`;
+
+        while (ctx.measureText(userDomain).width > maxWidth && fontSize > minFontSize) {
+            fontSize -= 4;
+            ctx.font = `bold ${fontSize}px sans-serif`;
         }
-        if (line) ctx.fillText(line, x, currentY);
-        // Return bottom Y position (to stack subsequent elements safely)
-        return currentY + lineHeight;
+
+        // If still too wide at min size, we'll need to truncate or wrap
+        const textWidth = ctx.measureText(userDomain).width;
+
+        if (textWidth <= maxWidth) {
+            // Fits on one line
+            ctx.fillText(userDomain, x, y);
+            return y + fontSize + 10;
+        } else {
+            // Split into two lines at a reasonable point
+            const chars = userDomain.split('');
+            let line1 = '';
+            let line2 = '';
+
+            // Find split point (around middle, prefer before the dot)
+            const dotIndex = userDomain.lastIndexOf('.');
+            let splitIndex = dotIndex > 0 ? dotIndex : Math.floor(chars.length / 2);
+
+            // Adjust split to fit first line
+            for (let i = splitIndex; i > 0; i--) {
+                const testLine = userDomain.substring(0, i);
+                ctx.font = `bold ${fontSize}px sans-serif`;
+                if (ctx.measureText(testLine).width <= maxWidth) {
+                    line1 = testLine;
+                    line2 = userDomain.substring(i);
+                    break;
+                }
+            }
+
+            // If we couldn't find a good split, just force it
+            if (!line1) {
+                line1 = userDomain.substring(0, Math.floor(chars.length / 2));
+                line2 = userDomain.substring(Math.floor(chars.length / 2));
+            }
+
+            const adjustedLineHeight = fontSize + 10;
+            ctx.fillText(line1, x, y);
+            ctx.fillText(line2, x, y + adjustedLineHeight);
+            return y + adjustedLineHeight * 2;
+        }
     };
 
     // SeekerId Text
