@@ -1,0 +1,123 @@
+.shareContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    align-items: center;
+}
+
+.nativeShareButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 0.75em 1.5em;
+    background: linear-gradient(45deg, #00ffd9, #00ff66);
+    color: #000;
+    border: none;
+    border-radius: 1em;
+    font-weight: 600;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 120px;
+}
+
+.nativeShareButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 255, 217, 0.4);
+}
+
+.nativeShareButton:active {
+    transform: translateY(0);
+}
+
+.fallbackButtons {
+    display: flex;
+    gap: 0.5em;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.xButton,
+.telegramButton,
+.copyButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4em;
+    padding: 0.6em 1em;
+    border-radius: 0.75em;
+    font-weight: 600;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    min-width: 90px;
+}
+
+.xButton {
+    background: #000;
+    color: #fff;
+    border: 1px solid #333;
+}
+
+.xButton:hover {
+    background: #1a1a1a;
+    border-color: #555;
+}
+
+.telegramButton {
+    background: #0088cc;
+    color: #fff;
+}
+
+.telegramButton:hover {
+    background: #006699;
+}
+
+.copyButton {
+    background: rgba(0, 255, 102, 0.15);
+    color: #00ff66;
+    border: 1px solid rgba(0, 255, 102, 0.3);
+}
+
+.copyButton:hover {
+    background: rgba(0, 255, 102, 0.25);
+    border-color: rgba(0, 255, 102, 0.5);
+}
+
+.copyButton.copied {
+    background: rgba(0, 255, 102, 0.3);
+    color: #00ff66;
+}
+
+.buttonText {
+    display: inline;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 480px) {
+    .fallbackButtons {
+        width: 100%;
+    }
+
+    .xButton,
+    .telegramButton,
+    .copyButton {
+        flex: 1;
+        min-width: 80px;
+        padding: 0.5em 0.75em;
+        font-size: 0.85em;
+    }
+
+    .buttonText {
+        display: none;
+    }
+
+    .xButton,
+    .telegramButton,
+    .copyButton {
+        min-width: 48px;
+        padding: 0.6em;
+    }
+}

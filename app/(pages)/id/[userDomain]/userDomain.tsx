@@ -10,6 +10,7 @@ import { notFound } from 'next/navigation';
 import { getPortfolio, formatUsd, formatBalance, PortfolioData } from 'app/(utils)/lib/portfolio';
 import { analytics } from 'app/(utils)/lib/analytics';
 import Backbutton from 'app/(components)/shared/Backbutton';
+import ShareButtons from 'app/(components)/shared/ShareButtons';
 
 
 const UserDomain = ({ userDomain }: { userDomain: string }) => {
@@ -304,16 +305,19 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     <div className={styles.manualCopy}>
                         <span className={styles.showLink} onClick={() => copyToClipboard('imageLink')}>{imageLink}</span>
                         <button className={styles.copyButton} onClick={() => copyToClipboard('imageLink')}>{copyImageLinkSuccess ? '✅ Copied!' : 'Copy Image URL'}</button>
-                        <Link href={`https://x.com/intent/tweet?text=${encodeURIComponent(`Check out ${userDomain} on @Seeker_Tracker 🔥`)}&url=${encodeURIComponent(`https://seekertracker.com/id/${userDomain}`)}`} target='_blank' rel="noopener noreferrer" onClick={() => analytics.domainShare(userDomain, 'tweet')}>
-                            <button className={styles.tweetButton}>Tweet</button>
-                        </Link>
                     </div>
 
+                    <ShareButtons
+                        url={`https://seekertracker.com/id/${userDomain}`}
+                        title={`${userDomain} - SeekerID Profile`}
+                        text={`Check out ${userDomain} on @Seeker_Tracker`}
+                        onShare={(method) => analytics.domainShare(userDomain, method === 'x' ? 'tweet' : method)}
+                    />
+
                     <div className={styles.instructions}>
-                        <span>1. Copy image</span>
-                        <span>2. Click Tweet button</span>
-                        <span>3. Paste image</span>
-                        <span>4. Tweet</span>
+                        <span>1. Copy image above</span>
+                        <span>2. Share via your preferred platform</span>
+                        <span>3. Paste image in your post</span>
                     </div>
                 </div>
             </div>

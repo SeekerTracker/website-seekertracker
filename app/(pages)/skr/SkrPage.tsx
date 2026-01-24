@@ -6,6 +6,7 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import { getOnchainDomainData } from "../../(utils)/onchainData";
 import Backbutton from "app/(components)/shared/Backbutton";
+import ShareButtons from "app/(components)/shared/ShareButtons";
 
 interface AllocationData {
     success: boolean;
@@ -395,24 +396,11 @@ const SkrPage = () => {
 
             <div className={styles.shareSection}>
                 <span className={styles.shareLabel}>Share SKR Stats</span>
-                <div className={styles.shareButtons}>
-                    <a
-                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out SKR Season 1 Stats!")}&url=${encodeURIComponent("https://seekertracker.com/skr")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.shareButtonX}
-                    >
-                        Share on X
-                    </a>
-                    <a
-                        href={`https://t.me/share/url?url=${encodeURIComponent("https://seekertracker.com/skr")}&text=${encodeURIComponent("Check out SKR Season 1 Stats!")}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.shareButtonTg}
-                    >
-                        Share on Telegram
-                    </a>
-                </div>
+                <ShareButtons
+                    url="https://seekertracker.com/skr"
+                    title="SKR Season 1 Stats"
+                    text="Check out SKR Season 1 Stats on @Seeker_Tracker"
+                />
             </div>
 
             <div className={styles.searchSection}>

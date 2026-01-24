@@ -5,7 +5,7 @@ type AnalyticsEvents = {
     // Domain/Seeker events
     domain_search: { query: string };
     domain_view: { domain: string };
-    domain_share: { domain: string; method: 'tweet' | 'copy' };
+    domain_share: { domain: string; method: 'tweet' | 'copy' | 'telegram' | 'native' };
 
     // Navigation events
     page_view: { page: string };
@@ -44,7 +44,7 @@ export const analytics = {
     domainView: (domain: string) =>
         trackEvent('domain_view', { domain }),
 
-    domainShare: (domain: string, method: 'tweet' | 'copy') =>
+    domainShare: (domain: string, method: 'tweet' | 'copy' | 'telegram' | 'native') =>
         trackEvent('domain_share', { domain, method }),
 
     pageView: (page: string) =>
