@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 
     const bottomText = isAvailable ? "Claim yours @SeekerTracker.com" : "Check yours @SeekerTracker.com";
     const statusText = isAvailable ? "Available" : "Activated";
-    const subtitleText = isAvailable ? "SeekerID - Unclaimed" : "SeekerID Profile";
+    const subtitleText = isAvailable ? "SeekerID - Available" : "SeekerID Profile";
 
     // Only get these if domain exists
     const rank = domainData?.rank;
@@ -291,8 +291,8 @@ export async function GET(request: Request) {
             // Stats for available domains
             const nameLength = baseName.length;
             stats.push({ primary: `${nameLength}`, label: 'Characters' });
-            stats.push({ primary: 'Unclaimed', label: 'Status' });
-            stats.push({ primary: 'Claim Now', label: 'seeker.com' });
+            stats.push({ primary: 'Available', label: 'Status' });
+            stats.push({ primary: 'Register', label: 'SeekerID' });
         } else {
             // Stats for activated domains
             stats.push({ primary: `#${rank}`, label: 'Seeker Rank' });
