@@ -59,7 +59,6 @@ export default async function Image() {
                         background: 'linear-gradient(135deg, #00FF66 0%, #00E6C0 100%)',
                         padding: '12px 24px',
                         borderRadius: 30,
-                        width: 'fit-content',
                     }}
                 >
                     <div

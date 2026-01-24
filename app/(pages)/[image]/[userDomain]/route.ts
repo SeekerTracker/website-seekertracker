@@ -52,16 +52,17 @@ export async function GET(request: Request) {
         });
     }
 
-    const bottomText = "Check yours @SeekerTracker.com";
-    const statusText = "Activated";
-    const subtitleText = `SeekerID Profile`;
     const domainData = await getApiUserData(userDomain);
-    if (!domainData?.owner) {
-        return new NextResponse("Not Found", { status: 404 });
-    }
+    const isAvailable = !domainData?.owner;
 
-    const { rank, createdAt } = domainData;
-    const { age, formattedDate } = getAgeInfo(createdAt);
+    const bottomText = isAvailable ? "Claim yours @SeekerTracker.com" : "Check yours @SeekerTracker.com";
+    const statusText = isAvailable ? "Available" : "Activated";
+    const subtitleText = isAvailable ? "SeekerID - Unclaimed" : "SeekerID Profile";
+
+    // Only get these if domain exists
+    const rank = domainData?.rank;
+    const createdAt = domainData?.createdAt;
+    const { age, formattedDate } = createdAt ? getAgeInfo(createdAt) : { age: '', formattedDate: '' };
 
 
 
@@ -146,42 +147,61 @@ export async function GET(request: Request) {
         const textWidth = ctx.measureText(statusText).width;
         const pillW = paddingX * 2 + iconSize + 14 + textWidth;
 
-        // Draw pill background
+        // Draw pill background - different colors for Available vs Activated
         ctx.save();
         drawRoundedRect(startX, startY, pillW, height, 22);
         const pillGradient = ctx.createLinearGradient(startX, startY, startX, startY + height);
-        pillGradient.addColorStop(0, '#00FF66');
-        pillGradient.addColorStop(1, '#00E6C0');
+        if (isAvailable) {
+            // Yellow/gold gradient for available
+            pillGradient.addColorStop(0, '#FFD700');
+            pillGradient.addColorStop(1, '#FFA500');
+        } else {
+            // Green gradient for activated
+            pillGradient.addColorStop(0, '#00FF66');
+            pillGradient.addColorStop(1, '#00E6C0');
+        }
         ctx.fillStyle = pillGradient;
         ctx.globalAlpha = 0.95;
         ctx.fill();
         ctx.restore();
 
-        // Check icon (white check on green circle)
+        // Icon circle
         ctx.save();
         const iconCx = startX + paddingX + iconSize / 2;
         const iconCy = startY + height / 2;
-        ctx.fillStyle = '#01C772';
+        ctx.fillStyle = isAvailable ? '#CC9900' : '#01C772';
         ctx.beginPath();
         ctx.arc(iconCx, iconCy, iconSize / 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = 'rgba(0,0,0,0.15)';
         ctx.lineWidth = 2;
         ctx.stroke();
-        // Check
+
+        // Icon - checkmark for activated, star for available
         ctx.strokeStyle = '#FFFFFF';
+        ctx.fillStyle = '#FFFFFF';
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(iconCx - 7, iconCy);
-        ctx.lineTo(iconCx - 2, iconCy + 7);
-        ctx.lineTo(iconCx + 9, iconCy - 7);
-        ctx.stroke();
+        if (isAvailable) {
+            // Draw a star/sparkle for available
+            ctx.moveTo(iconCx, iconCy - 8);
+            ctx.lineTo(iconCx, iconCy + 8);
+            ctx.moveTo(iconCx - 8, iconCy);
+            ctx.lineTo(iconCx + 8, iconCy);
+            ctx.stroke();
+        } else {
+            // Checkmark for activated
+            ctx.moveTo(iconCx - 7, iconCy);
+            ctx.lineTo(iconCx - 2, iconCy + 7);
+            ctx.lineTo(iconCx + 9, iconCy - 7);
+            ctx.stroke();
+        }
         ctx.restore();
 
         // Status text
-        ctx.fillStyle = '#07271D';
+        ctx.fillStyle = isAvailable ? '#4A3000' : '#07271D';
         ctx.textBaseline = 'middle';
         ctx.fillText(statusText, startX + paddingX + iconSize + 14, startY + height / 2);
         ctx.textBaseline = 'top';
@@ -264,15 +284,23 @@ export async function GET(request: Request) {
     }
 
 
-    const drawStats = async (rank: number, createdBefore: string, createdAt: string) => {
-
+    const drawStats = async () => {
         const stats = [];
 
-        stats.push({ primary: `#${rank}`, label: 'Seeker Rank' });
-        if (showAge) {
-            stats.push({ primary: age, label: 'Age' });
+        if (isAvailable) {
+            // Stats for available domains
+            const nameLength = baseName.length;
+            stats.push({ primary: `${nameLength}`, label: 'Characters' });
+            stats.push({ primary: 'Unclaimed', label: 'Status' });
+            stats.push({ primary: 'Claim Now', label: 'seeker.com' });
+        } else {
+            // Stats for activated domains
+            stats.push({ primary: `#${rank}`, label: 'Seeker Rank' });
+            if (showAge) {
+                stats.push({ primary: age, label: 'Age' });
+            }
+            stats.push({ primary: formattedDate, label: 'Activated' });
         }
-        stats.push({ primary: createdAt, label: 'Activated' },)
 
         const visible = stats?.slice(0, 3);
         const gap = 24;
@@ -350,7 +378,7 @@ export async function GET(request: Request) {
     const subTitleY = drawSubtitleText(startX, currentY);
     currentY = subTitleY
 
-    await drawStats(rank, age, formattedDate);
+    await drawStats();
 
 
     // ✅ Convert to PNG
