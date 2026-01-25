@@ -310,7 +310,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     <ShareButtons
                         url={`https://seekertracker.com/id/${userDomain}`}
                         title={`${userDomain} - SeekerID Profile`}
-                        text={`Check out ${userDomain} on @Seeker_Tracker`}
+                        text={`Check out ${userDomain} on @Seeker_Tracker @solanamobile`}
                         onShare={(method) => analytics.domainShare(userDomain, method === 'x' ? 'tweet' : method)}
                     />
 

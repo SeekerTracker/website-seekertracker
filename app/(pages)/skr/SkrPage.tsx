@@ -399,7 +399,7 @@ const SkrPage = () => {
                 <ShareButtons
                     url="https://seekertracker.com/skr"
                     title="SKR Season 1 Stats"
-                    text="Check out SKR Season 1 Stats on @Seeker_Tracker"
+                    text="Check out SKR Season 1 Stats on @Seeker_Tracker @solanamobile"
                 />
             </div>
 
