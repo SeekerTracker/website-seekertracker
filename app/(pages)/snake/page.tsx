@@ -55,6 +55,13 @@ const SnakePage = () => {
 
         fetchPrizePool();
         fetchLeaderboard();
+
+        // Refresh prize pool every 20 seconds
+        const prizePoolInterval = setInterval(fetchPrizePool, 20000);
+
+        return () => {
+            clearInterval(prizePoolInterval);
+        };
     }, []);
 
     const formatNumber = (num: number) => {
