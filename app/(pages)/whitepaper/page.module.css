@@ -1,0 +1,367 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    padding: 0 2em;
+    width: 100%;
+    gap: 2.5em;
+    justify-content: center;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Hero Section */
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5em;
+    padding: 2em 0;
+}
+
+.title {
+    font-size: 3em;
+    font-weight: 800;
+    background: linear-gradient(45deg, #00ffd9, #00ff66, #00e6c0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.05em;
+}
+
+.subtitle {
+    font-size: 1.4em;
+    color: #ededed;
+    font-weight: 600;
+}
+
+.tagline {
+    font-size: 1em;
+    color: #a0a0a0;
+}
+
+/* Section Title */
+.sectionTitle {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #00ffd9;
+    text-align: center;
+    margin-bottom: 0.5em;
+}
+
+/* Revenue Section */
+.revenueSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 700px;
+    padding: 2em;
+    background: rgba(0, 255, 217, 0.05);
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    border-radius: 1em;
+    gap: 1em;
+}
+
+.revenueHighlight {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5em;
+}
+
+.revenuePercent {
+    font-size: 4em;
+    font-weight: 800;
+    background: linear-gradient(45deg, #00ffd9, #00ff66);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.revenueLabel {
+    font-size: 1.2em;
+    color: #c0c0c0;
+}
+
+.revenueDesc {
+    font-size: 1em;
+    color: #a0a0a0;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* Chart Section */
+.chartSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    padding: 2em;
+    background: rgba(17, 17, 17, 0.8);
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    border-radius: 1em;
+    gap: 1.5em;
+}
+
+.chartContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 3em;
+    flex-wrap: wrap;
+}
+
+.pieChart {
+    flex-shrink: 0;
+}
+
+.pieSegment {
+    transform-origin: center;
+}
+
+.legend {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    padding: 0.75em 1em;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 0.5em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.legendItem:hover,
+.legendItemActive {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+}
+
+.legendColor {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.legendText {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+}
+
+.legendLabel {
+    font-size: 1em;
+    font-weight: 600;
+    color: #ededed;
+}
+
+.legendValue {
+    font-size: 0.9em;
+    font-weight: 700;
+    color: #00ffd9;
+}
+
+.segmentDetail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+    padding: 1em 2em;
+    background: rgba(0, 255, 217, 0.05);
+    border-radius: 0.75em;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.detailLabel {
+    font-size: 1.2em;
+    font-weight: 700;
+}
+
+.detailDesc {
+    font-size: 0.95em;
+    color: #a0a0a0;
+    text-align: center;
+}
+
+/* Breakdown Section */
+.breakdownSection {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 1.5em;
+}
+
+.breakdownCards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5em;
+    width: 100%;
+}
+
+.breakdownCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5em;
+    background: rgba(17, 17, 17, 0.8);
+    border: 2px solid;
+    border-radius: 1em;
+    gap: 0.75em;
+    transition: all 0.3s ease;
+}
+
+.breakdownCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.breakdownIcon {
+    font-size: 2.5em;
+}
+
+.breakdownTitle {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #ededed;
+}
+
+.breakdownPercent {
+    font-size: 2.5em;
+    font-weight: 800;
+}
+
+.breakdownDesc {
+    font-size: 0.9em;
+    color: #a0a0a0;
+    line-height: 1.5;
+}
+
+/* Key Points */
+.keyPoints {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 700px;
+    padding: 2em;
+    background: rgba(17, 17, 17, 0.8);
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    border-radius: 1em;
+    gap: 1.5em;
+}
+
+.pointsList {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.point {
+    display: flex;
+    align-items: flex-start;
+    gap: 1em;
+}
+
+.pointIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5em;
+    height: 1.5em;
+    background: linear-gradient(45deg, #00ff66, #00e6c0);
+    color: black;
+    font-weight: 700;
+    border-radius: 50%;
+    flex-shrink: 0;
+    font-size: 0.9em;
+}
+
+.pointText {
+    font-size: 1em;
+    color: #c0c0c0;
+    line-height: 1.5;
+}
+
+/* Disclaimer */
+.disclaimer {
+    padding: 1.5em;
+    text-align: center;
+}
+
+.disclaimerText {
+    font-size: 0.85em;
+    color: #606060;
+    font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main {
+        padding: 0 1em;
+        gap: 2em;
+    }
+
+    .title {
+        font-size: 2em;
+    }
+
+    .subtitle {
+        font-size: 1.1em;
+    }
+
+    .revenuePercent {
+        font-size: 3em;
+    }
+
+    .revenueLabel {
+        font-size: 1em;
+    }
+
+    .chartContainer {
+        flex-direction: column;
+        gap: 2em;
+    }
+
+    .legend {
+        width: 100%;
+    }
+
+    .legendItem {
+        justify-content: space-between;
+    }
+
+    .breakdownCards {
+        grid-template-columns: 1fr;
+    }
+
+    .breakdownCard {
+        padding: 1.25em;
+    }
+
+    .keyPoints,
+    .revenueSection,
+    .chartSection {
+        padding: 1.5em;
+    }
+}
