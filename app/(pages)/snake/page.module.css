@@ -270,24 +270,12 @@
     text-align: center;
 }
 
-.ctaButton {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1em 2em;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
-    color: #fff;
-    font-weight: 600;
-    font-size: 1.1em;
-    text-decoration: none;
-    transition: all 0.2s ease;
+.ctaHighlight {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #2DF8A0;
     font-family: monospace;
-}
-
-.ctaButton:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(138, 43, 226, 0.4);
+    text-shadow: 0 0 20px rgba(45, 248, 160, 0.5);
 }
 
 /* Footer */

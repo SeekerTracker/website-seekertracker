@@ -166,14 +166,7 @@ const SnakePage = () => {
             {/* CTA */}
             <div className={styles.cta}>
                 <span className={styles.ctaLabel}>Coming Soon to Seeker dApp Store</span>
-                <a
-                    href="https://github.com/nicholasoxford/solana-snake"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.ctaButton}
-                >
-                    View on GitHub
-                </a>
+                <span className={styles.ctaHighlight}>Instant Airdrop for Players</span>
             </div>
 
             {/* Footer */}
