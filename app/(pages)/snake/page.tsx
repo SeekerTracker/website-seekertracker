@@ -9,9 +9,20 @@ import Backbutton from 'app/(components)/shared/Backbutton'
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 const REQUIRED_TRACKER = 100_000;
 
+type LeaderboardEntry = {
+    wallet: string;
+    username: string | null;
+    high_score: number;
+    total_plays: number;
+    total_score: number;
+};
+
 const SnakePage = () => {
     const [prizePool, setPrizePool] = useState<{ trackerBalance: number; solBalance: number } | null>(null);
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+    const [gameStats, setGameStats] = useState<{ totalPlayers: number; totalGames: number } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [leaderboardLoading, setLeaderboardLoading] = useState(true);
 
     useEffect(() => {
         async function fetchPrizePool() {
@@ -25,13 +36,34 @@ const SnakePage = () => {
                 setLoading(false);
             }
         }
+
+        async function fetchLeaderboard() {
+            try {
+                const res = await fetch('/api/snake/leaderboard');
+                const data = await res.json();
+                if (data.success) {
+                    setLeaderboard(data.leaderboard);
+                    setGameStats(data.stats);
+                }
+            } catch (err) {
+                console.error('Failed to fetch leaderboard:', err);
+            } finally {
+                setLeaderboardLoading(false);
+            }
+        }
+
         fetchPrizePool();
+        fetchLeaderboard();
     }, []);
 
     const formatNumber = (num: number) => {
         if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
         if (num >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
         return num.toLocaleString();
+    };
+
+    const truncateWallet = (wallet: string) => {
+        return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
     };
 
     return (
@@ -49,7 +81,7 @@ const SnakePage = () => {
                 />
                 <h1 className={styles.title}>SNAKE</h1>
                 <p className={styles.subtitle}>for Solana Seeker</p>
-                <p className={styles.tagline}>The classic 1997-inspired snake game with on-chain leaderboards</p>
+                <p className={styles.tagline}>The classic 1997-inspired snake game with global leaderboard</p>
             </div>
 
             {/* Prize Pool */}
@@ -90,6 +122,51 @@ const SnakePage = () => {
                 </span>
             </div>
 
+            {/* Leaderboard */}
+            <div className={styles.leaderboardSection}>
+                <h2 className={styles.sectionTitle}>Leaderboard</h2>
+                {gameStats && (
+                    <div className={styles.gameStats}>
+                        <span>{gameStats.totalPlayers} Players</span>
+                        <span>•</span>
+                        <span>{gameStats.totalGames} Games Played</span>
+                    </div>
+                )}
+                {leaderboardLoading ? (
+                    <div className={styles.leaderboardLoading}>Loading leaderboard...</div>
+                ) : leaderboard.length > 0 ? (
+                    <div className={styles.leaderboard}>
+                        <div className={styles.leaderboardHeader}>
+                            <span className={styles.rank}>#</span>
+                            <span className={styles.player}>Player</span>
+                            <span className={styles.score}>High Score</span>
+                            <span className={styles.plays}>Games</span>
+                        </div>
+                        {leaderboard.map((entry, index) => (
+                            <div key={entry.wallet} className={styles.leaderboardRow}>
+                                <span className={styles.rank}>
+                                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                                </span>
+                                <span className={styles.player}>
+                                    <Link
+                                        href={`https://solscan.io/account/${entry.wallet}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={styles.playerLink}
+                                    >
+                                        {entry.username || truncateWallet(entry.wallet)}
+                                    </Link>
+                                </span>
+                                <span className={styles.score}>{entry.high_score}</span>
+                                <span className={styles.plays}>{entry.total_plays}</span>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className={styles.noScores}>No scores yet. Be the first to play!</div>
+                )}
+            </div>
+
             {/* Features */}
             <div className={styles.features}>
                 <div className={styles.feature}>
@@ -99,8 +176,8 @@ const SnakePage = () => {
                 </div>
                 <div className={styles.feature}>
                     <span className={styles.featureIcon}>🏆</span>
-                    <span className={styles.featureTitle}>On-Chain Leaderboard</span>
-                    <span className={styles.featureDesc}>Connect wallet to save your high scores on Solana</span>
+                    <span className={styles.featureTitle}>Global Leaderboard</span>
+                    <span className={styles.featureDesc}>Connect wallet to save your high scores</span>
                 </div>
                 <div className={styles.feature}>
                     <span className={styles.featureIcon}>📱</span>

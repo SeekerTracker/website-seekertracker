@@ -141,6 +141,97 @@
     color: #A855F7;
 }
 
+/* Leaderboard Section */
+.leaderboardSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    gap: 1em;
+}
+
+.gameStats {
+    display: flex;
+    gap: 1em;
+    font-size: 0.9em;
+    color: #a0a0a0;
+}
+
+.leaderboard {
+    width: 100%;
+    border-radius: 1em;
+    border: 1px solid rgba(45, 248, 160, 0.2);
+    background: rgba(45, 248, 160, 0.05);
+    overflow: hidden;
+}
+
+.leaderboardHeader {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px 80px;
+    padding: 1em;
+    background: rgba(45, 248, 160, 0.1);
+    font-weight: 600;
+    color: #2DF8A0;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.leaderboardRow {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px 80px;
+    padding: 0.75em 1em;
+    border-top: 1px solid rgba(45, 248, 160, 0.1);
+    transition: background 0.2s ease;
+}
+
+.leaderboardRow:hover {
+    background: rgba(45, 248, 160, 0.08);
+}
+
+.rank {
+    text-align: center;
+    font-weight: 600;
+}
+
+.player {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playerLink {
+    color: #2DF8A0;
+    text-decoration: none;
+    font-family: monospace;
+}
+
+.playerLink:hover {
+    text-decoration: underline;
+}
+
+.score {
+    text-align: right;
+    font-weight: 700;
+    color: #FFD700;
+    font-family: monospace;
+}
+
+.plays {
+    text-align: right;
+    color: #a0a0a0;
+}
+
+.leaderboardLoading,
+.noScores {
+    padding: 2em;
+    text-align: center;
+    color: #666;
+    border: 1px dashed rgba(45, 248, 160, 0.2);
+    border-radius: 1em;
+    width: 100%;
+}
+
 /* Features Section */
 .features {
     display: grid;

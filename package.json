@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.0",
     "@napi-rs/canvas": "^0.1.84",
     "@solana/connector": "^0.1.10",
     "@solana/spl-token": "^0.4.14",
