@@ -18,7 +18,7 @@ async function getTotalActivations(): Promise<number> {
             next: { revalidate: 60 },
         });
         const data = await response.json();
-        return data.total || data.totalCount || data.data?.length || 0;
+        return data.pagination?.total || 0;
     } catch {
         return 0;
     }

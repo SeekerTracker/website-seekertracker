@@ -9,7 +9,24 @@ export const size = {
 };
 export const contentType = 'image/png';
 
+async function getTotalActivations(): Promise<number> {
+    try {
+        const response = await fetch('https://api.seeker.solana.charity/allDomains', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pageSize: 1 }),
+            next: { revalidate: 60 },
+        });
+        const data = await response.json();
+        return data.pagination?.total || 0;
+    } catch {
+        return 0;
+    }
+}
+
 export default async function Image() {
+    const totalActivations = await getTotalActivations();
+
     return new ImageResponse(
         (
             <div
@@ -131,10 +148,10 @@ export default async function Image() {
                         }}
                     >
                         <div style={{ fontSize: 42, fontWeight: 700, color: '#00ffd9' }}>
-                            Profiles
+                            {totalActivations > 0 ? totalActivations.toLocaleString() : 'Live'}
                         </div>
                         <div style={{ fontSize: 22, color: '#b0b0b0', marginTop: 4 }}>
-                            Search any .skr
+                            Total Activations
                         </div>
                     </div>
                     <div
