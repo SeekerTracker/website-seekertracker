@@ -1,0 +1,201 @@
+.snakeContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.snakeLink {
+    pointer-events: auto;
+    display: block;
+}
+
+.snake {
+    position: relative;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+}
+
+.snake:hover {
+    filter: drop-shadow(0 0 20px #00ff66);
+}
+
+.segment {
+    position: fixed;
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(135deg, #00ff66, #00ffd9);
+    border-radius: 2px;
+    box-shadow:
+        inset -2px -2px 0 rgba(0, 0, 0, 0.3),
+        inset 2px 2px 0 rgba(255, 255, 255, 0.2),
+        0 0 8px rgba(0, 255, 102, 0.5);
+    image-rendering: pixelated;
+}
+
+.segment::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 1px;
+}
+
+.head {
+    background: linear-gradient(135deg, #00ff66, #00e65c);
+    border-radius: 3px;
+    z-index: 2;
+    box-shadow:
+        inset -2px -2px 0 rgba(0, 0, 0, 0.3),
+        inset 2px 2px 0 rgba(255, 255, 255, 0.3),
+        0 0 12px rgba(0, 255, 102, 0.7);
+}
+
+.eye {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #001a18;
+    border-radius: 50%;
+    box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.hovered .segment {
+    animation: pulse 0.3s ease-in-out infinite alternate;
+}
+
+.hovered .head {
+    animation: headPulse 0.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        box-shadow:
+            inset -2px -2px 0 rgba(0, 0, 0, 0.3),
+            inset 2px 2px 0 rgba(255, 255, 255, 0.2),
+            0 0 8px rgba(0, 255, 102, 0.5);
+    }
+    to {
+        box-shadow:
+            inset -2px -2px 0 rgba(0, 0, 0, 0.3),
+            inset 2px 2px 0 rgba(255, 255, 255, 0.2),
+            0 0 20px rgba(0, 255, 102, 0.9);
+    }
+}
+
+@keyframes headPulse {
+    from {
+        transform: scale(1);
+    }
+    to {
+        transform: scale(1.15);
+    }
+}
+
+.tooltip {
+    position: fixed;
+    background: rgba(0, 26, 24, 0.95);
+    border: 1px solid #00ff66;
+    color: #00ff66;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: tooltipBounce 0.5s ease-in-out infinite alternate;
+    box-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
+    z-index: 100;
+}
+
+.tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #00ff66;
+}
+
+@keyframes tooltipBounce {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(-5px);
+    }
+}
+
+/* Phone collectibles */
+.phone {
+    position: fixed;
+    font-size: 24px;
+    pointer-events: none;
+    animation: phoneFloat 2s ease-in-out infinite, phoneGlow 1.5s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 8px rgba(0, 255, 217, 0.6));
+    z-index: 5;
+}
+
+@keyframes phoneFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(-5deg);
+    }
+    50% {
+        transform: translateY(-8px) rotate(5deg);
+    }
+}
+
+@keyframes phoneGlow {
+    from {
+        filter: drop-shadow(0 0 5px rgba(0, 255, 217, 0.4));
+    }
+    to {
+        filter: drop-shadow(0 0 15px rgba(0, 255, 217, 0.8));
+    }
+}
+
+/* Score display */
+.score {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: rgba(0, 26, 24, 0.9);
+    border: 2px solid #00ff66;
+    color: #00ff66;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: monospace;
+    pointer-events: none;
+    box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+    z-index: 100;
+    animation: scorePopIn 0.3s ease-out;
+}
+
+@keyframes scorePopIn {
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Mobile: hide on small screens */
+@media screen and (max-width: 768px) {
+    .snakeContainer {
+        display: none;
+    }
+}

@@ -7,6 +7,7 @@ import { DomainInfo } from 'app/(utils)/constantTypes'
 import SeekerCard from 'app/(components)/seekerCard'
 import Link from 'next/link';
 import TelegramModal from 'app/(components)/TelegramModal';
+import PixelSnake from 'app/(components)/PixelSnake';
 import { analytics } from 'app/(utils)/lib/analytics';
 import { IoArrowDownOutline } from 'react-icons/io5';
 
@@ -211,6 +212,7 @@ const MainPage = () => {
 
     return (
         <div className={style.main}>
+            <PixelSnake />
             <div className={style.title}>
                 <Image src="/logo.png" alt="" width={100} height={100} />
                 <span>Seeker tracker</span>

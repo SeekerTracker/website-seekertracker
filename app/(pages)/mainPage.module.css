@@ -5,6 +5,8 @@
   width: 100%;
   align-items: center;
   gap: 2em;
+  position: relative;
+  min-height: 100vh;
 }
 
 .title {
