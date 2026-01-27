@@ -36,9 +36,10 @@ const Sweep = () => {
     }, []);
 
     const formatNumber = (num: number) => {
-        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
-        if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
-        return num.toLocaleString();
+        const rounded = Math.floor(num);
+        if (rounded >= 1_000_000) return `${(rounded / 1_000_000).toFixed(2)}M`;
+        if (rounded >= 1_000) return `${(rounded / 1_000).toFixed(0)}K`;
+        return rounded.toLocaleString();
     };
 
     const truncateWallet = (wallet: string) => {
