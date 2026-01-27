@@ -1,11 +1,39 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from './page.module.css'
 import Image from 'next/image'
+import Link from 'next/link'
 import Backbutton from 'app/(components)/shared/Backbutton'
 
+const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
+const REQUIRED_TRACKER = 100_000;
+
 const SnakePage = () => {
+    const [prizePool, setPrizePool] = useState<{ trackerBalance: number; solBalance: number } | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchPrizePool() {
+            try {
+                const res = await fetch('/api/snake/prize');
+                const data = await res.json();
+                setPrizePool(data);
+            } catch (err) {
+                console.error('Failed to fetch prize pool:', err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchPrizePool();
+    }, []);
+
+    const formatNumber = (num: number) => {
+        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
+        if (num >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
+        return num.toLocaleString();
+    };
+
     return (
         <div className={styles.main}>
             <Backbutton />
@@ -21,7 +49,45 @@ const SnakePage = () => {
                 />
                 <h1 className={styles.title}>SNAKE</h1>
                 <p className={styles.subtitle}>for Solana Seeker</p>
-                <p className={styles.tagline}>Classic snake game with on-chain leaderboards</p>
+                <p className={styles.tagline}>The classic 1997-inspired snake game with on-chain leaderboards</p>
+            </div>
+
+            {/* Prize Pool */}
+            <div className={styles.prizePool}>
+                <span className={styles.prizeLabel}>Prize Pool</span>
+                <div className={styles.prizeAmount}>
+                    {loading ? (
+                        <span className={styles.loading}>Loading...</span>
+                    ) : (
+                        <>
+                            <span className={styles.trackerAmount}>
+                                {formatNumber(prizePool?.trackerBalance || 0)} TRACKER
+                            </span>
+                            {prizePool?.solBalance ? (
+                                <span className={styles.solAmount}>
+                                    + {prizePool.solBalance.toFixed(4)} SOL
+                                </span>
+                            ) : null}
+                        </>
+                    )}
+                </div>
+                <Link
+                    href={`https://solscan.io/account/${PRIZE_WALLET}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.walletLink}
+                >
+                    View Prize Wallet
+                </Link>
+            </div>
+
+            {/* Eligibility */}
+            <div className={styles.eligibility}>
+                <span className={styles.eligibilityIcon}>🎫</span>
+                <span className={styles.eligibilityTitle}>Eligibility Requirement</span>
+                <span className={styles.eligibilityDesc}>
+                    Hold <strong>{REQUIRED_TRACKER.toLocaleString()} TRACKER</strong> tokens to be eligible for rewards
+                </span>
             </div>
 
             {/* Features */}
