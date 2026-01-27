@@ -251,6 +251,18 @@ const SnakePage = () => {
                 />
             </div>
 
+            {/* Download */}
+            <div className={styles.downloadSection}>
+                <Link
+                    href="/snake/snake.apk"
+                    download="snake.apk"
+                    className={styles.downloadButton}
+                >
+                    Download APK
+                </Link>
+                <span className={styles.downloadNote}>Android only - Sideload on your Seeker device</span>
+            </div>
+
             {/* CTA */}
             <div className={styles.cta}>
                 <span className={styles.ctaLabel}>Coming Soon to Seeker dApp Store</span>
