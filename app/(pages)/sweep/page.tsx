@@ -1,12 +1,50 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import styles from './page.module.css'
 import Link from 'next/link'
 import Image from 'next/image'
 import Backbutton from 'app/(components)/shared/Backbutton'
 
+type Contestant = {
+    wallet: string;
+    balance: number;
+    eligible: boolean;
+};
+
 const Sweep = () => {
+    const [contestants, setContestants] = useState<Contestant[]>([]);
+    const [stats, setStats] = useState<{ totalEligible: number; totalBalance: number } | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchContestants() {
+            try {
+                const res = await fetch('/api/sweep/contestants');
+                const data = await res.json();
+                if (data.success) {
+                    setContestants(data.contestants);
+                    setStats(data.stats);
+                }
+            } catch (err) {
+                console.error('Failed to fetch contestants:', err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchContestants();
+    }, []);
+
+    const formatNumber = (num: number) => {
+        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
+        if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
+        return num.toLocaleString();
+    };
+
+    const truncateWallet = (wallet: string) => {
+        return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
+    };
+
     return (
         <div className={styles.main}>
             <Backbutton />
@@ -46,6 +84,53 @@ const Sweep = () => {
                     <span className={styles.cardValue}>0.01 SOL</span>
                     <span className={styles.cardDesc}>Minimum reward required to receive payout</span>
                 </div>
+            </div>
+
+            {/* Contestants Section */}
+            <div className={styles.contestantsSection}>
+                <span className={styles.sectionTitle}>Hourly Sweepstakes Contestants</span>
+                {stats && (
+                    <div className={styles.contestantStats}>
+                        <span>{stats.totalEligible} Eligible Wallets</span>
+                        <span>•</span>
+                        <span>{formatNumber(stats.totalBalance)} TRACKER Total</span>
+                    </div>
+                )}
+                {loading ? (
+                    <div className={styles.loadingContestants}>Loading contestants...</div>
+                ) : contestants.length > 0 ? (
+                    <div className={styles.contestantsList}>
+                        <div className={styles.contestantHeader}>
+                            <span className={styles.contestantRank}>#</span>
+                            <span className={styles.contestantWallet}>Wallet</span>
+                            <span className={styles.contestantBalance}>Balance</span>
+                            <span className={styles.contestantStatus}>Status</span>
+                        </div>
+                        {contestants.map((contestant, index) => (
+                            <div key={contestant.wallet} className={styles.contestantRow}>
+                                <span className={styles.contestantRank}>{index + 1}</span>
+                                <span className={styles.contestantWallet}>
+                                    <Link
+                                        href={`https://solscan.io/account/${contestant.wallet}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={styles.walletLink}
+                                    >
+                                        {truncateWallet(contestant.wallet)}
+                                    </Link>
+                                </span>
+                                <span className={styles.contestantBalance}>
+                                    {formatNumber(contestant.balance)}
+                                </span>
+                                <span className={styles.contestantStatus}>
+                                    <span className={styles.eligibleBadge}>Eligible</span>
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className={styles.noContestants}>No eligible contestants found</div>
+                )}
             </div>
 
             <div className={styles.howItWorks}>

@@ -248,6 +248,107 @@
   flex-shrink: 0;
 }
 
+/* Contestants Section */
+.contestantsSection {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 700px;
+  gap: 1em;
+}
+
+.contestantStats {
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+  font-size: 0.95em;
+  color: #a0a0a0;
+}
+
+.contestantsList {
+  width: 100%;
+  border-radius: 1em;
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  background: rgba(0, 255, 217, 0.05);
+  overflow: hidden;
+}
+
+.contestantHeader {
+  display: grid;
+  grid-template-columns: 50px 1fr 120px 100px;
+  padding: 1em;
+  background: rgba(0, 255, 217, 0.1);
+  font-weight: 600;
+  color: #00ffd9;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.contestantRow {
+  display: grid;
+  grid-template-columns: 50px 1fr 120px 100px;
+  padding: 0.75em 1em;
+  border-top: 1px solid rgba(0, 255, 217, 0.1);
+  transition: background 0.2s ease;
+}
+
+.contestantRow:hover {
+  background: rgba(0, 255, 217, 0.08);
+}
+
+.contestantRank {
+  text-align: center;
+  font-weight: 600;
+  color: #a0a0a0;
+}
+
+.contestantWallet {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.walletLink {
+  color: #00ffd9;
+  text-decoration: none;
+  font-family: monospace;
+}
+
+.walletLink:hover {
+  text-decoration: underline;
+}
+
+.contestantBalance {
+  text-align: right;
+  font-weight: 600;
+  color: #FFD700;
+  font-family: monospace;
+}
+
+.contestantStatus {
+  text-align: right;
+}
+
+.eligibleBadge {
+  display: inline-block;
+  padding: 0.25em 0.75em;
+  background: rgba(0, 255, 102, 0.2);
+  border: 1px solid rgba(0, 255, 102, 0.4);
+  border-radius: 1em;
+  font-size: 0.8em;
+  color: #00ff66;
+}
+
+.loadingContestants,
+.noContestants {
+  padding: 2em;
+  text-align: center;
+  color: #666;
+  border: 1px dashed rgba(0, 255, 217, 0.2);
+  border-radius: 1em;
+  width: 100%;
+}
+
 .disclaimer {
   font-size: 0.85em;
   color: #606060;
@@ -292,5 +393,20 @@
 
   .announcementText {
     font-size: 1em;
+  }
+
+  .contestantHeader,
+  .contestantRow {
+    grid-template-columns: 40px 1fr 80px 70px;
+    font-size: 0.85em;
+  }
+
+  .contestantHeader {
+    font-size: 0.75em;
+  }
+
+  .eligibleBadge {
+    font-size: 0.7em;
+    padding: 0.2em 0.5em;
   }
 }
