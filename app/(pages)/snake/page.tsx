@@ -12,6 +12,7 @@ const REQUIRED_TRACKER = 100_000;
 type LeaderboardEntry = {
     wallet: string;
     username: string | null;
+    skrId: string | null;
     high_score: number;
     total_plays: number;
     total_score: number;
@@ -148,13 +149,16 @@ const SnakePage = () => {
                                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                                 </span>
                                 <span className={styles.player}>
+                                    {entry.skrId && (
+                                        <span className={styles.skrId}>{entry.skrId}.skr</span>
+                                    )}
                                     <Link
                                         href={`https://solscan.io/account/${entry.wallet}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className={styles.playerLink}
                                     >
-                                        {entry.username || truncateWallet(entry.wallet)}
+                                        {truncateWallet(entry.wallet)}
                                     </Link>
                                 </span>
                                 <span className={styles.score}>{entry.high_score}</span>

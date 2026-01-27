@@ -196,18 +196,28 @@
 }
 
 .player {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
     overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .playerLink {
     color: #2DF8A0;
     text-decoration: none;
     font-family: monospace;
+    font-size: 0.9em;
 }
 
 .playerLink:hover {
     text-decoration: underline;
+}
+
+.skrId {
+    font-size: 1.1em;
+    color: #2DF8A0;
+    font-weight: 600;
+    font-family: monospace;
 }
 
 .score {

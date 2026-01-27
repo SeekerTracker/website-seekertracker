@@ -193,9 +193,36 @@
     }
 }
 
-/* Mobile: hide on small screens */
+/* Mobile: smaller snake */
 @media screen and (max-width: 768px) {
-    .snakeContainer {
-        display: none;
+    .segment {
+        width: 10px;
+        height: 10px;
+    }
+
+    .segment::before {
+        width: 3px;
+        height: 3px;
+    }
+
+    .eye {
+        width: 2px;
+        height: 2px;
+    }
+
+    .phone {
+        font-size: 20px;
+    }
+
+    .score {
+        top: 70px;
+        right: 10px;
+        font-size: 14px;
+        padding: 6px 12px;
+    }
+
+    .tooltip {
+        font-size: 10px;
+        padding: 3px 8px;
     }
 }

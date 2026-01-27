@@ -14,11 +14,17 @@ interface Phone {
     y: number;
 }
 
-const SEGMENT_SIZE = 14;
 const SNAKE_LENGTH = 8;
 const MOVE_SPEED = 120;
 const PHONE_SPAWN_INTERVAL = 3000;
 const MAX_PHONES = 5;
+
+const getSegmentSize = () => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+        return 10;
+    }
+    return 14;
+};
 
 const PixelSnake = () => {
     const [segments, setSegments] = useState<Position[]>([]);
@@ -29,23 +35,29 @@ const PixelSnake = () => {
     const directionRef = useRef(direction);
     const phoneIdRef = useRef(0);
 
+    const [segmentSize, setSegmentSize] = useState(14);
+
     // Get viewport bounds with padding
     const getViewportBounds = useCallback(() => {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+        const padding = isMobile ? 60 : 100;
         return {
-            width: typeof window !== 'undefined' ? window.innerWidth - 100 : 800,
-            height: typeof window !== 'undefined' ? window.innerHeight - 100 : 600
+            width: typeof window !== 'undefined' ? window.innerWidth - padding : 800,
+            height: typeof window !== 'undefined' ? window.innerHeight - padding : 600
         };
     }, []);
 
     // Initialize snake position
     useEffect(() => {
+        const size = getSegmentSize();
+        setSegmentSize(size);
         const bounds = getViewportBounds();
         const initialSegments: Position[] = [];
         const startX = Math.min(200, bounds.width / 2);
         const startY = Math.min(200, bounds.height / 2);
         for (let i = 0; i < SNAKE_LENGTH; i++) {
             initialSegments.push({
-                x: startX - i * SEGMENT_SIZE,
+                x: startX - i * size,
                 y: startY
             });
         }
@@ -115,19 +127,20 @@ const PixelSnake = () => {
 
                 const head = prevSegments[0];
                 const bounds = getViewportBounds();
+                const size = getSegmentSize();
 
-                let newX = head.x + directionRef.current.dx * SEGMENT_SIZE;
-                let newY = head.y + directionRef.current.dy * SEGMENT_SIZE;
+                let newX = head.x + directionRef.current.dx * size;
+                let newY = head.y + directionRef.current.dy * size;
 
                 // Bounce off viewport edges
                 if (newX < 20 || newX > bounds.width) {
                     directionRef.current = { ...directionRef.current, dx: -directionRef.current.dx };
-                    newX = head.x + directionRef.current.dx * SEGMENT_SIZE;
+                    newX = head.x + directionRef.current.dx * size;
                     setDirection({ ...directionRef.current });
                 }
                 if (newY < 20 || newY > bounds.height) {
                     directionRef.current = { ...directionRef.current, dy: -directionRef.current.dy };
-                    newY = head.y + directionRef.current.dy * SEGMENT_SIZE;
+                    newY = head.y + directionRef.current.dy * size;
                     setDirection({ ...directionRef.current });
                 }
 
@@ -136,7 +149,7 @@ const PixelSnake = () => {
 
                 // Check for phone collision
                 setPhones(prevPhones => {
-                    const collisionDistance = SEGMENT_SIZE + 15;
+                    const collisionDistance = size + 15;
                     const remainingPhones = prevPhones.filter(phone => {
                         const dist = Math.sqrt(
                             Math.pow(newHead.x - phone.x, 2) +
