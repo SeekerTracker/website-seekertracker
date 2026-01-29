@@ -19,10 +19,12 @@ async function fetchAppData(androidPackage: string) {
                 androidPackage
                 rating {
                     rating
+                    reviewsByRating
                 }
                 lastRelease(systemContext: $systemContext) {
                     displayName
                     subtitle
+                    updatedOn
                     icon {
                         uri
                     }
@@ -114,101 +116,151 @@ export async function GET(request: NextRequest) {
 
     const release = app.lastRelease
     const rating = app.rating?.rating
+    const totalReviews = app.rating?.reviewsByRating?.reduce((a: number, b: number) => a + b, 0) || 0
 
     return new ImageResponse(
         (
             <div
                 style={{
                     display: 'flex',
-                    flexDirection: 'column',
                     width: '100%',
                     height: '100%',
-                    background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%)',
-                    padding: '60px',
+                    background: '#0a0a1a',
+                    padding: '50px',
                 }}
             >
+                {/* Left side - App icon */}
                 <div
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        marginBottom: '40px',
+                        justifyContent: 'center',
+                        width: '350px',
+                        marginRight: '50px',
                     }}
                 >
-                    {release?.icon?.uri && (
+                    {release?.icon?.uri ? (
                         <img
                             src={release.icon.uri}
-                            width={120}
-                            height={120}
+                            width={280}
+                            height={280}
                             style={{
-                                borderRadius: '24px',
-                                marginRight: '30px',
+                                borderRadius: '56px',
+                                border: '4px solid rgba(0, 255, 217, 0.3)',
                             }}
                         />
-                    )}
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    ) : (
                         <div
                             style={{
-                                fontSize: 52,
+                                width: 280,
+                                height: 280,
+                                borderRadius: '56px',
+                                background: 'linear-gradient(135deg, #00ffd9, #00e6c0)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 120,
                                 fontWeight: 'bold',
-                                color: '#fff',
-                                marginBottom: '10px',
+                                color: '#000',
                             }}
                         >
-                            {release?.displayName || appPackage}
+                            {(release?.displayName || appPackage).charAt(0).toUpperCase()}
                         </div>
-                        {release?.subtitle && (
-                            <div style={{ fontSize: 28, color: '#a0a0a0' }}>
-                                {release.subtitle}
-                            </div>
-                        )}
-                        {rating && (
+                    )}
+                </div>
+
+                {/* Right side - App details */}
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        flex: 1,
+                        justifyContent: 'center',
+                    }}
+                >
+                    <div
+                        style={{
+                            fontSize: 56,
+                            fontWeight: 'bold',
+                            color: '#fff',
+                            marginBottom: '12px',
+                            lineHeight: 1.1,
+                        }}
+                    >
+                        {release?.displayName || appPackage}
+                    </div>
+
+                    {release?.subtitle && (
+                        <div
+                            style={{
+                                fontSize: 28,
+                                color: '#a0a0a0',
+                                marginBottom: '24px',
+                                lineHeight: 1.3,
+                            }}
+                        >
+                            {release.subtitle.length > 80 ? release.subtitle.slice(0, 80) + '...' : release.subtitle}
+                        </div>
+                    )}
+
+                    {rating && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                marginBottom: '24px',
+                            }}
+                        >
                             <div
                                 style={{
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    marginTop: '15px',
-                                    fontSize: 24,
+                                    fontSize: 32,
                                     color: '#ffd700',
+                                    marginRight: '12px',
                                 }}
                             >
                                 {'★'.repeat(Math.floor(rating))}
                                 {'☆'.repeat(5 - Math.floor(rating))}
-                                <span style={{ marginLeft: '10px', color: '#888' }}>
-                                    {rating.toFixed(1)}
-                                </span>
                             </div>
-                        )}
-                    </div>
-                </div>
+                            <div style={{ fontSize: 28, color: '#fff', fontWeight: 'bold' }}>
+                                {rating.toFixed(1)}
+                            </div>
+                            {totalReviews > 0 && (
+                                <div style={{ fontSize: 24, color: '#666', marginLeft: '12px' }}>
+                                    ({totalReviews.toLocaleString()} reviews)
+                                </div>
+                            )}
+                        </div>
+                    )}
 
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        marginTop: 'auto',
-                        paddingTop: '30px',
-                        borderTop: '1px solid rgba(255,255,255,0.1)',
-                    }}
-                >
+                    {/* Footer */}
                     <div
                         style={{
-                            fontSize: 32,
-                            fontWeight: 'bold',
-                            background: 'linear-gradient(45deg, #00ffd9, #00ff66)',
-                            backgroundClip: 'text',
-                            color: 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginTop: 'auto',
+                            paddingTop: '24px',
+                            borderTop: '1px solid rgba(255,255,255,0.1)',
                         }}
                     >
-                        Seeker dApp Store
-                    </div>
-                    <div
-                        style={{
-                            marginLeft: 'auto',
-                            fontSize: 24,
-                            color: '#666',
-                        }}
-                    >
-                        seekertracker.com
+                        <div
+                            style={{
+                                fontSize: 28,
+                                fontWeight: 'bold',
+                                color: '#00ffd9',
+                            }}
+                        >
+                            Seeker dApp Store
+                        </div>
+                        <div
+                            style={{
+                                marginLeft: 'auto',
+                                fontSize: 22,
+                                color: '#666',
+                            }}
+                        >
+                            seekertracker.com
+                        </div>
                     </div>
                 </div>
             </div>
