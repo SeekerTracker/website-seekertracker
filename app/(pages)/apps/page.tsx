@@ -417,56 +417,6 @@ const AppsContent = () => {
                         </div>
                     </div>
 
-                    <div className={styles.modalDetails}>
-                        <h3 className={styles.modalSectionTitle}>Publisher</h3>
-
-                        {release.publisherDetails?.name && (
-                            <div className={styles.modalDetail}>
-                                <span className={styles.detailLabel}>Developer</span>
-                                <span className={styles.detailValue}>{release.publisherDetails.name}</span>
-                            </div>
-                        )}
-
-                        {release.publisherDetails?.website && (
-                            <div className={styles.modalDetail}>
-                                <span className={styles.detailLabel}>Website</span>
-                                <a
-                                    href={release.publisherDetails.website}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={styles.detailLink}
-                                >
-                                    {release.publisherDetails.website}
-                                </a>
-                            </div>
-                        )}
-
-                        {release.publisherDetails?.supportEmail && (
-                            <div className={styles.modalDetail}>
-                                <span className={styles.detailLabel}>Support Email</span>
-                                <a
-                                    href={`mailto:${release.publisherDetails.supportEmail}`}
-                                    className={styles.detailLink}
-                                >
-                                    {release.publisherDetails.supportEmail}
-                                </a>
-                            </div>
-                        )}
-
-                        {release.privacyPolicyUrl && (
-                            <div className={styles.modalDetail}>
-                                <span className={styles.detailLabel}>Privacy Policy</span>
-                                <a
-                                    href={release.privacyPolicyUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={styles.detailLink}
-                                >
-                                    View Privacy Policy
-                                </a>
-                            </div>
-                        )}
-                    </div>
                 </div>
             </div>
         )
