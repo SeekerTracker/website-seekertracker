@@ -265,10 +265,16 @@ const SnakePage = () => {
             {/* Download */}
             <div className={styles.downloadSection}>
                 <Link
-                    href="https://arweave.net/CS0G8QmKKK_XMbiL5sBYYI7IJmDv779kYbeH8o-2muo"
+                    href="snakeseeker://"
+                    className={styles.downloadButton}
+                >
+                    Open in App
+                </Link>
+                <Link
+                    href="https://arweave.net/H9PSe13l-zFtQdsW9IEFBzjrJywIH5xiYadPtf1PWlA"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={styles.downloadButton}
+                    className={styles.secondaryButton}
                 >
                     Download APK
                 </Link>

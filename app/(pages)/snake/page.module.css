@@ -383,6 +383,27 @@
     box-shadow: 0 8px 30px rgba(45, 248, 160, 0.6);
 }
 
+.secondaryButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 1em 2em;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2DF8A0;
+    background: transparent;
+    border: 2px solid #2DF8A0;
+    border-radius: 0.75em;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.secondaryButton:hover {
+    background: rgba(45, 248, 160, 0.1);
+    transform: translateY(-2px);
+}
+
 .downloadNote {
     font-size: 0.85em;
     color: #666;
