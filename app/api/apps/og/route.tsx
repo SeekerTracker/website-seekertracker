@@ -66,15 +66,30 @@ export async function GET(request: NextRequest) {
                         justifyContent: 'center',
                         width: '100%',
                         height: '100%',
-                        background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%)',
+                        background: 'linear-gradient(135deg, #003333 0%, #001a1a 50%, #000000 100%)',
                         padding: '40px',
+                        position: 'relative',
                     }}
                 >
-                    <div style={{ fontSize: 60, fontWeight: 'bold', color: '#00ffd9', marginBottom: 20 }}>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundImage: 'linear-gradient(rgba(0, 255, 217, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 217, 0.08) 1px, transparent 1px)',
+                            backgroundSize: '40px 40px',
+                        }}
+                    />
+                    <div style={{ fontSize: 72, fontWeight: 'bold', color: '#00ffd9', marginBottom: 20 }}>
                         Seeker dApp Store
                     </div>
-                    <div style={{ fontSize: 30, color: '#a0a0a0' }}>
+                    <div style={{ fontSize: 32, color: '#ededed' }}>
                         Discover apps optimized for Solana Seeker
+                    </div>
+                    <div style={{ fontSize: 24, color: 'rgba(237, 237, 237, 0.5)', marginTop: 30 }}>
+                        seekertracker.com
                     </div>
                 </div>
             ),
@@ -98,12 +113,27 @@ export async function GET(request: NextRequest) {
                         justifyContent: 'center',
                         width: '100%',
                         height: '100%',
-                        background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%)',
+                        background: 'linear-gradient(135deg, #003333 0%, #001a1a 50%, #000000 100%)',
                         padding: '40px',
+                        position: 'relative',
                     }}
                 >
-                    <div style={{ fontSize: 48, fontWeight: 'bold', color: '#fff' }}>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundImage: 'linear-gradient(rgba(0, 255, 217, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 217, 0.08) 1px, transparent 1px)',
+                            backgroundSize: '40px 40px',
+                        }}
+                    />
+                    <div style={{ fontSize: 48, fontWeight: 'bold', color: '#ededed' }}>
                         App not found
+                    </div>
+                    <div style={{ fontSize: 24, color: 'rgba(237, 237, 237, 0.5)', marginTop: 20 }}>
+                        seekertracker.com
                     </div>
                 </div>
             ),
@@ -125,43 +155,59 @@ export async function GET(request: NextRequest) {
                     display: 'flex',
                     width: '100%',
                     height: '100%',
-                    background: '#0a0a1a',
+                    background: 'linear-gradient(135deg, #003333 0%, #001a1a 50%, #000000 100%)',
                     padding: '50px',
+                    position: 'relative',
                 }}
             >
+                {/* Grid pattern overlay */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundImage: 'linear-gradient(rgba(0, 255, 217, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 217, 0.08) 1px, transparent 1px)',
+                        backgroundSize: '40px 40px',
+                    }}
+                />
+
                 {/* Left side - App icon */}
                 <div
                     style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: '350px',
+                        width: '320px',
                         marginRight: '50px',
                     }}
                 >
                     {release?.icon?.uri ? (
                         <img
                             src={release.icon.uri}
-                            width={280}
-                            height={280}
+                            width={260}
+                            height={260}
                             style={{
-                                borderRadius: '56px',
-                                border: '4px solid rgba(0, 255, 217, 0.3)',
+                                borderRadius: '52px',
+                                border: '3px solid #00ffd9',
+                                boxShadow: '0 0 40px rgba(0, 255, 217, 0.3)',
                             }}
                         />
                     ) : (
                         <div
                             style={{
-                                width: 280,
-                                height: 280,
-                                borderRadius: '56px',
-                                background: 'linear-gradient(135deg, #00ffd9, #00e6c0)',
+                                width: 260,
+                                height: 260,
+                                borderRadius: '52px',
+                                background: 'linear-gradient(135deg, #00ffd9, #00ff66)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                fontSize: 120,
+                                fontSize: 110,
                                 fontWeight: 'bold',
-                                color: '#000',
+                                color: '#001a1a',
+                                border: '3px solid #00ffd9',
                             }}
                         >
                             {(release?.displayName || appPackage).charAt(0).toUpperCase()}
@@ -180,9 +226,9 @@ export async function GET(request: NextRequest) {
                 >
                     <div
                         style={{
-                            fontSize: 56,
+                            fontSize: 52,
                             fontWeight: 'bold',
-                            color: '#fff',
+                            color: '#ededed',
                             marginBottom: '12px',
                             lineHeight: 1.1,
                         }}
@@ -193,8 +239,8 @@ export async function GET(request: NextRequest) {
                     {release?.subtitle && (
                         <div
                             style={{
-                                fontSize: 28,
-                                color: '#a0a0a0',
+                                fontSize: 26,
+                                color: '#00ffd9',
                                 marginBottom: '24px',
                                 lineHeight: 1.3,
                             }}
@@ -214,19 +260,28 @@ export async function GET(request: NextRequest) {
                             <div
                                 style={{
                                     display: 'flex',
-                                    fontSize: 32,
-                                    color: '#ffd700',
+                                    alignItems: 'center',
+                                    gap: '4px',
                                     marginRight: '12px',
                                 }}
                             >
-                                {'★'.repeat(Math.floor(rating))}
-                                {'☆'.repeat(5 - Math.floor(rating))}
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <svg
+                                        key={star}
+                                        width="28"
+                                        height="28"
+                                        viewBox="0 0 24 24"
+                                        fill={star <= Math.floor(rating) ? '#00ff66' : 'rgba(0, 255, 102, 0.3)'}
+                                    >
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg>
+                                ))}
                             </div>
-                            <div style={{ fontSize: 28, color: '#fff', fontWeight: 'bold' }}>
+                            <div style={{ fontSize: 26, color: '#ededed', fontWeight: 'bold' }}>
                                 {rating.toFixed(1)}
                             </div>
                             {totalReviews > 0 && (
-                                <div style={{ fontSize: 24, color: '#666', marginLeft: '12px' }}>
+                                <div style={{ fontSize: 22, color: 'rgba(237, 237, 237, 0.6)', marginLeft: '12px' }}>
                                     ({totalReviews.toLocaleString()} reviews)
                                 </div>
                             )}
@@ -240,12 +295,12 @@ export async function GET(request: NextRequest) {
                             alignItems: 'center',
                             marginTop: 'auto',
                             paddingTop: '24px',
-                            borderTop: '1px solid rgba(255,255,255,0.1)',
+                            borderTop: '1px solid rgba(0, 255, 217, 0.2)',
                         }}
                     >
                         <div
                             style={{
-                                fontSize: 28,
+                                fontSize: 26,
                                 fontWeight: 'bold',
                                 color: '#00ffd9',
                             }}
@@ -255,8 +310,8 @@ export async function GET(request: NextRequest) {
                         <div
                             style={{
                                 marginLeft: 'auto',
-                                fontSize: 22,
-                                color: '#666',
+                                fontSize: 20,
+                                color: 'rgba(237, 237, 237, 0.5)',
                             }}
                         >
                             seekertracker.com
