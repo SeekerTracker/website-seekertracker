@@ -257,31 +257,26 @@ export async function GET(request: NextRequest) {
                                 marginBottom: '24px',
                             }}
                         >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    marginRight: '12px',
-                                }}
-                            >
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <svg
-                                        key={star}
-                                        width="28"
-                                        height="28"
-                                        viewBox="0 0 24 24"
-                                        fill={star <= Math.floor(rating) ? '#00ff66' : 'rgba(0, 255, 102, 0.3)'}
-                                    >
-                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                    </svg>
-                                ))}
-                            </div>
-                            <div style={{ fontSize: 26, color: '#ededed', fontWeight: 'bold' }}>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill={rating >= 1 ? '#00ff66' : 'rgba(0, 255, 102, 0.3)'} style={{ marginRight: '4px' }}>
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill={rating >= 2 ? '#00ff66' : 'rgba(0, 255, 102, 0.3)'} style={{ marginRight: '4px' }}>
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill={rating >= 3 ? '#00ff66' : 'rgba(0, 255, 102, 0.3)'} style={{ marginRight: '4px' }}>
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill={rating >= 4 ? '#00ff66' : 'rgba(0, 255, 102, 0.3)'} style={{ marginRight: '4px' }}>
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill={rating >= 5 ? '#00ff66' : 'rgba(0, 255, 102, 0.3)'} style={{ marginRight: '12px' }}>
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <div style={{ display: 'flex', fontSize: 26, color: '#ededed', fontWeight: 'bold' }}>
                                 {rating.toFixed(1)}
                             </div>
                             {totalReviews > 0 && (
-                                <div style={{ fontSize: 22, color: 'rgba(237, 237, 237, 0.6)', marginLeft: '12px' }}>
+                                <div style={{ display: 'flex', fontSize: 22, color: 'rgba(237, 237, 237, 0.6)', marginLeft: '12px' }}>
                                     ({totalReviews.toLocaleString()} reviews)
                                 </div>
                             )}
