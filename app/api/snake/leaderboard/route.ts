@@ -69,7 +69,7 @@ async function getDomainsByOwner(wallets: string[]): Promise<Map<string, string>
 
 export async function GET() {
     try {
-        // Fetch top 50 players by high score
+        // Fetch top 20 players by high score
         const result = await client.execute(`
             SELECT
                 u.wallet,
@@ -81,7 +81,7 @@ export async function GET() {
             JOIN users u ON u.id = s.user_id
             WHERE s.high_score > 0
             ORDER BY s.high_score DESC
-            LIMIT 50
+            LIMIT 20
         `);
 
         // Get total players count
