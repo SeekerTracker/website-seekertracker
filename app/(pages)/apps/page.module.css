@@ -639,6 +639,39 @@
     text-decoration: underline;
 }
 
+.shareSection {
+    padding-top: 1em;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shareButtons {
+    display: flex;
+    gap: 0.75em;
+    flex-wrap: wrap;
+}
+
+.shareBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.6em 1em;
+    border-radius: 0.5em;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.85em;
+    transition: all 0.2s;
+}
+
+.shareBtn:hover {
+    background: rgba(0, 255, 217, 0.2);
+    color: #00ffd9;
+}
+
+.shareBtn svg {
+    flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
     .main {
         padding: 0 1em;
