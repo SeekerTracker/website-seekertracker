@@ -265,8 +265,9 @@ const SnakePage = () => {
             {/* Download */}
             <div className={styles.downloadSection}>
                 <Link
-                    href="/snake/snake.apk"
-                    download="snake.apk"
+                    href="https://arweave.net/CS0G8QmKKK_XMbiL5sBYYI7IJmDv779kYbeH8o-2muo"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className={styles.downloadButton}
                 >
                     Download APK
