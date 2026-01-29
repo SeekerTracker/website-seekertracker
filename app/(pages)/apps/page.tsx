@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import styles from './page.module.css'
 import Image from 'next/image'
 import Backbutton from 'app/(components)/shared/Backbutton'
@@ -15,15 +16,21 @@ interface DApp {
         displayName: string
         subtitle?: string
         description?: string
+        updatedOn?: string
+        newInVersion?: string
+        privacyPolicyUrl?: string
         icon?: {
             uri: string
         }
         publisherDetails?: {
             name: string
             website?: string
+            supportEmail?: string
         }
         androidDetails?: {
             version: string
+            versionCode?: number
+            minSdk?: number
         }
     }
 }
@@ -42,7 +49,19 @@ interface CategoryWithApps {
 
 const INITIAL_VISIBLE = 6
 
-const Apps = () => {
+type SortOption = 'updated-desc' | 'updated-asc' | 'rating-desc' | 'name-asc' | 'category'
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+    { value: 'updated-desc', label: 'Recently Updated' },
+    { value: 'rating-desc', label: 'Highest Rated' },
+    { value: 'name-asc', label: 'Name (A-Z)' },
+    { value: 'updated-asc', label: 'Oldest Updated' },
+    { value: 'category', label: 'By Category' },
+]
+
+const AppsContent = () => {
+    const router = useRouter()
+    const searchParams = useSearchParams()
     const [categories, setCategories] = useState<CategoryWithApps[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
@@ -52,6 +71,7 @@ const Apps = () => {
     const [selectedApp, setSelectedApp] = useState<DApp | null>(null)
     const [favorites, setFavorites] = useState<Set<string>>(new Set())
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+    const [sortBy, setSortBy] = useState<SortOption>('updated-desc')
 
     const fetchCatalog = useCallback(async () => {
         try {
@@ -89,6 +109,31 @@ const Apps = () => {
         }
     }, [])
 
+    // Handle app selection with URL update
+    const selectApp = useCallback((app: DApp | null) => {
+        setSelectedApp(app)
+        if (app) {
+            router.push(`/apps?app=${encodeURIComponent(app.androidPackage)}`, { scroll: false })
+        } else {
+            router.push('/apps', { scroll: false })
+        }
+    }, [router])
+
+    // Open app from URL param after data loads
+    useEffect(() => {
+        const appParam = searchParams.get('app')
+        if (appParam && categories.length > 0 && !selectedApp) {
+            // Find the app in categories
+            for (const cat of categories) {
+                const found = cat.dApps.edges.find(edge => edge.node.androidPackage === appParam)
+                if (found) {
+                    setSelectedApp(found.node)
+                    break
+                }
+            }
+        }
+    }, [searchParams, categories, selectedApp])
+
     const toggleFavorite = (packageName: string, e: React.MouseEvent) => {
         e.stopPropagation()
         setFavorites(prev => {
@@ -114,6 +159,37 @@ const Apps = () => {
     }, [categories])
 
     // Get all unique apps for filtering
+    const sortApps = useCallback((apps: DApp[], sort: SortOption): DApp[] => {
+        if (sort === 'category') return apps
+
+        return [...apps].sort((a, b) => {
+            switch (sort) {
+                case 'updated-desc': {
+                    const dateA = a.lastRelease?.updatedOn ? new Date(a.lastRelease.updatedOn).getTime() : 0
+                    const dateB = b.lastRelease?.updatedOn ? new Date(b.lastRelease.updatedOn).getTime() : 0
+                    return dateB - dateA
+                }
+                case 'updated-asc': {
+                    const dateA = a.lastRelease?.updatedOn ? new Date(a.lastRelease.updatedOn).getTime() : 0
+                    const dateB = b.lastRelease?.updatedOn ? new Date(b.lastRelease.updatedOn).getTime() : 0
+                    return dateA - dateB
+                }
+                case 'rating-desc': {
+                    const ratingA = a.rating?.rating ?? 0
+                    const ratingB = b.rating?.rating ?? 0
+                    return ratingB - ratingA
+                }
+                case 'name-asc': {
+                    const nameA = a.lastRelease?.displayName?.toLowerCase() ?? ''
+                    const nameB = b.lastRelease?.displayName?.toLowerCase() ?? ''
+                    return nameA.localeCompare(nameB)
+                }
+                default:
+                    return 0
+            }
+        })
+    }, [])
+
     const allApps = useMemo(() => {
         const seen = new Map<string, DApp>()
         categories.forEach(cat => {
@@ -126,18 +202,23 @@ const Apps = () => {
         return Array.from(seen.values())
     }, [categories])
 
+    const sortedAllApps = useMemo(() => {
+        return sortApps(allApps, sortBy)
+    }, [allApps, sortBy, sortApps])
+
     // Filter apps based on search query
     const filteredApps = useMemo(() => {
         if (!searchQuery.trim()) return []
         const query = searchQuery.toLowerCase()
-        return allApps.filter(app => {
+        const filtered = sortedAllApps.filter(app => {
             const name = app.lastRelease?.displayName?.toLowerCase() || ''
             const publisher = app.lastRelease?.publisherDetails?.name?.toLowerCase() || ''
             const subtitle = app.lastRelease?.subtitle?.toLowerCase() || ''
             const packageName = app.androidPackage.toLowerCase()
             return name.includes(query) || publisher.includes(query) || subtitle.includes(query) || packageName.includes(query)
         })
-    }, [allApps, searchQuery])
+        return filtered
+    }, [sortedAllApps, searchQuery])
 
     const toggleExpanded = (categoryId: string) => {
         setExpandedCategories(prev => {
@@ -169,13 +250,27 @@ const Apps = () => {
         return stars
     }
 
+    const formatShortDate = (dateString: string) => {
+        const date = new Date(dateString)
+        const now = new Date()
+        const diffMs = now.getTime() - date.getTime()
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+        if (diffDays === 0) return 'Today'
+        if (diffDays === 1) return 'Yesterday'
+        if (diffDays < 7) return `${diffDays}d ago`
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)}mo ago`
+        return `${Math.floor(diffDays / 365)}y ago`
+    }
+
     const AppCard = ({ app }: { app: DApp }) => {
         const release = app.lastRelease
         if (!release) return null
         const isFavorite = favorites.has(app.androidPackage)
 
         return (
-            <div className={styles.appCard} onClick={() => setSelectedApp(app)}>
+            <div className={styles.appCard} onClick={() => selectApp(app)}>
                 <button
                     className={`${styles.favoriteBtn} ${isFavorite ? styles.favorited : ''}`}
                     onClick={(e) => toggleFavorite(app.androidPackage, e)}
@@ -200,9 +295,6 @@ const Apps = () => {
                 </div>
                 <div className={styles.appInfo}>
                     <h3 className={styles.appName}>{release.displayName}</h3>
-                    {release.publisherDetails?.name && (
-                        <span className={styles.publisher}>{release.publisherDetails.name}</span>
-                    )}
                     {release.subtitle && (
                         <span className={styles.subtitle}>{release.subtitle}</span>
                     )}
@@ -213,15 +305,30 @@ const Apps = () => {
                                 <span className={styles.ratingValue}>{app.rating.rating.toFixed(1)}</span>
                             </div>
                         )}
+                        {release.updatedOn && (
+                            <span className={styles.updatedBadge}>{formatShortDate(release.updatedOn)}</span>
+                        )}
                     </div>
                 </div>
             </div>
         )
     }
 
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString)
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    }
+
+    const getTotalReviews = (reviewsByRating?: number[]) => {
+        if (!reviewsByRating) return 0
+        return reviewsByRating.reduce((sum, count) => sum + count, 0)
+    }
+
     const AppModal = ({ app, onClose }: { app: DApp; onClose: () => void }) => {
         const release = app.lastRelease
         if (!release) return null
+
+        const totalReviews = getTotalReviews(app.rating?.reviewsByRating)
 
         return (
             <div className={styles.modalOverlay} onClick={onClose}>
@@ -251,7 +358,10 @@ const Apps = () => {
                             {app.rating?.rating && (
                                 <div className={styles.modalRating}>
                                     {renderStars(app.rating.rating)}
-                                    <span className={styles.ratingValue}>{app.rating.rating.toFixed(1)}</span>
+                                    <span className={styles.ratingValue}>
+                                        {app.rating.rating.toFixed(1)}
+                                        {totalReviews > 0 && ` (${totalReviews.toLocaleString()} reviews)`}
+                                    </span>
                                 </div>
                             )}
                         </div>
@@ -259,17 +369,64 @@ const Apps = () => {
                     {release.subtitle && (
                         <p className={styles.modalSubtitle}>{release.subtitle}</p>
                     )}
+
+                    {release.description && (
+                        <div className={styles.modalDescription}>
+                            <h3 className={styles.modalSectionTitle}>About</h3>
+                            <p className={styles.descriptionText}>{release.description}</p>
+                        </div>
+                    )}
+
+                    {release.newInVersion && (
+                        <div className={styles.modalWhatsNew}>
+                            <h3 className={styles.modalSectionTitle}>What&apos;s New</h3>
+                            <p className={styles.whatsNewText}>{release.newInVersion}</p>
+                        </div>
+                    )}
+
                     <div className={styles.modalDetails}>
+                        <h3 className={styles.modalSectionTitle}>App Info</h3>
+
+                        {release.updatedOn && (
+                            <div className={styles.modalDetail}>
+                                <span className={styles.detailLabel}>Last Updated</span>
+                                <span className={styles.detailValue}>{formatDate(release.updatedOn)}</span>
+                            </div>
+                        )}
+
+                        {release.androidDetails?.version && (
+                            <div className={styles.modalDetail}>
+                                <span className={styles.detailLabel}>Version</span>
+                                <span className={styles.detailValue}>
+                                    {release.androidDetails.version}
+                                    {release.androidDetails.versionCode && ` (${release.androidDetails.versionCode})`}
+                                </span>
+                            </div>
+                        )}
+
+                        {release.androidDetails?.minSdk && (
+                            <div className={styles.modalDetail}>
+                                <span className={styles.detailLabel}>Min Android SDK</span>
+                                <span className={styles.detailValue}>{release.androidDetails.minSdk}</span>
+                            </div>
+                        )}
+
                         <div className={styles.modalDetail}>
                             <span className={styles.detailLabel}>Package</span>
                             <span className={styles.detailValue}>{app.androidPackage}</span>
                         </div>
-                        {release.androidDetails?.version && (
+                    </div>
+
+                    <div className={styles.modalDetails}>
+                        <h3 className={styles.modalSectionTitle}>Publisher</h3>
+
+                        {release.publisherDetails?.name && (
                             <div className={styles.modalDetail}>
-                                <span className={styles.detailLabel}>Version</span>
-                                <span className={styles.detailValue}>{release.androidDetails.version}</span>
+                                <span className={styles.detailLabel}>Developer</span>
+                                <span className={styles.detailValue}>{release.publisherDetails.name}</span>
                             </div>
                         )}
+
                         {release.publisherDetails?.website && (
                             <div className={styles.modalDetail}>
                                 <span className={styles.detailLabel}>Website</span>
@@ -283,6 +440,32 @@ const Apps = () => {
                                 </a>
                             </div>
                         )}
+
+                        {release.publisherDetails?.supportEmail && (
+                            <div className={styles.modalDetail}>
+                                <span className={styles.detailLabel}>Support Email</span>
+                                <a
+                                    href={`mailto:${release.publisherDetails.supportEmail}`}
+                                    className={styles.detailLink}
+                                >
+                                    {release.publisherDetails.supportEmail}
+                                </a>
+                            </div>
+                        )}
+
+                        {release.privacyPolicyUrl && (
+                            <div className={styles.modalDetail}>
+                                <span className={styles.detailLabel}>Privacy Policy</span>
+                                <a
+                                    href={release.privacyPolicyUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.detailLink}
+                                >
+                                    View Privacy Policy
+                                </a>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -292,8 +475,8 @@ const Apps = () => {
     // Get all favorite apps across categories
     const favoriteApps = useMemo(() => {
         if (!showFavoritesOnly) return []
-        return allApps.filter(app => favorites.has(app.androidPackage))
-    }, [allApps, favorites, showFavoritesOnly])
+        return sortedAllApps.filter(app => favorites.has(app.androidPackage))
+    }, [sortedAllApps, favorites, showFavoritesOnly])
 
     const filteredCategories = selectedCategory
         ? categories.filter(cat => cat.category.name === selectedCategory)
@@ -337,14 +520,30 @@ const Apps = () => {
                 </div>
             </div>
 
-            <div className={styles.searchBar}>
-                <input
-                    type="text"
-                    placeholder="Filter apps..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className={styles.searchInput}
-                />
+            <div className={styles.searchAndSort}>
+                <div className={styles.searchBar}>
+                    <input
+                        type="text"
+                        placeholder="Filter apps..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className={styles.searchInput}
+                    />
+                </div>
+                <div className={styles.sortControl}>
+                    <label className={styles.sortLabel}>Sort:</label>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as SortOption)}
+                        className={styles.sortSelect}
+                    >
+                        {SORT_OPTIONS.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className={styles.categoryFilter}>
@@ -403,20 +602,34 @@ const Apps = () => {
                         <div className={styles.noResults}>No apps found</div>
                     )}
                 </div>
+            ) : sortBy !== 'category' ? (
+                <div className={styles.searchResults}>
+                    <h2 className={styles.sectionTitle}>
+                        All Apps
+                        <span className={styles.appCount}>
+                            ({sortedAllApps.length} apps, sorted by {SORT_OPTIONS.find(o => o.value === sortBy)?.label})
+                        </span>
+                    </h2>
+                    <div className={styles.appGrid}>
+                        {sortedAllApps.map(app => (
+                            <AppCard key={app.androidPackage} app={app} />
+                        ))}
+                    </div>
+                </div>
             ) : (
             <div className={styles.catalog}>
                 {filteredCategories.map(categoryUnit => {
                     const isExpanded = expandedCategories.has(categoryUnit.category.id)
-                    const allApps = categoryUnit.dApps.edges
-                    const visibleApps = isExpanded ? allApps : allApps.slice(0, INITIAL_VISIBLE)
-                    const hasMore = allApps.length > INITIAL_VISIBLE
+                    const categoryApps = categoryUnit.dApps.edges
+                    const visibleApps = isExpanded ? categoryApps : categoryApps.slice(0, INITIAL_VISIBLE)
+                    const hasMore = categoryApps.length > INITIAL_VISIBLE
 
                     return (
                         <div key={categoryUnit.category.id} className={styles.categorySection}>
                             <h2 className={styles.sectionTitle}>
                                 {categoryUnit.category.name}
                                 <span className={styles.appCount}>
-                                    ({allApps.length} apps)
+                                    ({categoryApps.length} apps)
                                 </span>
                             </h2>
                             <div className={styles.appGrid}>
@@ -431,7 +644,7 @@ const Apps = () => {
                                 >
                                     {isExpanded
                                         ? 'Show Less'
-                                        : `Show ${allApps.length - INITIAL_VISIBLE} More`
+                                        : `Show ${categoryApps.length - INITIAL_VISIBLE} More`
                                     }
                                 </button>
                             )}
@@ -442,9 +655,25 @@ const Apps = () => {
             )}
 
             {selectedApp && (
-                <AppModal app={selectedApp} onClose={() => setSelectedApp(null)} />
+                <AppModal app={selectedApp} onClose={() => selectApp(null)} />
             )}
         </div>
+    )
+}
+
+const Apps = () => {
+    return (
+        <Suspense fallback={
+            <div className={styles.main}>
+                <Backbutton />
+                <div className={styles.loading}>
+                    <div className={styles.spinner}></div>
+                    <span>Loading dApp Store...</span>
+                </div>
+            </div>
+        }>
+            <AppsContent />
+        </Suspense>
     )
 }
 

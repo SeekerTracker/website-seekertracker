@@ -37,18 +37,27 @@ query Explore($systemContext: SystemContext!) {
                                     androidPackage
                                     rating {
                                         rating
+                                        reviewsByRating
                                     }
                                     lastRelease(systemContext: $systemContext) {
                                         displayName
                                         subtitle
+                                        description
+                                        updatedOn
+                                        newInVersion
+                                        privacyPolicyUrl
                                         icon {
                                             uri
                                         }
                                         publisherDetails {
                                             name
+                                            website
+                                            supportEmail
                                         }
                                         androidDetails {
                                             version
+                                            versionCode
+                                            minSdk
                                         }
                                     }
                                 }
@@ -65,7 +74,7 @@ query Explore($systemContext: SystemContext!) {
 // Search query uses inline parameters due to API quirks with variables
 function getSearchQuery(searchText: string) {
     const sanitized = searchText.replace(/"/g, '\\"').replace(/\n/g, ' ');
-    return `query { search { results(systemContext: {locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}, searchText: "${sanitized}", first: 10) { __typename ... on DAppsUnit { dApps { edges { node { androidPackage rating { rating } lastRelease(systemContext: {locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}) { displayName subtitle icon { uri } publisherDetails { name } } } } } } } } }`;
+    return `query { search { results(systemContext: {locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}, searchText: "${sanitized}", first: 10) { __typename ... on DAppsUnit { dApps { edges { node { androidPackage rating { rating reviewsByRating } lastRelease(systemContext: {locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}) { displayName subtitle description updatedOn newInVersion privacyPolicyUrl icon { uri } publisherDetails { name website supportEmail } androidDetails { version versionCode minSdk } } } } } } } } }`;
 }
 
 async function fetchFromDAppStore(query: string, variables?: Record<string, unknown>) {
