@@ -114,8 +114,22 @@ export async function GET() {
         });
     } catch (error) {
         console.error("Leaderboard API error:", error);
+
+        const errorMessage = String(error);
+
+        // Handle authentication errors (401)
+        if (errorMessage.includes("401") ||
+            errorMessage.includes("UNAUTHORIZED") ||
+            errorMessage.includes("authentication") ||
+            errorMessage.includes("AUTH_")) {
+            return NextResponse.json(
+                { error: "Database authentication failed", success: false },
+                { status: 401 }
+            );
+        }
+
         return NextResponse.json(
-            { error: "Failed to fetch leaderboard", details: String(error) },
+            { error: "Failed to fetch leaderboard", success: false },
             { status: 500 }
         );
     }

@@ -24,6 +24,7 @@ const SnakePage = () => {
     const [gameStats, setGameStats] = useState<{ totalPlayers: number; totalGames: number } | null>(null);
     const [loading, setLoading] = useState(true);
     const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+    const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchPrizePool() {
@@ -42,12 +43,20 @@ const SnakePage = () => {
             try {
                 const res = await fetch('/api/snake/leaderboard');
                 const data = await res.json();
+                if (res.status === 401) {
+                    setLeaderboardError('Leaderboard temporarily unavailable');
+                    return;
+                }
                 if (data.success) {
                     setLeaderboard(data.leaderboard);
                     setGameStats(data.stats);
+                    setLeaderboardError(null);
+                } else {
+                    setLeaderboardError('Failed to load leaderboard');
                 }
             } catch (err) {
                 console.error('Failed to fetch leaderboard:', err);
+                setLeaderboardError('Failed to load leaderboard');
             } finally {
                 setLeaderboardLoading(false);
             }
@@ -142,6 +151,8 @@ const SnakePage = () => {
                 )}
                 {leaderboardLoading ? (
                     <div className={styles.leaderboardLoading}>Loading leaderboard...</div>
+                ) : leaderboardError ? (
+                    <div className={styles.noScores}>{leaderboardError}</div>
                 ) : leaderboard.length > 0 ? (
                     <div className={styles.leaderboard}>
                         <div className={styles.leaderboardHeader}>
