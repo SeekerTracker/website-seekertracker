@@ -52,6 +52,11 @@ export default async function RootLayout({
           strategy="beforeInteractive"
           data-preload
         />
+        <Script
+          defer
+          src="https://cloud.umami.is/script.js"
+          data-website-id="9fd8f232-a438-449a-a6d9-ac217f403a51"
+        />
       </head>
       <body className={`${jetBrains.variable}`}>
         <div className={`mainWholeAppContainer`}>
