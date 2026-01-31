@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./navbar.module.css";
 import { useDataContext } from "app/(utils)/context/dataProvider";
 import { useJupiter } from "app/(utils)/context/jupiterProvider";
@@ -60,6 +60,27 @@ const Navbar = () => {
     const { solPrice, backendHealth, backendWS, seekerData } = useDataContext();
     const { openJupiter, isJupiterReady } = useJupiter();
     const [copiedName, setCopiedName] = useState<string | null>(null);
+    const [skrPrice, setSkrPrice] = useState<number | null>(null);
+
+    // Fetch SKR price
+    useEffect(() => {
+        const fetchSkrPrice = async () => {
+            try {
+                const response = await fetch("/api/skr/vault");
+                if (response.ok) {
+                    const data = await response.json();
+                    setSkrPrice(data.skrPrice);
+                }
+            } catch (err) {
+                console.error("Failed to fetch SKR price:", err);
+            }
+        };
+        fetchSkrPrice();
+        // Refresh every 5 minutes
+        const interval = setInterval(fetchSkrPrice, 5 * 60 * 1000);
+        return () => clearInterval(interval);
+    }, []);
+
     const handleCopy = async (name: string, value: string) => {
         try {
             await navigator.clipboard.writeText(value);
@@ -73,12 +94,38 @@ const Navbar = () => {
     return (
         <div className={styles.main}>
             <div className={styles.priceInfo}>
-                <span>
-                    SOL <strong>${solPrice.toFixed(2)}</strong>
-                </span>
-                <span>
-                    $TRACKER 24h <strong>${seekerData.token24hVol}</strong>
-                </span>
+                <Link
+                    href="https://jup.ag/tokens/So11111111111111111111111111111111111111112?ref=yfgv2ibxy07v"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.priceLink}
+                >
+                    <span>
+                        SOL <strong>${solPrice.toFixed(2)}</strong>
+                    </span>
+                </Link>
+                {skrPrice !== null && (
+                    <Link
+                        href="https://jup.ag/tokens/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3?ref=yfgv2ibxy07v"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.priceLink}
+                    >
+                        <span>
+                            SKR <strong>${skrPrice.toFixed(6)}</strong>
+                        </span>
+                    </Link>
+                )}
+                <Link
+                    href={`https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=yfgv2ibxy07v`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.priceLink}
+                >
+                    <span>
+                        $TRACKER 24h <strong>${seekerData.token24hVol}</strong>
+                    </span>
+                </Link>
             </div>
 
             <div className={styles.navButtons}>
