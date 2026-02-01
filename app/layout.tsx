@@ -55,7 +55,7 @@ export default async function RootLayout({
         <Script
           defer
           src="https://stats.sal.fun/script.js"
-          data-website-id="ad2f9eb5-839f-4bf1-b7bf-e5fd9dc1093a"
+          data-website-id="9fd8f232-a438-449a-a6d9-ac217f403a51"
         />
       </head>
       <body className={`${jetBrains.variable}`}>
