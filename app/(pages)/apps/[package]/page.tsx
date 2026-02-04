@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { redirect } from 'next/navigation'
+import ClientRedirect from './ClientRedirect'
 
 const DAPPSTORE_API = "https://dappstore.solanamobile.com/graphql"
 
@@ -102,5 +102,5 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AppPage({ params }: Props) {
     const { package: pkg } = await params
-    redirect(`/apps?app=${encodeURIComponent(pkg)}`)
+    return <ClientRedirect url={`/apps?app=${encodeURIComponent(pkg)}`} />
 }
