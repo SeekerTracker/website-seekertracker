@@ -138,6 +138,9 @@ const Navbar = () => {
                 <Link href="/competitors" className={styles.competitorsButton}>
                     Competitors
                 </Link>
+                <Link href="/snake" className={styles.snakeButton}>
+                    Snake
+                </Link>
                 <a
                     href="https://stake.seekertracker.com"
                     target="_blank"
