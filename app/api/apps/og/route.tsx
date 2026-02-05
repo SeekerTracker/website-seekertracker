@@ -266,9 +266,26 @@ export async function GET(request: NextRequest) {
                         <div
                             style={{
                                 display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginTop: '30px',
+                                padding: '12px 32px',
+                                borderRadius: '8px',
+                                background: 'linear-gradient(135deg, #00ffd9 0%, #00ff66 100%)',
+                                fontSize: 20,
+                                fontWeight: 'bold',
+                                color: '#001a1a',
+                            }}
+                        >
+                            Browse All Apps →
+                        </div>
+
+                        <div
+                            style={{
+                                display: 'flex',
                                 fontSize: 18,
                                 color: 'rgba(237, 237, 237, 0.4)',
-                                marginTop: '30px',
+                                marginTop: '16px',
                             }}
                         >
                             seekertracker.com/apps
