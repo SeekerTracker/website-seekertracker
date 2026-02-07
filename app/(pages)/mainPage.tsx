@@ -19,7 +19,6 @@ const MainPage = () => {
     const currSkrIdCount = useRef(0);
     const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([])
     const [todaySeekerIds, setTodaySeekerIds] = useState(0)
-    const [avgSubdomainLength, setAvgSubdomainLength] = useState(0)
 
     const [regionDistribution, setRegionDistribution] = useState<{
         Americas: number;
@@ -49,7 +48,6 @@ const MainPage = () => {
 
         backendWS.on("sortedDomains", (data: {
             totalDomains: number,
-            avgSubdomainLength: number,
             domainsByDate: Record<string, number>,
             domainsByTimeRange: Record<string, number>,
             data: DomainInfo[]
@@ -57,7 +55,6 @@ const MainPage = () => {
             const {
                 totalDomains,
                 data: domains,
-                avgSubdomainLength,
                 domainsByDate,
                 domainsByTimeRange
             } = data;
@@ -68,8 +65,6 @@ const MainPage = () => {
 
             const todayDate = new Date().toISOString().split('T')[0];
             setTodaySeekerIds(domainsByDate[todayDate] || 0)
-
-            setAvgSubdomainLength(avgSubdomainLength)
 
             // regwinal
             if (domainsByTimeRange) {
@@ -231,13 +226,7 @@ const MainPage = () => {
                         <span>Today</span>
                     </div>
                 </div>
-                <div className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <strong>{avgSubdomainLength}</strong>
-                        <span>Avg Length</span>
-                    </div>
-                </div>
-                <Link href={'/seeker-fund'} className={style.tabWrapper}>
+<Link href={'/seeker-fund'} className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>{seekerData.lifeTimeSolFees}&nbsp;SOL</strong>
                         <span>💰 Seeker Fund</span>
