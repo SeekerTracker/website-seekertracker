@@ -67,7 +67,6 @@ export default function Page() {
 
     backendWS.on("sortedDomains", (data: {
       totalDomains: number,
-      avgSubdomainLength: number,
       domainsByDate: Record<string, number>,
       domainsByTimeRange: Record<string, number>,
       data: DomainInfo[]
@@ -75,9 +74,6 @@ export default function Page() {
       const {
         totalDomains,
         data: domains,
-        avgSubdomainLength,
-        domainsByDate,
-        domainsByTimeRange
       } = data;
       setTotalDomains(totalDomains)
       setUiSeekerData(domains)
