@@ -16,9 +16,13 @@ const MainPage = () => {
     const { seekerData, backendWS } = useDataContext()
 
     const [totalSeekerIds, setTotalSeekerIds] = useState(0)
+    const [animatedTotal, setAnimatedTotal] = useState(0)
+    const [isAnimating, setIsAnimating] = useState(false)
     const currSkrIdCount = useRef(0);
     const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([])
     const [todaySeekerIds, setTodaySeekerIds] = useState(0)
+    const [animatedToday, setAnimatedToday] = useState(0)
+    const [isTodayAnimating, setIsTodayAnimating] = useState(false)
 
     const [regionDistribution, setRegionDistribution] = useState<{
         Americas: number;
@@ -32,10 +36,34 @@ const MainPage = () => {
         Other: 0,
     });
 
+    const [animatedRegions, setAnimatedRegions] = useState<{
+        Americas: number;
+        Europe: number;
+        "Asia-Pacific": number;
+        Other: number;
+    }>({
+        Americas: 0,
+        Europe: 0,
+        "Asia-Pacific": 0,
+        Other: 0,
+    });
+
+    const [animatingRegions, setAnimatingRegions] = useState<{
+        Americas: boolean;
+        Europe: boolean;
+        "Asia-Pacific": boolean;
+        Other: boolean;
+    }>({
+        Americas: false,
+        Europe: false,
+        "Asia-Pacific": false,
+        Other: false,
+    });
+
     // sortby
     const [searchText, setSearchText] = useState<string>("");
     const [filterRank, setFilterRank] = useState<number | undefined>();
-    const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "name-reverse" | "length">("newest")
+    const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "name-reverse">("newest")
     const [pageLimit, setPageLimit] = useState<number>(10);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -132,7 +160,110 @@ const MainPage = () => {
 
     }, [backendWS]);
 
-    const handleSort = (by: "newest" | "oldest" | "name" | "length") => {
+    // Animate counter when total changes
+    useEffect(() => {
+        if (totalSeekerIds === animatedTotal) return;
+
+        setIsAnimating(true);
+        const start = animatedTotal;
+        const end = totalSeekerIds;
+        const duration = 600; // milliseconds
+        const startTime = Date.now();
+
+        const animate = () => {
+            const now = Date.now();
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const current = Math.floor(start + (end - start) * progress);
+            setAnimatedTotal(current);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                setIsAnimating(false);
+            }
+        };
+
+        animate();
+    }, [totalSeekerIds, animatedTotal]);
+
+    // Animate today counter
+    useEffect(() => {
+        if (todaySeekerIds === animatedToday) return;
+
+        setIsTodayAnimating(true);
+        const start = animatedToday;
+        const end = todaySeekerIds;
+        const duration = 600;
+        const startTime = Date.now();
+
+        const animate = () => {
+            const now = Date.now();
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const current = Math.floor(start + (end - start) * progress);
+            setAnimatedToday(current);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                setIsTodayAnimating(false);
+            }
+        };
+
+        animate();
+    }, [todaySeekerIds, animatedToday]);
+
+    // Animate region counters
+    useEffect(() => {
+        const regionKeys: Array<"Americas" | "Europe" | "Asia-Pacific" | "Other"> = ["Americas", "Europe", "Asia-Pacific", "Other"];
+        const animatingState = { ...animatingRegions };
+        let hasChanges = false;
+
+        regionKeys.forEach((region) => {
+            if (regionDistribution[region] !== animatedRegions[region]) {
+                hasChanges = true;
+                animatingState[region] = true;
+            }
+        });
+
+        if (!hasChanges) return;
+
+        setAnimatingRegions(animatingState);
+        const duration = 600;
+        const startTime = Date.now();
+
+        const animate = () => {
+            const now = Date.now();
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            const newAnimated = { ...animatedRegions };
+            regionKeys.forEach((region) => {
+                const start = animatedRegions[region];
+                const end = regionDistribution[region];
+                const current = Math.floor(start + (end - start) * progress);
+                newAnimated[region] = current;
+            });
+
+            setAnimatedRegions(newAnimated);
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                setAnimatingRegions({
+                    Americas: false,
+                    Europe: false,
+                    "Asia-Pacific": false,
+                    Other: false,
+                });
+            }
+        };
+
+        animate();
+    }, [regionDistribution, animatedRegions, animatingRegions]);
+
+    const handleSort = (by: "newest" | "oldest" | "name") => {
         if (by === sortBy) return;
         setSortBy(by);
         if (!backendWS) return;
@@ -216,29 +347,14 @@ const MainPage = () => {
             <div className={style.pageTabs}>
                 <div className={style.tabWrapper}>
                     <div className={style.eachTab}>
-                        <strong>{totalSeekerIds}</strong>
+                        <strong className={isAnimating ? style.animating : ''}>{animatedTotal.toLocaleString()}</strong>
                         <span>Total Seeker Ids</span>
                     </div>
                 </div>
                 <div className={style.tabWrapper}>
                     <div className={style.eachTab}>
-                        <strong>{todaySeekerIds}</strong>
+                        <strong className={isTodayAnimating ? style.animating : ''}>{animatedToday}</strong>
                         <span>Today</span>
-                    </div>
-                </div>
-<Link href={'/seeker-fund'} className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <strong>{seekerData.lifeTimeSolFees}&nbsp;SOL</strong>
-                        <span>💰 Seeker Fund</span>
-                    </div>
-                </Link>
-                <div className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <strong>15</strong>
-                        <span>
-                            <Image src="/icons/seeker.png" alt="" width={16} height={16} />
-                            Seekers Earned
-                        </span>
                     </div>
                 </div>
                 <Link href={"https://store.solanamobile.com/"} target='_blank' rel="noopener noreferrer" className={style.tabWrapper}>
@@ -265,29 +381,35 @@ const MainPage = () => {
                         <span>Our Favourites</span>
                     </div>
                 </Link>
+                <Link href={"/lookup"} className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>Lookup</strong>
+                        <span>Search SeekerID Details</span>
+                    </div>
+                </Link>
             </div>
 
-            <div className={style.reginalCont}>
-                <span>Seeker Activation Reginal Activity:</span>
-                <div className={style.reginalData}>
+            <div className={style.regionalCont}>
+                <span>Seeker Activation Regional Activity:</span>
+                <div className={style.regionalData}>
                     <div className={style.eachRegion}>
                         <strong>Americas:&nbsp;</strong>
-                        <span>{regionDistribution.Americas}</span>
+                        <span className={animatingRegions.Americas ? style.animating : ''}>{animatedRegions.Americas}</span>
                     </div>
                     <hr />
                     <div className={style.eachRegion}>
                         <strong>Europe:&nbsp;</strong>
-                        <span>{regionDistribution.Europe}</span>
+                        <span className={animatingRegions.Europe ? style.animating : ''}>{animatedRegions.Europe}</span>
                     </div>
                     <hr />
                     <div className={style.eachRegion}>
                         <strong>Other:&nbsp;</strong>
-                        <span>{regionDistribution.Other}</span>
+                        <span className={animatingRegions.Other ? style.animating : ''}>{animatedRegions.Other}</span>
                     </div>
                     <hr />
                     <div className={style.eachRegion}>
                         <strong>Asia-Pacific:&nbsp;</strong>
-                        <span>{regionDistribution["Asia-Pacific"]}</span>
+                        <span className={animatingRegions["Asia-Pacific"] ? style.animating : ''}>{animatedRegions["Asia-Pacific"]}</span>
                     </div>
                 </div>
             </div>
@@ -324,7 +446,6 @@ const MainPage = () => {
                         <span onClick={() => handleSort("newest")} className={`${style.filterTab} ${sortBy === "newest" ? style.active : ""}`} >Newest</span>
                         <span onClick={() => handleSort("oldest")} className={`${style.filterTab} ${sortBy === "oldest" ? style.active : ""}`} >Oldest</span>
                         <span onClick={() => handleSort("name")} className={`${style.filterTab} ${sortBy === "name" ? style.active : ""}`} >Name</span>
-                        <span onClick={() => handleSort("length")} className={`${style.filterTab} ${sortBy === "length" ? style.active : ""}`} >Length</span>
                         <hr />
                         <div className={style.pageLimitCont}>
                             <span className={style.pageLimitLabel}>Show:</span>
