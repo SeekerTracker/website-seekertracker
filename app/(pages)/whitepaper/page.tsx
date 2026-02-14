@@ -19,7 +19,7 @@ const segments: Segment[] = [
     { label: 'Staking Rewards', value: 10, color: '#ff6b6b', description: 'Rewards distributed to $TRACKER stakers', token: 'TRACKER', address: '86CeBUE4vRbxWpwr4U1QcC7tLoF7z6u8RTvxpgtDaPqk' },
     { label: 'Snake Rewards', value: 10, color: '#ffd700', description: 'Prize pool for Snake game players', token: 'TRACKER', address: 'snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq' },
     { label: 'Sweepstakes', value: 10, color: '#9945ff', description: 'Hourly rewards for eligible $TRACKER holders', token: 'SOL', address: 'rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug' },
-    { label: 'SKR Buyback', value: 10, color: '#ff9d00', description: '$SKR buyback mechanism with proceeds going to treasury', token: 'SKR', address: 'SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3' },
+    { label: 'SKR Buyback', value: 10, color: '#ff9d00', description: '$SKR buyback mechanism with proceeds going to treasury', token: 'SKR', address: '3ZvuZbCn4CYYNorGVMbzPbsUamckFmzhmhXWu9WcFb8P' },
 ];
 
 const PieChart = ({ segments, activeSegment, setActiveSegment }: {
@@ -231,7 +231,7 @@ const WhitepaperPage = () => {
                             Buyback mechanism for $SKR tokens with proceeds directed back to the treasury for protocol sustainability.
                         </span>
                         <span className={styles.tokenLabel}>Uses SKR, sent to Treasury</span>
-                        <Link href="https://orbmarkets.io/address/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3/history?hideSpam=true" target="_blank" rel="noopener noreferrer" className={styles.addressLink}>
+                        <Link href="https://orbmarkets.io/address/3ZvuZbCn4CYYNorGVMbzPbsUamckFmzhmhXWu9WcFb8P/history?hideSpam=true" target="_blank" rel="noopener noreferrer" className={styles.addressLink}>
                             View Address
                         </Link>
                     </div>
