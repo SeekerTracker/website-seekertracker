@@ -5,6 +5,7 @@ import { socialMediaLinks } from './navbar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { SEEKER_TOKEN_ADDRESS } from 'app/(utils)/constant';
+import { IoCopy } from 'react-icons/io5';
 const Footer = () => {
     const [copied, setCopied] = useState(false);
     const [copiedName, setCopiedName] = useState<string | null>(null);
@@ -27,6 +28,20 @@ const Footer = () => {
 
     return (
         <>
+            <div className={styles.downloadSection}>
+                <div className={styles.downloadContent}>
+                    <h2>Download Mobile App</h2>
+                    <p>Get the Seeker Tracker Android application</p>
+                    <Link href="/seekertracker.apk" download className={styles.downloadBadge}>
+                        <Image
+                            src="/sds-badge.svg"
+                            alt="Get it on Solana dApp Store"
+                            width={232}
+                            height={91}
+                        />
+                    </Link>
+                </div>
+            </div>
             <div className={styles.main}>
                 <div className={styles.sponsorship}>
                     <div className={styles.sponsor}>
@@ -64,6 +79,8 @@ const Footer = () => {
                             {copied ? <strong>Copied</strong> : SEEKER_TOKEN_ADDRESS}
                         </span></p>
                     <div className={styles.legalLinks}>
+                        <Link href="/whitepaper">Whitepaper</Link>
+                        <span>•</span>
                         <Link href="/privacy">Privacy</Link>
                         <span>•</span>
                         <Link href="/license">License</Link>
@@ -75,7 +92,7 @@ const Footer = () => {
                 </div>
             </div>
             <div className={styles.mobileSocialIcons}>
-                {socialMediaLinks.map((link) => {
+                {socialMediaLinks.map((link: any) => {
                     const isCopied = copiedName === link.name;
 
                     if (link.clickToCopy) {
@@ -89,15 +106,17 @@ const Footer = () => {
                             >
                                 {isCopied ? (
                                     <div className={styles.checkIcon}>✓</div>
-                                ) :
+                                ) : link.isReactIcon ? (
+                                    <IoCopy size={32} title={link.title} />
+                                ) : (
                                     <Image
-                                        src={isCopied ? "/icons/check.svg" : link.icon}
+                                        src={link.icon}
                                         alt={link.name}
                                         width={32}
                                         height={32}
                                         title={link.title}
                                     />
-                                }
+                                )}
                             </div>
                         );
                     }
@@ -108,8 +127,13 @@ const Footer = () => {
                             href={link.url}
                             {...(link.internal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
                             className={styles.socialLink}
+                            title={link.title}
                         >
-                            <Image src={link.icon} alt={link.name} width={32} height={32} title={link.title} />
+                            {link.isReactIcon ? (
+                                <IoCopy size={32} />
+                            ) : (
+                                <Image src={link.icon} alt={link.name} width={32} height={32} />
+                            )}
                         </Link>
                     );
                 })}

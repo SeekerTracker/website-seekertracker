@@ -3,19 +3,23 @@
 import React, { useState } from 'react'
 import styles from './page.module.css'
 import Backbutton from 'app/(components)/shared/Backbutton'
+import Link from 'next/link'
 
 type Segment = {
     label: string;
     value: number;
     color: string;
     description: string;
+    token?: string;
+    address?: string;
 };
 
 const segments: Segment[] = [
-    { label: 'Treasury', value: 70, color: '#00ffd9', description: 'Funds for development, operations, and growth' },
-    { label: 'Staking Rewards', value: 10, color: '#ff6b6b', description: 'Rewards distributed to $TRACKER stakers' },
-    { label: 'Snake Rewards', value: 10, color: '#ffd700', description: 'Prize pool for Snake game players' },
-    { label: 'Sweepstakes', value: 10, color: '#9945ff', description: 'Hourly rewards for eligible $TRACKER holders' },
+    { label: 'Treasury', value: 60, color: '#00ffd9', description: 'Funds for development, operations, and growth', token: 'SOL', address: '3ZvuZbCn4CYYNorGVMbzPbsUamckFmzhmhXWu9WcFb8P' },
+    { label: 'Staking Rewards', value: 10, color: '#ff6b6b', description: 'Rewards distributed to $TRACKER stakers', token: 'TRACKER', address: '86CeBUE4vRbxWpwr4U1QcC7tLoF7z6u8RTvxpgtDaPqk' },
+    { label: 'Snake Rewards', value: 10, color: '#ffd700', description: 'Prize pool for Snake game players', token: 'TRACKER', address: 'snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq' },
+    { label: 'Sweepstakes', value: 10, color: '#9945ff', description: 'Hourly rewards for eligible $TRACKER holders', token: 'SOL', address: 'rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug' },
+    { label: 'SKR Buyback', value: 10, color: '#ff9d00', description: '$SKR buyback mechanism with proceeds going to treasury', token: 'SKR', address: 'SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3' },
 ];
 
 const PieChart = ({ segments, activeSegment, setActiveSegment }: {
@@ -170,10 +174,14 @@ const WhitepaperPage = () => {
                     <div className={styles.breakdownCard} style={{ borderColor: '#00ffd9' }}>
                         <span className={styles.breakdownIcon}>🏦</span>
                         <span className={styles.breakdownTitle}>Treasury</span>
-                        <span className={styles.breakdownPercent} style={{ color: '#00ffd9' }}>70%</span>
+                        <span className={styles.breakdownPercent} style={{ color: '#00ffd9' }}>60%</span>
                         <span className={styles.breakdownDesc}>
                             Funds allocated for protocol development, operational costs, marketing, partnerships, and future growth initiatives.
                         </span>
+                        <span className={styles.tokenLabel}>Received in SOL</span>
+                        <Link href="https://orbmarkets.io/address/3ZvuZbCn4CYYNorGVMbzPbsUamckFmzhmhXWu9WcFb8P/history?hideSpam=true" target="_blank" rel="noopener noreferrer" className={styles.addressLink}>
+                            View Address
+                        </Link>
                     </div>
 
                     <div className={styles.breakdownCard} style={{ borderColor: '#ff6b6b' }}>
@@ -183,6 +191,10 @@ const WhitepaperPage = () => {
                         <span className={styles.breakdownDesc}>
                             Distributed to users who stake their $TRACKER tokens, incentivizing long-term holding and protocol participation.
                         </span>
+                        <span className={styles.tokenLabel}>Paid in TRACKER</span>
+                        <Link href="https://orbmarkets.io/address/86CeBUE4vRbxWpwr4U1QcC7tLoF7z6u8RTvxpgtDaPqk/history?hideSpam=true" target="_blank" rel="noopener noreferrer" className={styles.addressLink}>
+                            View Address
+                        </Link>
                     </div>
 
                     <div className={styles.breakdownCard} style={{ borderColor: '#ffd700' }}>
@@ -192,6 +204,10 @@ const WhitepaperPage = () => {
                         <span className={styles.breakdownDesc}>
                             Prize pool for the Snake game on Solana Seeker. Top players compete for rewards while holding $TRACKER tokens.
                         </span>
+                        <span className={styles.tokenLabel}>Paid in TRACKER</span>
+                        <Link href="https://orbmarkets.io/address/snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq/history?hideSpam=true" target="_blank" rel="noopener noreferrer" className={styles.addressLink}>
+                            View Address
+                        </Link>
                     </div>
 
                     <div className={styles.breakdownCard} style={{ borderColor: '#9945ff' }}>
@@ -201,6 +217,23 @@ const WhitepaperPage = () => {
                         <span className={styles.breakdownDesc}>
                             Hourly sweepstakes rewards distributed to eligible $TRACKER holders. Hold 1M-20M tokens to participate.
                         </span>
+                        <span className={styles.tokenLabel}>Received in SOL</span>
+                        <Link href="https://orbmarkets.io/address/rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug/history?hideSpam=true" target="_blank" rel="noopener noreferrer" className={styles.addressLink}>
+                            View Address
+                        </Link>
+                    </div>
+
+                    <div className={styles.breakdownCard} style={{ borderColor: '#ff9d00' }}>
+                        <span className={styles.breakdownIcon}>🪙</span>
+                        <span className={styles.breakdownTitle}>SKR Buyback</span>
+                        <span className={styles.breakdownPercent} style={{ color: '#ff9d00' }}>10%</span>
+                        <span className={styles.breakdownDesc}>
+                            Buyback mechanism for $SKR tokens with proceeds directed back to the treasury for protocol sustainability.
+                        </span>
+                        <span className={styles.tokenLabel}>Uses SKR, sent to Treasury</span>
+                        <Link href="https://orbmarkets.io/address/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3/history?hideSpam=true" target="_blank" rel="noopener noreferrer" className={styles.addressLink}>
+                            View Address
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -215,15 +248,15 @@ const WhitepaperPage = () => {
                     </div>
                     <div className={styles.point}>
                         <span className={styles.pointIcon}>✓</span>
-                        <span className={styles.pointText}>30% of revenue goes directly back to the community through rewards</span>
+                        <span className={styles.pointText}>30% of revenue goes directly back to the community through rewards and buybacks</span>
                     </div>
                     <div className={styles.point}>
                         <span className={styles.pointIcon}>✓</span>
-                        <span className={styles.pointText}>Multiple ways to earn: staking, gaming, or holding for sweepstakes</span>
+                        <span className={styles.pointText}>Multiple ways to earn: staking, gaming, sweepstakes, or through SKR buyback mechanism</span>
                     </div>
                     <div className={styles.point}>
                         <span className={styles.pointIcon}>✓</span>
-                        <span className={styles.pointText}>Treasury funds ensure long-term protocol sustainability</span>
+                        <span className={styles.pointText}>60% Treasury allocation ensures protocol sustainability and long-term development</span>
                     </div>
                 </div>
             </div>

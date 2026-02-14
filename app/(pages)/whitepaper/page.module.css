@@ -258,6 +258,30 @@
     line-height: 1.5;
 }
 
+.tokenLabel {
+    font-size: 0.8em;
+    color: #808080;
+    font-style: italic;
+    margin-top: 0.5em;
+}
+
+.addressLink {
+    font-size: 0.85em;
+    color: #00ffd9;
+    text-decoration: none;
+    border: 1px solid rgba(0, 255, 217, 0.4);
+    padding: 0.5em 1em;
+    border-radius: 0.4em;
+    transition: all 0.2s ease;
+    margin-top: 0.75em;
+}
+
+.addressLink:hover {
+    color: #00ff99;
+    border-color: rgba(0, 255, 217, 0.8);
+    background-color: rgba(0, 255, 217, 0.1);
+}
+
 /* Key Points */
 .keyPoints {
     display: flex;
