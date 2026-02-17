@@ -7,7 +7,8 @@ import Link from 'next/link'
 import Backbutton from 'app/(components)/shared/Backbutton'
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
-const REQUIRED_TRACKER = 100_000;
+const TRACKER_MINT = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
+const DEFAULT_REQUIRED_TRACKER = 100_000;
 
 type LeaderboardEntry = {
     wallet: string;
@@ -25,6 +26,8 @@ const SnakePage = () => {
     const [loading, setLoading] = useState(true);
     const [leaderboardLoading, setLeaderboardLoading] = useState(true);
     const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
+    const [trackerPrice, setTrackerPrice] = useState<number | null>(null);
+    const [requiredTracker, setRequiredTracker] = useState<number>(DEFAULT_REQUIRED_TRACKER);
 
     useEffect(() => {
         async function fetchPrizePool() {
@@ -62,14 +65,48 @@ const SnakePage = () => {
             }
         }
 
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/snake/config');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.config?.min_tracker_balance) {
+                        setRequiredTracker(Number(data.config.min_tracker_balance));
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch game config:', err);
+            }
+        }
+
+        async function fetchTrackerPrice() {
+            try {
+                const res = await fetch(
+                    `https://api.coingecko.com/api/v3/simple/token_price/solana?contract_addresses=${TRACKER_MINT}&vs_currencies=usd`
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    const price = data[TRACKER_MINT.toLowerCase()]?.usd ?? null;
+                    setTrackerPrice(price);
+                }
+            } catch (err) {
+                console.error('Failed to fetch TRACKER price:', err);
+            }
+        }
+
         fetchPrizePool();
         fetchLeaderboard();
+        fetchTrackerPrice();
+        fetchConfig();
 
         // Refresh prize pool every 20 seconds
         const prizePoolInterval = setInterval(fetchPrizePool, 20000);
+        // Refresh TRACKER price every 60 seconds
+        const priceInterval = setInterval(fetchTrackerPrice, 60000);
 
         return () => {
             clearInterval(prizePoolInterval);
+            clearInterval(priceInterval);
         };
     }, []);
 
@@ -135,7 +172,12 @@ const SnakePage = () => {
                 <span className={styles.eligibilityIcon}>🎫</span>
                 <span className={styles.eligibilityTitle}>Eligibility Requirement</span>
                 <span className={styles.eligibilityDesc}>
-                    Hold <strong>{REQUIRED_TRACKER.toLocaleString()} TRACKER</strong> tokens to be eligible for rewards
+                    Hold <strong>{requiredTracker.toLocaleString()} TRACKER</strong> tokens to be eligible for rewards
+                    {trackerPrice !== null && (
+                        <span className={styles.eligibilityUsd}>
+                            {' '}(≈ ${(requiredTracker * trackerPrice).toFixed(2)} USD)
+                        </span>
+                    )}
                 </span>
             </div>
 

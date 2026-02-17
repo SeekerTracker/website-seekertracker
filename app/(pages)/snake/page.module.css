@@ -141,6 +141,11 @@
     color: #A855F7;
 }
 
+.eligibilityUsd {
+    color: #14F195;
+    font-weight: 500;
+}
+
 /* Leaderboard Section */
 .leaderboardSection {
     display: flex;
