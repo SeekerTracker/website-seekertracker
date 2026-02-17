@@ -82,11 +82,13 @@ const SnakePage = () => {
         async function fetchTrackerPrice() {
             try {
                 const res = await fetch(
-                    `https://api.coingecko.com/api/v3/simple/token_price/solana?contract_addresses=${TRACKER_MINT}&vs_currencies=usd`
+                    `https://api.dexscreener.com/latest/dex/tokens/${TRACKER_MINT}`
                 );
                 if (res.ok) {
                     const data = await res.json();
-                    const price = data[TRACKER_MINT.toLowerCase()]?.usd ?? null;
+                    const price = data?.pairs?.[0]?.priceUsd
+                        ? parseFloat(data.pairs[0].priceUsd)
+                        : null;
                     setTrackerPrice(price);
                 }
             } catch (err) {
