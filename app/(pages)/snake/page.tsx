@@ -8,7 +8,7 @@ import Backbutton from 'app/(components)/shared/Backbutton'
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 const TRACKER_MINT = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
-const REQUIRED_TRACKER = Number(process.env.NEXT_PUBLIC_REQUIRED_TRACKER ?? 100_000);
+const DEFAULT_REQUIRED_TRACKER = 100_000;
 
 type LeaderboardEntry = {
     wallet: string;
@@ -27,6 +27,7 @@ const SnakePage = () => {
     const [leaderboardLoading, setLeaderboardLoading] = useState(true);
     const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
     const [trackerPrice, setTrackerPrice] = useState<number | null>(null);
+    const [requiredTracker, setRequiredTracker] = useState<number>(DEFAULT_REQUIRED_TRACKER);
 
     useEffect(() => {
         async function fetchPrizePool() {
@@ -64,6 +65,20 @@ const SnakePage = () => {
             }
         }
 
+        async function fetchConfig() {
+            try {
+                const res = await fetch('/api/snake/config');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.config?.min_tracker_balance) {
+                        setRequiredTracker(Number(data.config.min_tracker_balance));
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch game config:', err);
+            }
+        }
+
         async function fetchTrackerPrice() {
             try {
                 const res = await fetch(
@@ -82,6 +97,7 @@ const SnakePage = () => {
         fetchPrizePool();
         fetchLeaderboard();
         fetchTrackerPrice();
+        fetchConfig();
 
         // Refresh prize pool every 20 seconds
         const prizePoolInterval = setInterval(fetchPrizePool, 20000);
@@ -156,10 +172,10 @@ const SnakePage = () => {
                 <span className={styles.eligibilityIcon}>🎫</span>
                 <span className={styles.eligibilityTitle}>Eligibility Requirement</span>
                 <span className={styles.eligibilityDesc}>
-                    Hold <strong>{REQUIRED_TRACKER.toLocaleString()} TRACKER</strong> tokens to be eligible for rewards
+                    Hold <strong>{requiredTracker.toLocaleString()} TRACKER</strong> tokens to be eligible for rewards
                     {trackerPrice !== null && (
                         <span className={styles.eligibilityUsd}>
-                            {' '}(≈ ${(REQUIRED_TRACKER * trackerPrice).toFixed(2)} USD)
+                            {' '}(≈ ${(requiredTracker * trackerPrice).toFixed(2)} USD)
                         </span>
                     )}
                 </span>

@@ -15,8 +15,7 @@ export const BEPATH = {
 }
 
 // Min Required $TRACKER token for gating CSV download
-// Configurable via NEXT_PUBLIC_REQUIRED_TRACKER env var (default: 100,000)
-export const REQUIRED_TRACKER_BALANCE = Number(process.env.NEXT_PUBLIC_REQUIRED_TRACKER ?? 100_000);
+export const REQUIRED_TRACKER_BALANCE = 100 * 1000;
 
 // Jupiter Referral Account
 export const JUP_REFERRAL = 'Fgs9yynnDLCcUqkn3LswxcCrWGb3E1h4qFzEd5A8FJEE'
