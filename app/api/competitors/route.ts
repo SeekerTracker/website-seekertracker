@@ -95,7 +95,7 @@ async function fetchMarketCap(slug: string): Promise<number | null> {
 }
 
 const SKR_TOKEN_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
-const HELIUS_RPC = "https://mainnet.helius-rpc.com/?api-key=38d87a91-14f5-45fa-b517-09d7c89ace29";
+const HELIUS_RPC = "https://viviyan-bkj12u-fast-mainnet.helius-rpc.com";
 // Known holder wallet for price lookup
 const SKR_HOLDER = "CYPdPHMh1mD6ioFFVva7L2rFeKLBpcefVv5yv1p6iRqB";
 

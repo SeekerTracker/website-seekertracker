@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const TRACKER_TOKEN = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
-const HELIUS_RPC = "https://mainnet.helius-rpc.com/?api-key=38d87a91-14f5-45fa-b517-09d7c89ace29";
+const HELIUS_RPC = "https://viviyan-bkj12u-fast-mainnet.helius-rpc.com";
 const MIN_BALANCE = 1_000_000;
 const MAX_BALANCE = 20_000_000;
 const TOKEN_DECIMALS = 9;
