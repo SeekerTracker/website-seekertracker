@@ -11,6 +11,14 @@ export const metadata: Metadata = {
         url: "https://seekertracker.com/winners",
         siteName: "Seeker Tracker",
         type: "website",
+        images: [
+            {
+                url: "/api/og/winners",
+                width: 1200,
+                height: 630,
+                alt: "Seeker Tracker Winners",
+            },
+        ],
     },
     twitter: {
         card: "summary_large_image",
@@ -18,6 +26,7 @@ export const metadata: Metadata = {
         description:
             "11 Solana ecosystem contributors awarded a brand new Solana Mobile Seeker.",
         site: "@Seeker_Tracker",
+        images: ["/api/og/winners"],
     },
 };
 
