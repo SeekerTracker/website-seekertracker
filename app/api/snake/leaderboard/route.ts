@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
 
-const client = createClient({
-    url: process.env.TURSO_DATABASE_URL!,
-    authToken: process.env.TURSO_AUTH_TOKEN!,
-});
+const client = process.env.TURSO_DATABASE_URL ? createClient({
+    url: process.env.TURSO_DATABASE_URL,
+    authToken: process.env.TURSO_AUTH_TOKEN,
+}) : null;
 
 const BE_URL = "https://api.seeker.solana.charity";
 
@@ -69,6 +69,9 @@ async function getDomainsByOwner(wallets: string[]): Promise<Map<string, string>
 
 export async function GET() {
     try {
+        if (!client) {
+            return NextResponse.json({ error: "Database not configured" }, { status: 503 });
+        }
         // Fetch top 20 players by high score
         const result = await client.execute(`
             SELECT
