@@ -144,6 +144,9 @@ const Navbar = () => {
                 <Link href="/apps" className={styles.appsButton}>
                     Apps
                 </Link>
+                <Link href="/winners" className={styles.winnersButton}>
+                    Winners
+                </Link>
                 <a
                     href="https://stake.seekertracker.com"
                     target="_blank"
