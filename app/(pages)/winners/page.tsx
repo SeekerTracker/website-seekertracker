@@ -6,6 +6,8 @@ import Backbutton from "app/(components)/shared/Backbutton";
 import Link from "next/link";
 import Image from "next/image";
 
+// Note: metadata export is in layout.tsx for this route
+
 interface Winner {
   number: number;
   handle: string;
