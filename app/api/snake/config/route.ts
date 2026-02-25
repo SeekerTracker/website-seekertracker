@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
 
-const client = createClient({
-    url: process.env.TURSO_DATABASE_URL!,
-    authToken: process.env.TURSO_AUTH_TOKEN!,
-});
-
 const DEFAULT_CONFIG = {
     min_tracker_balance: 100000,
     tokens_per_pill: 10,
@@ -14,6 +9,15 @@ const DEFAULT_CONFIG = {
 };
 
 export async function GET() {
+    if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
+        return NextResponse.json({ config: DEFAULT_CONFIG });
+    }
+
+    const client = createClient({
+        url: process.env.TURSO_DATABASE_URL,
+        authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+
     try {
         const result = await client.execute(`SELECT key, value FROM config`);
 
