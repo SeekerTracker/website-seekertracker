@@ -74,7 +74,29 @@
   display: flex;
   align-items: center;
   gap: 0.5em;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.08em;
+  padding: 0.35em 0.85em;
+  border-radius: 2em;
+  border: 1.5px solid transparent;
+  cursor: default;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.live {
+  color: #14F195;
+  border-color: rgba(20, 241, 149, 0.4);
+  background: rgba(20, 241, 149, 0.08);
+  box-shadow: 0 0 12px rgba(20, 241, 149, 0.15), inset 0 0 8px rgba(20, 241, 149, 0.05);
+}
+
+.offline {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .navButtons {
@@ -300,21 +322,23 @@
   cursor: not-allowed;
 }
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  animation: pulse 1.2s infinite;
+  flex-shrink: 0;
 }
-/* 🟢 Constantly pulsing green dot */
+/* 🟢 Pulsing green dot */
 .live .dot {
-  background-color: #16a34a;
-  box-shadow: 0 0 8px #16a34a;
+  background-color: #14F195;
+  box-shadow: 0 0 6px #14F195, 0 0 12px rgba(20, 241, 149, 0.5);
+  animation: livePulse 1.8s ease-in-out infinite;
 }
 
-/* 🔴 Blinking red dot when reconnecting */
+/* 🔴 Blinking red dot when offline */
 .offline .dot {
-  background-color: #dc2626;
-  box-shadow: 0 0 8px #dc2626;
+  background-color: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+  animation: pulse 1.2s infinite;
 }
 
 .socialLink {
@@ -451,6 +475,17 @@
 }
 
 /* --- Animations --- */
+@keyframes livePulse {
+  0%, 100% {
+    box-shadow: 0 0 6px #14F195, 0 0 12px rgba(20, 241, 149, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 10px #14F195, 0 0 20px rgba(20, 241, 149, 0.8), 0 0 30px rgba(20, 241, 149, 0.3);
+    transform: scale(1.2);
+  }
+}
+
 @keyframes pulse {
   0% {
     transform: scale(1);
