@@ -35,26 +35,35 @@ export default function TelegramModal() {
 
     return (
         <div className={styles.modal}>
-            <button className={styles.closeButton} onClick={handleClose}>
+            <div className={styles.gridBg} />
+
+            <button className={styles.closeButton} onClick={handleClose} aria-label="Dismiss">
                 ×
             </button>
+
             <div className={styles.content}>
-                <h2>📡 Live Updates & Alpha</h2>
-                <p>
-                    Join our Telegram channel for real-time alerts and alpha.
+                <div className={styles.livePill}>
+                    <span className={styles.liveDot} />
+                    LIVE UPDATES
+                </div>
+
+                <h2 className={styles.title}>Join the Channel</h2>
+                <p className={styles.description}>
+                    Real-time .skr activations, alpha &amp; announcements straight to your Telegram.
                 </p>
+
                 <Link
                     href="https://t.me/seeker_tracker"
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={handleJoin}
+                    className={styles.joinButton}
                 >
-                    <button className={styles.joinButton}>
-                        Join Channel
-                    </button>
+                    ✈️ &nbsp;Open Telegram
                 </Link>
+
                 <button className={styles.dismissButton} onClick={handleClose}>
-                    Dismiss
+                    Maybe later
                 </button>
             </div>
         </div>
