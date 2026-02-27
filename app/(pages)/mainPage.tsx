@@ -320,8 +320,8 @@ const MainPage = () => {
                 </Link>
                 <Link href={"/apps"} className={style.tabWrapper}>
                     <div className={style.eachTab}>
-                        <strong>Apps</strong>
-                        <span>{dAppCount !== null ? `${animatedDApps} Apps` : 'Our Favourites'}</span>
+                        <strong>{dAppCount !== null ? animatedDApps.toLocaleString() : '—'}</strong>
+                        <span>Apps</span>
                     </div>
                 </Link>
             </div>
