@@ -1,5 +1,5 @@
 "use client";
-import React, { Activity, useEffect, useRef, useState } from 'react'
+import React, { Activity, useCallback, useEffect, useRef, useState } from 'react'
 import style from './mainPage.module.css'
 import Image from 'next/image'
 import { useDataContext } from 'app/(utils)/context/dataProvider'
@@ -12,6 +12,42 @@ import { analytics } from 'app/(utils)/lib/analytics';
 import { IoArrowDownOutline } from 'react-icons/io5';
 
 
+/** Counts up from ~95% of target to target over ~1.2s */
+function useCountUp(target: number, duration = 1200): number {
+    const [display, setDisplay] = useState(target);
+    const rafRef = useRef<number | null>(null);
+    const prevTarget = useRef(target);
+
+    const animate = useCallback((from: number, to: number, startTime: number) => {
+        const tick = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setDisplay(Math.round(from + (to - from) * eased));
+            if (progress < 1) {
+                rafRef.current = requestAnimationFrame(tick);
+            }
+        };
+        rafRef.current = requestAnimationFrame(tick);
+    }, [duration]);
+
+    useEffect(() => {
+        if (target === 0) { setDisplay(0); return; }
+        const prev = prevTarget.current;
+        prevTarget.current = target;
+        // Start from 95% of the target (or previous value if it was close)
+        const from = prev > 0 && Math.abs(prev - target) < target * 0.2
+            ? prev
+            : Math.floor(target * 0.95);
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        animate(from, target, performance.now());
+        return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); };
+    }, [target, animate]);
+
+    return display;
+}
+
 const MainPage = () => {
     const { seekerData, backendWS } = useDataContext()
 
@@ -20,6 +56,9 @@ const MainPage = () => {
     const currSkrIdCount = useRef(0);
     const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([])
     const [todaySeekerIds, setTodaySeekerIds] = useState(0)
+    const animatedTotal = useCountUp(totalSeekerIds)
+    const animatedToday = useCountUp(todaySeekerIds)
+    const animatedDApps = useCountUp(dAppCount ?? 0)
 
     const [regionDistribution, setRegionDistribution] = useState<{
         Americas: number;
@@ -236,13 +275,13 @@ const MainPage = () => {
             <div className={style.pageTabs}>
                 <div className={style.tabWrapper}>
                     <div className={style.eachTab}>
-                        <strong>{totalSeekerIds}</strong>
+                        <strong>{animatedTotal.toLocaleString()}</strong>
                         <span>Total Seeker Ids</span>
                     </div>
                 </div>
                 <div className={style.tabWrapper}>
                     <div className={style.eachTab}>
-                        <strong>{todaySeekerIds}</strong>
+                        <strong>{animatedToday.toLocaleString()}</strong>
                         <span>Today</span>
                     </div>
                 </div>
@@ -282,7 +321,7 @@ const MainPage = () => {
                 <Link href={"/apps"} className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>Apps</strong>
-                        <span>{dAppCount !== null ? `${dAppCount} Apps` : 'Our Favourites'}</span>
+                        <span>{dAppCount !== null ? `${animatedDApps} Apps` : 'Our Favourites'}</span>
                     </div>
                 </Link>
             </div>
