@@ -47,6 +47,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="x-ogp-key" content="7828d28e-fd95-467f-9d72-d888e2b67bf3" id="ogp-key-meta" />
         <Script
           src="https://plugin.jup.ag/plugin-v1.js"
           strategy="beforeInteractive"
