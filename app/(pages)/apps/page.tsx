@@ -329,6 +329,17 @@ const AppsContent = () => {
         if (!release) return null
 
         const totalReviews = getTotalReviews(app.rating?.reviewsByRating)
+        const [copied, setCopied] = useState(false)
+        const appShareUrl = `https://seekertracker.com/apps/${encodeURIComponent(app.androidPackage)}`
+
+        const handleCopy = async (e: React.MouseEvent) => {
+            e.stopPropagation()
+            try {
+                await navigator.clipboard.writeText(appShareUrl)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+            } catch {}
+        }
 
         return (
             <div className={styles.modalOverlay} onClick={onClose}>
@@ -421,7 +432,7 @@ const AppsContent = () => {
                         <h3 className={styles.modalSectionTitle}>Share</h3>
                         <div className={styles.shareButtons}>
                             <a
-                                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${release.displayName} on Solana Seeker dApp Store!`)}&url=${encodeURIComponent(`https://seekertracker.com/apps/${encodeURIComponent(app.androidPackage)}`)}&via=SeekerTracker`}
+                                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${release.displayName} on Solana Seeker dApp Store!`)}&url=${encodeURIComponent(appShareUrl)}&via=SeekerTracker`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={styles.shareBtn}
@@ -433,7 +444,7 @@ const AppsContent = () => {
                                 Share on X
                             </a>
                             <a
-                                href={`https://t.me/share/url?url=${encodeURIComponent(`https://seekertracker.com/apps/${encodeURIComponent(app.androidPackage)}`)}&text=${encodeURIComponent(`Check out ${release.displayName} on Solana Seeker dApp Store!`)}`}
+                                href={`https://t.me/share/url?url=${encodeURIComponent(appShareUrl)}&text=${encodeURIComponent(`Check out ${release.displayName} on Solana Seeker dApp Store!`)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={styles.shareBtn}
@@ -444,6 +455,22 @@ const AppsContent = () => {
                                 </svg>
                                 Share on Telegram
                             </a>
+                            <button
+                                className={`${styles.shareBtn} ${copied ? styles.shareBtnCopied : ''}`}
+                                onClick={handleCopy}
+                            >
+                                {copied ? (
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                ) : (
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                                    </svg>
+                                )}
+                                {copied ? 'Copied!' : 'Copy Link'}
+                            </button>
                         </div>
                     </div>
                 </div>

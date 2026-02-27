@@ -672,6 +672,16 @@
     flex-shrink: 0;
 }
 
+.shareBtnCopied {
+    background: rgba(0, 255, 102, 0.2) !important;
+    color: #00ff66 !important;
+}
+
+.shareBtn:not(a) {
+    border: none;
+    cursor: pointer;
+}
+
 @media (max-width: 768px) {
     .main {
         padding: 0 1em;
