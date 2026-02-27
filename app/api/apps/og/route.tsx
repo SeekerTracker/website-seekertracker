@@ -4,27 +4,19 @@ import { NextRequest } from 'next/server'
 export const runtime = 'edge'
 
 const DAPPSTORE_API = "https://dappstore.solanamobile.com/graphql"
-const DAPPSTORE_CATALOG_API = "https://dappstore-catalog.solanamobile.com"
+const SC = `{locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}`
 
-const SYSTEM_CONTEXT = {
-    locale: "en-US",
-    platformSdk: 34,
-    pixelDensity: 480,
-    model: "SEEKER"
-}
-
-const EXPLORE_QUERY = `
-query Explore($systemContext: SystemContext!) {
+const EXPLORE_QUERY = `query {
     explore {
-        units(systemContext: $systemContext) {
+        units(systemContext: ${SC}) {
             edges {
                 node {
                     __typename
                     ... on DAppsByCategoryUnit {
-                        dApps(systemContext: $systemContext, first: 20) {
+                        dApps(systemContext: ${SC}, first: 20) {
                             edges {
                                 node {
-                                    lastRelease(systemContext: $systemContext) {
+                                    lastRelease(systemContext: ${SC}) {
                                         icon { uri }
                                     }
                                 }
@@ -35,18 +27,14 @@ query Explore($systemContext: SystemContext!) {
             }
         }
     }
-}
-`
+}`
 
 async function fetchAppsData(): Promise<{ count: number; icons: string[] }> {
     try {
         const response = await fetch(DAPPSTORE_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                query: EXPLORE_QUERY,
-                variables: { systemContext: SYSTEM_CONTEXT }
-            })
+            body: JSON.stringify({ query: EXPLORE_QUERY }),
         })
         const data = await response.json()
         const units = data?.data?.explore?.units?.edges || []
@@ -72,38 +60,28 @@ async function fetchAppsData(): Promise<{ count: number; icons: string[] }> {
 }
 
 async function fetchAppData(androidPackage: string) {
-    const query = `
-        query DAppByPackage($systemContext: SystemContext!, $androidPackage: String!) {
-            dAppByAndroidPackage(systemContext: $systemContext, androidPackage: $androidPackage) {
-                androidPackage
-                rating {
-                    rating
-                    reviewsByRating
-                }
-                lastRelease(systemContext: $systemContext) {
-                    displayName
-                    subtitle
-                    updatedOn
-                    icon {
-                        uri
-                    }
-                }
+    // Note: variables don't work with this API — use inline SC
+    const pkg = androidPackage.replace(/"/g, '\\"')
+    const query = `query {
+        dAppByAndroidPackage(
+            systemContext: ${SC},
+            androidPackage: "${pkg}"
+        ) {
+            androidPackage
+            rating { rating reviewsByRating }
+            lastRelease(systemContext: ${SC}) {
+                displayName
+                subtitle
+                updatedOn
+                icon { uri }
             }
         }
-    `
+    }`
 
     const response = await fetch(DAPPSTORE_API, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            query,
-            variables: {
-                systemContext: SYSTEM_CONTEXT,
-                androidPackage
-            }
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
     })
 
     const data = await response.json()
