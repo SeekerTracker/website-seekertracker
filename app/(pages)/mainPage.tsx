@@ -16,6 +16,7 @@ const MainPage = () => {
     const { seekerData, backendWS } = useDataContext()
 
     const [totalSeekerIds, setTotalSeekerIds] = useState(0)
+    const [dAppCount, setDAppCount] = useState<number | null>(null)
     const currSkrIdCount = useRef(0);
     const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([])
     const [todaySeekerIds, setTodaySeekerIds] = useState(0)
@@ -174,6 +175,25 @@ const MainPage = () => {
     }, [filterRank]);
 
 
+    useEffect(() => {
+        fetch('/api/dappstore')
+            .then(r => r.json())
+            .then(data => {
+                if (data.totalApps) {
+                    setDAppCount(data.totalApps);
+                } else {
+                    // Fallback: count unique packages from explore data
+                    const units = data.data?.explore?.units?.edges || [];
+                    const seen = new Set<string>();
+                    units.forEach((u: any) => {
+                        u.node?.dApps?.edges?.forEach((e: any) => seen.add(e.node.androidPackage));
+                    });
+                    if (seen.size > 0) setDAppCount(seen.size);
+                }
+            })
+            .catch(() => {});
+    }, []);
+
     const handleRankSearch = (rankNumber?: number) => {
 
         if (!backendWS) return;
@@ -262,7 +282,7 @@ const MainPage = () => {
                 <Link href={"/apps"} className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>Apps</strong>
-                        <span>Our Favourites</span>
+                        <span>{dAppCount !== null ? `${dAppCount} Apps` : 'Our Favourites'}</span>
                     </div>
                 </Link>
             </div>
