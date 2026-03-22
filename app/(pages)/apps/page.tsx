@@ -65,12 +65,12 @@ const AppsContent = () => {
     const [categories, setCategories] = useState<CategoryWithApps[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'))
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedApp, setSelectedApp] = useState<DApp | null>(null)
     const [favorites, setFavorites] = useState<Set<string>>(new Set())
-    const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+    const [showFavoritesOnly, setShowFavoritesOnly] = useState(searchParams.get('view') === 'favorites')
     const [sortBy, setSortBy] = useState<SortOption>('updated-desc')
 
     const fetchCatalog = useCallback(async () => {
@@ -108,6 +108,16 @@ const AppsContent = () => {
             setFavorites(new Set(JSON.parse(saved)))
         }
     }, [])
+
+    const selectCategory = useCallback((category: string | null) => {
+        setSelectedCategory(category)
+        setShowFavoritesOnly(false)
+        if (category) {
+            router.push(`/apps?category=${encodeURIComponent(category)}`, { scroll: false })
+        } else {
+            router.push('/apps', { scroll: false })
+        }
+    }, [router])
 
     // Handle app selection with URL update
     const selectApp = useCallback((app: DApp | null) => {
@@ -555,13 +565,13 @@ const AppsContent = () => {
             <div className={styles.categoryFilter}>
                 <button
                     className={`${styles.categoryBtn} ${!selectedCategory && !showFavoritesOnly ? styles.active : ''}`}
-                    onClick={() => { setSelectedCategory(null); setShowFavoritesOnly(false); }}
+                    onClick={() => selectCategory(null)}
                 >
                     All
                 </button>
                 <button
                     className={`${styles.categoryBtn} ${styles.favoritesBtn} ${showFavoritesOnly ? styles.active : ''}`}
-                    onClick={() => { setShowFavoritesOnly(!showFavoritesOnly); setSelectedCategory(null); }}
+                    onClick={() => { setShowFavoritesOnly(!showFavoritesOnly); setSelectedCategory(null); router.push(!showFavoritesOnly ? '/apps?view=favorites' : '/apps', { scroll: false }); }}
                 >
                     {'\u2605'} Favorites ({favorites.size})
                 </button>
@@ -569,9 +579,9 @@ const AppsContent = () => {
                     <button
                         key={cat.category.id}
                         className={`${styles.categoryBtn} ${selectedCategory === cat.category.name ? styles.active : ''}`}
-                        onClick={() => setSelectedCategory(cat.category.name)}
+                        onClick={() => selectCategory(cat.category.name)}
                     >
-                        {cat.category.name}
+                        {cat.category.name} ({cat.dApps.edges.length})
                     </button>
                 ))}
             </div>
