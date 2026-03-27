@@ -6,8 +6,8 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 export default async function Image() {
-    // Try to fetch live app count from the dappstore API
-    let appCount = 200
+    // Fetch live app count from the dappstore API
+    let appCount: number | null = null
     try {
         const SC = `{locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}`
         const query = `query { explore { units(systemContext: ${SC}) { edges { node { __typename ... on DAppsByCategoryUnit { dApps(systemContext: ${SC}, first: 50) { edges { node { androidPackage } } } } } } } } }`
@@ -30,7 +30,7 @@ export default async function Image() {
         }
         if (seen.size > 0) appCount = seen.size
     } catch {
-        // use default
+        // will show label without count
     }
 
     return new ImageResponse(
@@ -59,25 +59,27 @@ export default async function Image() {
                     }}
                 />
 
-                {/* App count */}
-                <div
-                    style={{
-                        display: 'flex',
-                        fontSize: 130,
-                        fontWeight: 'bold',
-                        background: 'linear-gradient(135deg, #00ffd9 0%, #00ff66 50%, #00aaff 100%)',
-                        backgroundClip: 'text',
-                        color: 'transparent',
-                        lineHeight: 1,
-                    }}
-                >
-                    {appCount}+
-                </div>
+                {/* App count — only shown when live data is available */}
+                {appCount !== null && (
+                    <div
+                        style={{
+                            display: 'flex',
+                            fontSize: 130,
+                            fontWeight: 'bold',
+                            background: 'linear-gradient(135deg, #00ffd9 0%, #00ff66 50%, #00aaff 100%)',
+                            backgroundClip: 'text',
+                            color: 'transparent',
+                            lineHeight: 1,
+                        }}
+                    >
+                        {appCount}+
+                    </div>
+                )}
 
                 <div
                     style={{
                         display: 'flex',
-                        fontSize: 26,
+                        fontSize: appCount !== null ? 26 : 80,
                         color: '#00ffd9',
                         marginTop: '8px',
                         fontWeight: 'bold',

@@ -29,7 +29,7 @@ const EXPLORE_QUERY = `query {
     }
 }`
 
-async function fetchAppsData(): Promise<{ count: number; icons: string[] }> {
+async function fetchAppsData(): Promise<{ count: number | null; icons: string[] }> {
     try {
         const response = await fetch(DAPPSTORE_API, {
             method: 'POST',
@@ -53,9 +53,9 @@ async function fetchAppsData(): Promise<{ count: number; icons: string[] }> {
                 }
             }
         }
-        return { count: total || 178, icons }
+        return { count: total || null, icons }
     } catch {
-        return { count: 178, icons: [] }
+        return { count: null, icons: [] }
     }
 }
 
@@ -190,25 +190,27 @@ export async function GET(request: NextRequest) {
                             padding: '40px',
                         }}
                     >
-                        {/* Big number */}
-                        <div
-                            style={{
-                                display: 'flex',
-                                fontSize: 140,
-                                fontWeight: 'bold',
-                                background: 'linear-gradient(135deg, #00ffd9 0%, #00ff66 50%, #00aaff 100%)',
-                                backgroundClip: 'text',
-                                color: 'transparent',
-                                lineHeight: 1,
-                            }}
-                        >
-                            {appCount}+
-                        </div>
+                        {/* Big number — only shown when live data is available */}
+                        {appCount !== null && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    fontSize: 140,
+                                    fontWeight: 'bold',
+                                    background: 'linear-gradient(135deg, #00ffd9 0%, #00ff66 50%, #00aaff 100%)',
+                                    backgroundClip: 'text',
+                                    color: 'transparent',
+                                    lineHeight: 1,
+                                }}
+                            >
+                                {appCount}+
+                            </div>
+                        )}
 
                         <div
                             style={{
                                 display: 'flex',
-                                fontSize: 28,
+                                fontSize: appCount !== null ? 28 : 72,
                                 color: '#00ffd9',
                                 marginTop: '8px',
                                 fontWeight: 'bold',
