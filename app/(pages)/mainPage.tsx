@@ -297,7 +297,7 @@ const MainPage = () => {
                 <Link href={'/usage'} className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>{das !== null ? animatedDas.toLocaleString() : '—'}</strong>
-                        <span>📱 Daily Active</span>
+                        <span>DAS</span>
                     </div>
                 </Link>
 <Link href={'/seeker-fund'} className={style.tabWrapper}>
