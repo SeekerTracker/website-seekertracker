@@ -236,7 +236,7 @@ export async function GET(req: NextRequest) {
     );
 
     if (dasRow.rows.length > 0) {
-        const { das, was, mas, total } = dasRow.rows[0] as {
+        const { das, was, mas, total } = dasRow.rows[0] as unknown as {
             das: number; was: number; mas: number; total: number;
         };
         const today = new Date(startTime).toISOString().slice(0, 10);

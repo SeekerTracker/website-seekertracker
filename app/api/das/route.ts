@@ -32,7 +32,7 @@ export async function GET() {
             client.execute(`SELECT value FROM seeker_usage_meta WHERE key = 'last_run'`),
         ]);
 
-        const row = current.rows[0] as { das: number; was: number; mas: number; total_indexed: number } | undefined;
+        const row = current.rows[0] as unknown as { das: number; was: number; mas: number; total_indexed: number } | undefined;
         const updatedAt = meta.rows[0] ? parseInt(meta.rows[0].value as string) : null;
 
         return NextResponse.json(
