@@ -61,7 +61,7 @@ const Footer = () => {
                     <div className={styles.sponsor}>
                         <span>API provided by</span>
                         <Link href="https://milysec.com" target="_blank">
-                            <Image src="/icons/supalabs.png" alt="" width={48} height={48} />
+                            <Image src="/icons/milysec.png" alt="Milysec" width={48} height={48} />
                         </Link>
                     </div>
 

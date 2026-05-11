@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./navbar.module.css";
 import { useDataContext } from "app/(utils)/context/dataProvider";
 import { useJupiter } from "app/(utils)/context/jupiterProvider";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { SEEKER_TOKEN_ADDRESS } from "app/(utils)/constant";
 
 export const socialMediaLinks = [
@@ -61,6 +62,9 @@ const Navbar = () => {
     const { openJupiter, isJupiterReady } = useJupiter();
     const [copiedName, setCopiedName] = useState<string | null>(null);
     const [skrPrice, setSkrPrice] = useState<number | null>(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const pathname = usePathname();
 
     // Fetch SKR price
     useEffect(() => {
@@ -81,6 +85,20 @@ const Navbar = () => {
         return () => clearInterval(interval);
     }, []);
 
+    // Close menu on route change
+    useEffect(() => { setMenuOpen(false); }, [pathname]);
+
+    // Close menu on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setMenuOpen(false);
+            }
+        };
+        if (menuOpen) document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [menuOpen]);
+
     const handleCopy = async (name: string, value: string) => {
         try {
             await navigator.clipboard.writeText(value);
@@ -92,7 +110,54 @@ const Navbar = () => {
     };
 
     return (
-        <div className={styles.main}>
+        <div className={styles.main} ref={menuRef}>
+            {/* Mobile top bar */}
+            <div className={styles.mobileBar}>
+                <Link href="/" className={styles.mobileBrand}>
+                    <Image src="/logo.png" alt="SeekerTracker" width={28} height={28} />
+                    <span>SeekerTracker</span>
+                </Link>
+                <div className={styles.mobileRight}>
+                    <div className={`${styles.liveButton} ${backendWS ? styles.live : styles.offline}`}>
+                        <div className={styles.dot} />
+                        <span>{backendWS ? "Live" : "Offline"}</span>
+                    </div>
+                    <button
+                        className={`${styles.hamburger} ${menuOpen ? styles.hamburgerOpen : ""}`}
+                        onClick={() => setMenuOpen(o => !o)}
+                        aria-label="Toggle menu"
+                    >
+                        <span /><span /><span />
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile drawer */}
+            <div className={`${styles.mobileMenu} ${menuOpen ? styles.mobileMenuOpen : ""}`}>
+                <div className={styles.mobileMenuPrices}>
+                    <Link href="https://jup.ag/tokens/So11111111111111111111111111111111111111112?ref=yfgv2ibxy07v" target="_blank" rel="noopener noreferrer" className={styles.priceLink}>
+                        SOL <strong>${solPrice.toFixed(2)}</strong>
+                    </Link>
+                    {skrPrice !== null && (
+                        <Link href="https://jup.ag/tokens/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3?ref=yfgv2ibxy07v" target="_blank" rel="noopener noreferrer" className={styles.priceLink}>
+                            SKR <strong>${skrPrice.toFixed(6)}</strong>
+                        </Link>
+                    )}
+                </div>
+                <div className={styles.mobileNavLinks}>
+                    <Link href="/skr" className={styles.skrButton} onClick={() => setMenuOpen(false)}>SKR</Link>
+                    <Link href="/usage" className={styles.usageButton} onClick={() => setMenuOpen(false)}>DAS</Link>
+                    <Link href="/activations" className={styles.activationsButton} onClick={() => setMenuOpen(false)}>Activations</Link>
+                    <Link href="/sweep" className={styles.sweepButton} onClick={() => setMenuOpen(false)}>Sweep</Link>
+                    <Link href="/apps" className={styles.appsButton} onClick={() => setMenuOpen(false)}>Apps</Link>
+                    <Link href="/winners" className={styles.winnersButton} onClick={() => setMenuOpen(false)}>Winners</Link>
+                    <Link href="/competitors" className={styles.competitorsButton} onClick={() => setMenuOpen(false)}>Competitors</Link>
+                    <Link href="/snake" className={styles.snakeButton} onClick={() => setMenuOpen(false)}>Snake</Link>
+                    <a href="https://stake.seekertracker.com" target="_blank" rel="noopener noreferrer" className={styles.stakeButton} onClick={() => setMenuOpen(false)}>Stake</a>
+                    <button className={styles.buyButton} onClick={() => { openJupiter(); setMenuOpen(false); }} disabled={!isJupiterReady}>Buy $TRACKER</button>
+                </div>
+            </div>
+
             <div className={styles.priceInfo}>
                 <Link
                     href="https://jup.ag/tokens/So11111111111111111111111111111111111111112?ref=yfgv2ibxy07v"
@@ -129,46 +194,16 @@ const Navbar = () => {
             </div>
 
             <div className={styles.navButtons}>
-                <Link href="/skr" className={styles.skrButton}>
-                    SKR
-                </Link>
-                <Link href="/sweep" className={styles.sweepButton}>
-                    Sweep
-                </Link>
-                <Link href="/competitors" className={styles.competitorsButton}>
-                    Competitors
-                </Link>
-<Link href="/snake" className={styles.snakeButton}>
-                    Snake
-                </Link>
-                <Link href="/apps" className={styles.appsButton}>
-                    Apps
-                </Link>
-                <Link href="/winners" className={styles.winnersButton}>
-                    Winners
-                </Link>
-                <Link href="/activations" className={styles.activationsButton}>
-                    Activations
-                </Link>
-                <Link href="/usage" className={styles.usageButton}>
-                    Usage
-                </Link>
-                <a
-                    href="https://stake.seekertracker.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.stakeButton}
-                >
-                    Stake
-                </a>
-                <button
-                    className={styles.buyButton}
-                    onClick={openJupiter}
-                    disabled={!isJupiterReady}
-                    title="Buy $TRACKER"
-                >
-                    Buy $TRACKER
-                </button>
+                <Link href="/skr" className={styles.skrButton}>SKR</Link>
+                <Link href="/usage" className={styles.usageButton}>DAS</Link>
+                <Link href="/activations" className={styles.activationsButton}>Activations</Link>
+                <Link href="/sweep" className={styles.sweepButton}>Sweep</Link>
+                <Link href="/apps" className={styles.appsButton}>Apps</Link>
+                <Link href="/winners" className={styles.winnersButton}>Winners</Link>
+                <Link href="/competitors" className={styles.competitorsButton}>Competitors</Link>
+                <Link href="/snake" className={styles.snakeButton}>Snake</Link>
+                <a href="https://stake.seekertracker.com" target="_blank" rel="noopener noreferrer" className={styles.stakeButton}>Stake</a>
+                <button className={styles.buyButton} onClick={openJupiter} disabled={!isJupiterReady} title="Buy $TRACKER">Buy $TRACKER</button>
             </div>
 
             <div className={styles.socialMediaTab}>

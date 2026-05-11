@@ -6,12 +6,6 @@ import { DomainInfo } from "app/(utils)/constantTypes";
 
 type Period = "day" | "week" | "month";
 
-const PERIOD_SECONDS: Record<Period, number> = {
-    day: 86_400,
-    week: 7 * 86_400,
-    month: 30 * 86_400,
-};
-
 // --------------- Turso path ---------------
 
 async function fromTurso(period: Period) {
@@ -40,6 +34,9 @@ async function fromTurso(period: Period) {
         subdomain: r.subdomain as string,
         domain: r.domain as string,
         owner: r.owner as string,
+        txDay: r.tx_day as number,
+        txWeek: r.tx_week as number,
+        txMonth: r.tx_month as number,
         txCount: (period === "day" ? r.tx_day : period === "week" ? r.tx_week : r.tx_month) as number,
         lastUsed: r.last_used as number | null,
     }));
@@ -57,7 +54,8 @@ async function fromTurso(period: Period) {
 
 // --------------- Live fallback path ---------------
 
-async function getOwnerTxData(owner: string, since: number) {
+async function getOwnerTxData(owner: string) {
+    const now = Math.floor(Date.now() / 1000);
     const res = await fetch(CONN_RPC_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -71,8 +69,12 @@ async function getOwnerTxData(owner: string, since: number) {
     const json = await res.json();
     const sigs: { blockTime: number | null }[] = json.result ?? [];
     const lastUsed = sigs[0]?.blockTime ?? null;
-    const txCount = sigs.filter((s) => s.blockTime != null && s.blockTime >= since).length;
-    return { txCount, lastUsed };
+    return {
+        txDay: sigs.filter((s) => s.blockTime != null && s.blockTime >= now - 86_400).length,
+        txWeek: sigs.filter((s) => s.blockTime != null && s.blockTime >= now - 7 * 86_400).length,
+        txMonth: sigs.filter((s) => s.blockTime != null && s.blockTime >= now - 30 * 86_400).length,
+        lastUsed,
+    };
 }
 
 async function runConcurrent<T>(tasks: (() => Promise<T>)[], concurrency: number): Promise<T[]> {
@@ -85,8 +87,6 @@ async function runConcurrent<T>(tasks: (() => Promise<T>)[], concurrency: number
 }
 
 async function fromLive(period: Period) {
-    const since = Math.floor(Date.now() / 1000) - PERIOD_SECONDS[period];
-
     const domains = await new Promise<DomainInfo[]>((resolve, reject) => {
         const socket = io(WS_URL, { transports: ["websocket"], timeout: 8000 });
         const timer = setTimeout(() => { socket.disconnect(); reject(new Error("WS timeout")); }, 10_000);
@@ -106,27 +106,34 @@ async function fromLive(period: Period) {
     }
 
     const owners = Array.from(ownerSet.keys());
-    const txDataMap = new Map<string, { txCount: number; lastUsed: number | null }>();
+    const txDataMap = new Map<string, { txDay: number; txWeek: number; txMonth: number; lastUsed: number | null }>();
 
     await runConcurrent(
         owners.map((owner) => async () => {
             try {
-                txDataMap.set(owner, await getOwnerTxData(owner, since));
+                txDataMap.set(owner, await getOwnerTxData(owner));
             } catch {
-                txDataMap.set(owner, { txCount: 0, lastUsed: null });
+                txDataMap.set(owner, { txDay: 0, txWeek: 0, txMonth: 0, lastUsed: null });
             }
         }),
         10
     );
 
+    const periodCol = period === "day" ? "txDay" : period === "week" ? "txWeek" : "txMonth";
     const enriched = domains
-        .map((d) => ({
-            subdomain: d.subdomain,
-            domain: d.domain,
-            owner: d.owner,
-            txCount: txDataMap.get(d.owner)?.txCount ?? 0,
-            lastUsed: txDataMap.get(d.owner)?.lastUsed ?? null,
-        }))
+        .map((d) => {
+            const tx = txDataMap.get(d.owner) ?? { txDay: 0, txWeek: 0, txMonth: 0, lastUsed: null };
+            return {
+                subdomain: d.subdomain,
+                domain: d.domain,
+                owner: d.owner,
+                txDay: tx.txDay,
+                txWeek: tx.txWeek,
+                txMonth: tx.txMonth,
+                txCount: tx[periodCol],
+                lastUsed: tx.lastUsed,
+            };
+        })
         .sort((a, b) => b.txCount !== a.txCount ? b.txCount - a.txCount : (b.lastUsed ?? 0) - (a.lastUsed ?? 0));
 
     return {

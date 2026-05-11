@@ -278,7 +278,10 @@ const MainPage = () => {
             <PixelSnake />
             <div className={style.title}>
                 <Image src="/logo.png" alt="" width={100} height={100} />
-                <span>Seeker tracker</span>
+                <div className={style.titleText}>
+                    <span>Seeker tracker</span>
+                    <p className={style.slogan}>The unofficial Solana Mobile ecosystem explorer</p>
+                </div>
             </div>
 
             <div className={style.pageTabs}>

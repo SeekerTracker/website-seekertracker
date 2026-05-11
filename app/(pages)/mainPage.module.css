@@ -17,6 +17,14 @@
   text-wrap: nowrap;
 }
 
+.titleText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2em;
+  text-align: left;
+}
+
 .title img {
   width: 6.5em;
   height: 6.5em;
@@ -31,6 +39,19 @@
   background-clip: text;
   text-shadow: 0 0 30px rgba(0, 255, 217, 0.5);
   line-height: 1.1;
+}
+
+.slogan {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #445555;
+  letter-spacing: 0.04em;
+  margin: 0;
+  text-transform: none;
+  -webkit-text-fill-color: #445555;
+  background: none;
+  text-shadow: none;
+  white-space: nowrap;
 }
 
 /* page top tabs */

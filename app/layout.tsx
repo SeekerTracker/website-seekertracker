@@ -18,13 +18,18 @@ const jetBrains = JetBrains_Mono({
 
 
 
+const SLOGAN = "The unofficial Solana Mobile ecosystem explorer";
+const DESCRIPTION = `${SLOGAN}. Search and track .skr SeekerIDs, on-chain activity, apps, and analytics.`;
+const TITLE = "Seeker Tracker — The unofficial Solana Mobile ecosystem explorer";
+
 export const metadata: Metadata = {
-  title: "Seeker Tracker - .skr SeekerID Search",
-  description: "Search and track .skr SeekerIDs on Solana. View profiles, analytics, SKR allocations, and portfolio holdings.",
+  title: TITLE,
+  description: DESCRIPTION,
   metadataBase: new URL("https://seekertracker.com"),
+  keywords: ["Solana Mobile", "Seeker", "SeekerID", ".skr", "Solana", "web3", "crypto", "on-chain analytics"],
   openGraph: {
-    title: "Seeker Tracker - .skr SeekerID Search",
-    description: "Search and track .skr SeekerIDs on Solana. View profiles, analytics, SKR allocations, and portfolio holdings.",
+    title: TITLE,
+    description: DESCRIPTION,
     url: "https://seekertracker.com",
     siteName: "Seeker Tracker",
     type: "website",
@@ -32,9 +37,13 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Seeker Tracker - .skr SeekerID Search",
-    description: "Search and track .skr SeekerIDs on Solana. View profiles, analytics, SKR allocations, and portfolio holdings.",
+    title: TITLE,
+    description: DESCRIPTION,
     site: "@Seeker_Tracker",
+    creator: "@seeker_tracker",
+  },
+  alternates: {
+    canonical: "https://seekertracker.com",
   },
 };
 

@@ -461,69 +461,129 @@
   pointer-events: auto;
 }
 
+/* ── Mobile bar & hamburger (hidden on desktop) ── */
+.mobileBar {
+  display: none;
+}
+
+.mobileBrand {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  text-decoration: none;
+  color: #00ffd9;
+  font-weight: 700;
+  font-size: 0.95em;
+}
+
+.mobileBrand img {
+  border-radius: 50%;
+}
+
+.mobileRight {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+}
+
+.hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: rgba(0,255,217,0.08);
+  border: 1px solid rgba(0,255,217,0.3);
+  border-radius: 0.4em;
+  cursor: pointer;
+  padding: 7px 8px;
+  flex-shrink: 0;
+}
+
+.hamburger span {
+  display: block;
+  height: 2px;
+  background: #00ffd9;
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  transform-origin: center;
+}
+
+.hamburgerOpen span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburgerOpen span:nth-child(2) { opacity: 0; }
+.hamburgerOpen span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Mobile drawer (hidden by default) ── */
+.mobileMenu {
+  display: none;
+  flex-direction: column;
+  gap: 0.75em;
+  width: 100%;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 0 1em;
+}
+
+.mobileMenuOpen {
+  max-height: 600px;
+  padding: 0.75em 1em 1em;
+}
+
+.mobileMenuPrices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid rgba(0,255,217,0.1);
+  font-size: 0.8em;
+  color: #c0c0c0;
+}
+
+.mobileNavLinks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5em;
+}
+
+.mobileNavLinks a,
+.mobileNavLinks button {
+  width: 100%;
+  justify-content: center;
+  font-size: 0.85em !important;
+  padding: 0.6em 0.5em !important;
+}
+
 @media screen and (max-width: 760px) {
   .main {
-    padding: 0.75em 1em;
-    gap: 0.5em;
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
   }
 
-  .priceInfo {
-    font-size: 0.65em;
-    padding: 0.4em 0.8em;
-    gap: 0.5em;
-    flex-shrink: 1;
-    min-width: 0;
+  /* Hide desktop elements */
+  .priceInfo,
+  .navButtons,
+  .socialMediaTab {
+    display: none !important;
   }
 
-  .navButtons {
-    gap: 0.35em;
+  /* Show mobile elements */
+  .mobileBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6em 1em;
+    border-bottom: 1px solid rgba(0,255,217,0.08);
   }
 
-  .skrButton {
-    font-size: 0.7em;
-    padding: 0.5em 0.75em;
-    flex-shrink: 0;
+  .mobileMenu {
+    display: flex;
+    background: rgba(0,10,10,0.98);
+    border-bottom: 1px solid rgba(0,255,217,0.1);
   }
-
-  .sweepButton {
-    font-size: 0.7em;
-    padding: 0.5em 0.75em;
-    flex-shrink: 0;
-  }
-
-  .competitorsButton {
-    font-size: 0.65em;
-    padding: 0.4em 0.6em;
-    flex-shrink: 0;
-  }
-
-.snakeButton {
-    font-size: 0.7em;
-    padding: 0.5em 0.75em;
-    flex-shrink: 0;
-  }
-
-  .appsButton {
-    font-size: 0.7em;
-    padding: 0.5em 0.75em;
-    flex-shrink: 0;
-  }
-
-  .stakeButton {
-    font-size: 0.7em;
-    padding: 0.5em 0.75em;
-    flex-shrink: 0;
-  }
-
-  .buyButton {
-    font-size: 0.7em;
-    padding: 0.5em 0.75em;
-    flex-shrink: 0;
-  }
-
-  /* .socialMediaTab {
-    display: none;
-  } */
 }
 
 /* --- Animations --- */
