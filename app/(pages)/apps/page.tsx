@@ -442,7 +442,7 @@ const AppsContent = () => {
                         <h3 className={styles.modalSectionTitle}>Share</h3>
                         <div className={styles.shareButtons}>
                             <a
-                                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${release.displayName} on Solana Seeker dApp Store!`)}&url=${encodeURIComponent(appShareUrl)}&via=SeekerTracker`}
+                                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${release.displayName} on Solana Seeker dApp Store!`)}&url=${encodeURIComponent(appShareUrl)}&via=seeker_tracker`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={styles.shareBtn}

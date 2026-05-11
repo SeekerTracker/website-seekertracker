@@ -114,7 +114,7 @@ export default function GetDappPage() {
                             <Link href="/export" className={styles.link}>
                                 📥 Export Data
                             </Link>
-                            <Link href="https://twitter.com/Seeker_Tracker" target="_blank" rel="noopener noreferrer" className={styles.link}>
+                            <Link href="https://x.com/seeker_tracker" target="_blank" rel="noopener noreferrer" className={styles.link}>
                                 🐦 Twitter
                             </Link>
                             <Link href="https://bags.fm" target="_blank" rel="noopener noreferrer" className={styles.link}>

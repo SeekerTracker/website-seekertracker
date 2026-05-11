@@ -25,7 +25,7 @@ export const metadata: Metadata = {
         title: 'Seeker dApp Store – Apps for Solana Seeker',
         description: 'Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more categories. Find the best dApps for your Seeker device.',
         images: [`${BASE_URL}/apps/opengraph-image`],
-        creator: '@SeekerTracker',
+        creator: '@seeker_tracker',
     },
 }
 

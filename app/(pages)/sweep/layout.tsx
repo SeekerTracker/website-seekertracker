@@ -22,7 +22,7 @@ export const metadata: Metadata = {
         title: 'Sweep | SeekerTracker',
         description: '10% of fees rewarded to $TRACKER holders hourly. Hold 1M-20M $TRACKER to participate.',
         images: ['/api/og?page=sweep'],
-        creator: '@SeekerTracker',
+        creator: '@seeker_tracker',
     },
 }
 

@@ -95,7 +95,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             title: release?.displayName || decodedPackage,
             description,
             images: [ogImageUrl],
-            creator: '@SeekerTracker',
+            creator: '@seeker_tracker',
         },
     }
 }

@@ -120,7 +120,7 @@ export default function PrivacyPage() {
                         <h2>Contact Us</h2>
                         <p>
                             If you have any questions about this Privacy Policy, please contact us through
-                            our official channels on Twitter <Link href="https://twitter.com/Seeker_Tracker" target="_blank" rel="noopener noreferrer">@Seeker_Tracker</Link>.
+                            our official channels on X <Link href="https://x.com/seeker_tracker" target="_blank" rel="noopener noreferrer">@seeker_tracker</Link>.
                         </p>
                     </section>
                 </div>

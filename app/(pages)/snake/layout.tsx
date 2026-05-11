@@ -22,7 +22,7 @@ export const metadata: Metadata = {
         title: 'Snake Game | SeekerTracker',
         description: 'Play Snake on Solana Seeker. Compete on the leaderboard and win prizes!',
         images: ['/snake/banner.png'],
-        creator: '@SeekerTracker',
+        creator: '@seeker_tracker',
     },
 }
 

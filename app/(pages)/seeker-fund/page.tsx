@@ -100,7 +100,7 @@ const Index = () => {
                         <div className={styles.eachInfo}>
                             <div className={styles.creatorTwitter}>
                                 <img src={`https://pbs.twimg.com/profile_images/1967433760754073600/Pi-_RDre.jpg`} alt="Fee Share User Twitter" width={36} height={36} />
-                                <Link href={`https://twitter.com/Seeker_Tracker`} target="_blank" rel="noopener noreferrer">@Seeker_Tracker</Link>
+                                <Link href={`https://x.com/seeker_tracker`} target="_blank" rel="noopener noreferrer">@seeker_tracker</Link>
                             </div>
                             <span>100.00%</span>
                         </div>
