@@ -20,6 +20,7 @@ type ApiResponse = {
     period: Period;
     activeCount: number;
     total: number;
+    updatedAt: number | null;
     data: UsageRow[];
 };
 
@@ -247,7 +248,10 @@ export default function UsagePage() {
                     )}
 
                     <p className={styles.footnote}>
-                        Showing top {result.total} recently registered .skr IDs • tx counts capped at 1,000 per address • data cached 2 min
+                        {result.updatedAt
+                            ? `Snapshot from daily cron • last indexed ${timeAgo(result.updatedAt)} • `
+                            : "Live query (cron not yet run) • "}
+                        {result.total.toLocaleString()} .skr IDs • tx counts capped at 1,000 per address
                     </p>
                 </>
             )}

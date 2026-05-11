@@ -32,7 +32,7 @@ const Footer = () => {
                 <div className={styles.downloadContent}>
                     <h2>Download Mobile App</h2>
                     <p>Get the Seeker Tracker Android application</p>
-                    <Link href="/seekertracker.apk" download className={styles.downloadBadge}>
+                    <Link href="/apps?app=com.seekertracker" className={styles.downloadBadge}>
                         <Image
                             src="/sds-badge.svg"
                             alt="Get it on Solana dApp Store"
@@ -60,7 +60,7 @@ const Footer = () => {
 
                     <div className={styles.sponsor}>
                         <span>API provided by</span>
-                        <Link href="https://supalab.xyz" target="_blank">
+                        <Link href="https://milysec.com" target="_blank">
                             <Image src="/icons/supalabs.png" alt="" width={48} height={48} />
                         </Link>
                     </div>
