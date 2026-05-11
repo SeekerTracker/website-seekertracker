@@ -37,6 +37,16 @@ async function ensureSchema(client: ReturnType<typeof getTurso>) {
             )`,
             args: [],
         },
+        {
+            sql: `CREATE TABLE IF NOT EXISTS seeker_das_history (
+                date TEXT PRIMARY KEY,
+                das INTEGER NOT NULL,
+                was INTEGER NOT NULL,
+                mas INTEGER NOT NULL,
+                total_indexed INTEGER NOT NULL
+            )`,
+            args: [],
+        },
     ], "write");
 }
 
@@ -214,6 +224,28 @@ export async function GET(req: NextRequest) {
             args: [timedOut ? "1" : "0"],
         },
     ], "write");
+
+    // Compute DAS/WAS/MAS and write daily snapshot
+    const dasRow = await client.execute(
+        `SELECT
+            COUNT(CASE WHEN tx_day  > 0 THEN 1 END) AS das,
+            COUNT(CASE WHEN tx_week > 0 THEN 1 END) AS was,
+            COUNT(CASE WHEN tx_month > 0 THEN 1 END) AS mas,
+            COUNT(*) AS total
+         FROM seeker_usage`
+    );
+
+    if (dasRow.rows.length > 0) {
+        const { das, was, mas, total } = dasRow.rows[0] as {
+            das: number; was: number; mas: number; total: number;
+        };
+        const today = new Date(startTime).toISOString().slice(0, 10);
+        await client.execute({
+            sql: `INSERT OR REPLACE INTO seeker_das_history (date, das, was, mas, total_indexed)
+                  VALUES (?, ?, ?, ?, ?)`,
+            args: [today, das, was, mas, total],
+        });
+    }
 
     const elapsed = Math.round((Date.now() - startTime) / 1000);
 

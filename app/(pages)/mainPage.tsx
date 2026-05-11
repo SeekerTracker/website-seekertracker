@@ -53,12 +53,14 @@ const MainPage = () => {
 
     const [totalSeekerIds, setTotalSeekerIds] = useState(0)
     const [dAppCount, setDAppCount] = useState<number | null>(null)
+    const [das, setDas] = useState<number | null>(null)
     const currSkrIdCount = useRef(0);
     const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([])
     const [todaySeekerIds, setTodaySeekerIds] = useState(0)
     const animatedTotal = useCountUp(totalSeekerIds)
     const animatedToday = useCountUp(todaySeekerIds)
     const animatedDApps = useCountUp(dAppCount ?? 0)
+    const animatedDas = useCountUp(das ?? 0)
 
     const [regionDistribution, setRegionDistribution] = useState<{
         Americas: number;
@@ -215,6 +217,13 @@ const MainPage = () => {
 
 
     useEffect(() => {
+        fetch('/api/das')
+            .then(r => r.json())
+            .then(data => { if (data.das != null) setDas(data.das); })
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
         fetch('/api/dappstore')
             .then(r => r.json())
             .then(data => {
@@ -285,6 +294,12 @@ const MainPage = () => {
                         <span>Today</span>
                     </div>
                 </div>
+                <Link href={'/usage'} className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>{das !== null ? animatedDas.toLocaleString() : '—'}</strong>
+                        <span>📱 Daily Active</span>
+                    </div>
+                </Link>
 <Link href={'/seeker-fund'} className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>{seekerData.lifeTimeSolFees}&nbsp;SOL</strong>
