@@ -150,6 +150,9 @@ const Navbar = () => {
                 <Link href="/activations" className={styles.activationsButton}>
                     Activations
                 </Link>
+                <Link href="/usage" className={styles.usageButton}>
+                    Usage
+                </Link>
                 <a
                     href="https://stake.seekertracker.com"
                     target="_blank"
