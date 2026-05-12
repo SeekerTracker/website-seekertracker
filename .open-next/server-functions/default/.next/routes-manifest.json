@@ -1,0 +1,384 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [
+      {
+        "source": "/domain/:path*",
+        "destination": "/id/:path*",
+        "regex": "^/domain(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
+      }
+    ],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/allocation/[wallet]",
+      "regex": "^/api/allocation/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPwallet": "nxtPwallet"
+      },
+      "namedRegex": "^/api/allocation/(?<nxtPwallet>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/apps/[package]",
+      "regex": "^/apps/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPpackage": "nxtPpackage"
+      },
+      "namedRegex": "^/apps/(?<nxtPpackage>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/id/[userDomain]",
+      "regex": "^/id/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPuserDomain": "nxtPuserDomain"
+      },
+      "namedRegex": "^/id/(?<nxtPuserDomain>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[image]/[userDomain]",
+      "regex": "^/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPimage": "nxtPimage",
+        "nxtPuserDomain": "nxtPuserDomain"
+      },
+      "namedRegex": "^/(?<nxtPimage>[^/]+?)/(?<nxtPuserDomain>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/activations",
+      "regex": "^/activations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/activations(?:/)?$"
+    },
+    {
+      "page": "/api/activations",
+      "regex": "^/api/activations(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/activations(?:/)?$"
+    },
+    {
+      "page": "/api/apps/og",
+      "regex": "^/api/apps/og(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/apps/og(?:/)?$"
+    },
+    {
+      "page": "/api/competitors",
+      "regex": "^/api/competitors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/competitors(?:/)?$"
+    },
+    {
+      "page": "/api/cron/usage",
+      "regex": "^/api/cron/usage(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/cron/usage(?:/)?$"
+    },
+    {
+      "page": "/api/dappstore",
+      "regex": "^/api/dappstore(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dappstore(?:/)?$"
+    },
+    {
+      "page": "/api/das",
+      "regex": "^/api/das(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/das(?:/)?$"
+    },
+    {
+      "page": "/api/debug",
+      "regex": "^/api/debug(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/debug(?:/)?$"
+    },
+    {
+      "page": "/api/export",
+      "regex": "^/api/export(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/export(?:/)?$"
+    },
+    {
+      "page": "/api/lookup",
+      "regex": "^/api/lookup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/lookup(?:/)?$"
+    },
+    {
+      "page": "/api/og",
+      "regex": "^/api/og(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/og(?:/)?$"
+    },
+    {
+      "page": "/api/skr/og",
+      "regex": "^/api/skr/og(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/skr/og(?:/)?$"
+    },
+    {
+      "page": "/api/skr/report",
+      "regex": "^/api/skr/report(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/skr/report(?:/)?$"
+    },
+    {
+      "page": "/api/skr/stakers",
+      "regex": "^/api/skr/stakers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/skr/stakers(?:/)?$"
+    },
+    {
+      "page": "/api/skr/summary",
+      "regex": "^/api/skr/summary(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/skr/summary(?:/)?$"
+    },
+    {
+      "page": "/api/skr/vault",
+      "regex": "^/api/skr/vault(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/skr/vault(?:/)?$"
+    },
+    {
+      "page": "/api/snake/config",
+      "regex": "^/api/snake/config(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/snake/config(?:/)?$"
+    },
+    {
+      "page": "/api/snake/leaderboard",
+      "regex": "^/api/snake/leaderboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/snake/leaderboard(?:/)?$"
+    },
+    {
+      "page": "/api/snake/prize",
+      "regex": "^/api/snake/prize(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/snake/prize(?:/)?$"
+    },
+    {
+      "page": "/api/sweep/contestants",
+      "regex": "^/api/sweep/contestants(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/sweep/contestants(?:/)?$"
+    },
+    {
+      "page": "/api/usage",
+      "regex": "^/api/usage(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/usage(?:/)?$"
+    },
+    {
+      "page": "/apps",
+      "regex": "^/apps(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/apps(?:/)?$"
+    },
+    {
+      "page": "/apps/opengraph-image-14eu1j",
+      "regex": "^/apps/opengraph\\-image\\-14eu1j(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/apps/opengraph\\-image\\-14eu1j(?:/)?$"
+    },
+    {
+      "page": "/competitors",
+      "regex": "^/competitors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/competitors(?:/)?$"
+    },
+    {
+      "page": "/copyright",
+      "regex": "^/copyright(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/copyright(?:/)?$"
+    },
+    {
+      "page": "/das",
+      "regex": "^/das(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/das(?:/)?$"
+    },
+    {
+      "page": "/explore",
+      "regex": "^/explore(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/explore(?:/)?$"
+    },
+    {
+      "page": "/export",
+      "regex": "^/export(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/export(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/getdapp",
+      "regex": "^/getdapp(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/getdapp(?:/)?$"
+    },
+    {
+      "page": "/license",
+      "regex": "^/license(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/license(?:/)?$"
+    },
+    {
+      "page": "/lookup",
+      "regex": "^/lookup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/lookup(?:/)?$"
+    },
+    {
+      "page": "/opengraph-image",
+      "regex": "^/opengraph\\-image(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/opengraph\\-image(?:/)?$"
+    },
+    {
+      "page": "/privacy",
+      "regex": "^/privacy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/privacy(?:/)?$"
+    },
+    {
+      "page": "/seeker-fund",
+      "regex": "^/seeker\\-fund(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/seeker\\-fund(?:/)?$"
+    },
+    {
+      "page": "/skr",
+      "regex": "^/skr(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/skr(?:/)?$"
+    },
+    {
+      "page": "/snake",
+      "regex": "^/snake(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/snake(?:/)?$"
+    },
+    {
+      "page": "/snake/opengraph-image-1je62i",
+      "regex": "^/snake/opengraph\\-image\\-1je62i(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/snake/opengraph\\-image\\-1je62i(?:/)?$"
+    },
+    {
+      "page": "/snake/twitter-image-1je62i",
+      "regex": "^/snake/twitter\\-image\\-1je62i(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/snake/twitter\\-image\\-1je62i(?:/)?$"
+    },
+    {
+      "page": "/sweep",
+      "regex": "^/sweep(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sweep(?:/)?$"
+    },
+    {
+      "page": "/sweep/opengraph-image-1jed3a",
+      "regex": "^/sweep/opengraph\\-image\\-1jed3a(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sweep/opengraph\\-image\\-1jed3a(?:/)?$"
+    },
+    {
+      "page": "/sweep/twitter-image-1jed3a",
+      "regex": "^/sweep/twitter\\-image\\-1jed3a(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sweep/twitter\\-image\\-1jed3a(?:/)?$"
+    },
+    {
+      "page": "/twitter-image",
+      "regex": "^/twitter\\-image(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/twitter\\-image(?:/)?$"
+    },
+    {
+      "page": "/usage",
+      "regex": "^/usage(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/usage(?:/)?$"
+    },
+    {
+      "page": "/whales",
+      "regex": "^/whales(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/whales(?:/)?$"
+    },
+    {
+      "page": "/whitepaper",
+      "regex": "^/whitepaper(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/whitepaper(?:/)?$"
+    },
+    {
+      "page": "/winners",
+      "regex": "^/winners(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/winners(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
