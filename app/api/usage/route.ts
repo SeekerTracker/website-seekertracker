@@ -8,7 +8,7 @@ type Period = "day" | "week" | "month";
 // --------------- Turso HTTP client ---------------
 
 function tursoUrl() {
-    const url = process.env.TURSO_DATABASE_URL ?? "";
+    const url = process.env.TURSO_DAS_URL ?? "";
     return url.startsWith("libsql://") ? url.replace("libsql://", "https://") : url;
 }
 
@@ -16,7 +16,7 @@ async function tursoQuery(sql: string, params: unknown[] = []) {
     const res = await fetch(tursoUrl(), {
         method: "POST",
         headers: {
-            Authorization: `Bearer ${process.env.TURSO_AUTH_TOKEN}`,
+            Authorization: `Bearer ${process.env.TURSO_DAS_TOKEN}`,
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ statements: [{ q: sql, params }] }),
@@ -167,7 +167,7 @@ async function fromLive(period: Period) {
 export async function GET(req: NextRequest) {
     const period = (req.nextUrl.searchParams.get("period") ?? "day") as Period;
 
-    if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+    if (process.env.TURSO_DAS_URL && process.env.TURSO_DAS_TOKEN) {
         try {
             const result = await fromTurso(period);
             if (result) {

@@ -53,3 +53,7 @@ next-env.d.ts
 yarn.lock
 
 package-lock.json
+# Cloudflare Workers / OpenNext build (accidentally added)
+.open-next/
+.dev.vars
+.wrangler/
