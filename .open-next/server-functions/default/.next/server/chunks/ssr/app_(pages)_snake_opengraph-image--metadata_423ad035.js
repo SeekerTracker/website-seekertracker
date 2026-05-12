@@ -1,3 +1,0 @@
-module.exports=[79135,a=>{"use strict";a.i(7997),a.i(99475);var b=a.i(52425);let c={alt:"Snake - Classic Game for Solana Seeker",contentType:"image/png",runtime:"edge",size:{width:1200,height:630}};async function d(a){let{__metadata_id__:d,...e}=await a.params,f=(0,b.fillMetadataSegment)("/(pages)/snake",e,"opengraph-image");return[function(a,b){let c={alt:a.alt,type:a.contentType||"image/png",url:f+"?30f55f6fc466a4b8"},{size:d}=a;return d&&(c.width=d.width,c.height=d.height),c}(c,0)]}a.s(["default",0,d],79135)}];
-
-//# sourceMappingURL=app_%28pages%29_snake_opengraph-image--metadata_423ad035.js.map
