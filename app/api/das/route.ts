@@ -1,20 +1,33 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@libsql/client";
+
+function tursoUrl() {
+    const url = process.env.TURSO_DATABASE_URL ?? "";
+    return url.startsWith("libsql://") ? url.replace("libsql://", "https://") : url;
+}
+
+async function tursoQuery(sql: string, params: unknown[] = []) {
+    const res = await fetch(tursoUrl(), {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${process.env.TURSO_AUTH_TOKEN}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ statements: [{ q: sql, params }] }),
+    });
+    if (!res.ok) throw new Error(`Turso HTTP ${res.status}`);
+    const data = await res.json();
+    if (data[0]?.error) throw new Error(`Turso: ${JSON.stringify(data[0].error)}`);
+    return data[0]?.results ?? {};
+}
 
 export async function GET() {
     if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
         return NextResponse.json({ error: "Turso not configured" }, { status: 503 });
     }
 
-    const client = createClient({
-        url: process.env.TURSO_DATABASE_URL,
-        authToken: process.env.TURSO_AUTH_TOKEN,
-    });
-
     try {
         const [current, history, meta] = await Promise.all([
-            // Live counts from seeker_usage
-            client.execute(`
+            tursoQuery(`
                 SELECT
                     COUNT(CASE WHEN tx_day  > 0 THEN 1 END) AS das,
                     COUNT(CASE WHEN tx_week > 0 THEN 1 END) AS was,
@@ -22,32 +35,28 @@ export async function GET() {
                     COUNT(*) AS total_indexed
                 FROM seeker_usage
             `),
-            // Past 30 days of snapshots
-            client.execute(`
+            tursoQuery(`
                 SELECT date, das, was, mas, total_indexed
                 FROM seeker_das_history
                 ORDER BY date DESC
                 LIMIT 30
             `),
-            client.execute(`SELECT value FROM seeker_usage_meta WHERE key = 'last_run'`),
+            tursoQuery(`SELECT value FROM seeker_usage_meta WHERE key = 'last_run'`),
         ]);
 
-        const row = current.rows[0] as unknown as { das: number; was: number; mas: number; total_indexed: number } | undefined;
-        const updatedAt = meta.rows[0] ? parseInt(meta.rows[0].value as string) : null;
+        const row = current.rows?.[0] as [number, number, number, number] | undefined;
+        const updatedAt = meta.rows?.[0]?.[0] ? parseInt(meta.rows[0][0] as string) : null;
 
         return NextResponse.json(
             {
-                das: row?.das ?? 0,
-                was: row?.was ?? 0,
-                mas: row?.mas ?? 0,
-                totalIndexed: row?.total_indexed ?? 0,
+                das: row?.[0] ?? 0,
+                was: row?.[1] ?? 0,
+                mas: row?.[2] ?? 0,
+                totalIndexed: row?.[3] ?? 0,
                 updatedAt,
-                history: history.rows.map((r) => ({
-                    date: r.date as string,
-                    das: r.das as number,
-                    was: r.was as number,
-                    mas: r.mas as number,
-                })).reverse(), // oldest first for charting
+                history: (history.rows as [string, number, number, number][])
+                    .map((r) => ({ date: r[0], das: r[1], was: r[2], mas: r[3] }))
+                    .reverse(),
             },
             { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" } }
         );

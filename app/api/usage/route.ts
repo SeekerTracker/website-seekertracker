@@ -1,44 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@libsql/client";
 import { io } from "socket.io-client";
 import { WS_URL, CONN_RPC_URL } from "app/(utils)/constant";
 import { DomainInfo } from "app/(utils)/constantTypes";
 
 type Period = "day" | "week" | "month";
 
+// --------------- Turso HTTP client ---------------
+
+function tursoUrl() {
+    const url = process.env.TURSO_DATABASE_URL ?? "";
+    return url.startsWith("libsql://") ? url.replace("libsql://", "https://") : url;
+}
+
+async function tursoQuery(sql: string, params: unknown[] = []) {
+    const res = await fetch(tursoUrl(), {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${process.env.TURSO_AUTH_TOKEN}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ statements: [{ q: sql, params }] }),
+    });
+    if (!res.ok) throw new Error(`Turso HTTP ${res.status}`);
+    const data = await res.json();
+    if (data[0]?.error) throw new Error(`Turso: ${JSON.stringify(data[0].error)}`);
+    return data[0]?.results ?? {};
+}
+
 // --------------- Turso path ---------------
 
 async function fromTurso(period: Period) {
-    const client = createClient({
-        url: process.env.TURSO_DATABASE_URL!,
-        authToken: process.env.TURSO_AUTH_TOKEN!,
-    });
-
     const col = period === "day" ? "tx_day" : period === "week" ? "tx_week" : "tx_month";
 
     const [rows, meta] = await Promise.all([
-        client.execute(`
+        tursoQuery(`
             SELECT subdomain, domain, owner, tx_day, tx_week, tx_month, last_used
             FROM seeker_usage
             ORDER BY ${col} DESC
         `),
-        client.execute(`SELECT key, value FROM seeker_usage_meta`),
+        tursoQuery(`SELECT key, value FROM seeker_usage_meta`),
     ]);
 
-    if (rows.rows.length === 0) return null;
+    if (!rows.rows?.length) return null;
 
     const metaMap: Record<string, string> = {};
-    for (const r of meta.rows) metaMap[r.key as string] = r.value as string;
+    for (const [k, v] of (meta.rows ?? [])) metaMap[k] = v;
 
-    const data = rows.rows.map((r) => ({
-        subdomain: r.subdomain as string,
-        domain: r.domain as string,
-        owner: r.owner as string,
-        txDay: r.tx_day as number,
-        txWeek: r.tx_week as number,
-        txMonth: r.tx_month as number,
-        txCount: (period === "day" ? r.tx_day : period === "week" ? r.tx_week : r.tx_month) as number,
-        lastUsed: r.last_used as number | null,
+    const data = (rows.rows as [string, string, string, number, number, number, number | null][]).map((r) => ({
+        subdomain: r[0],
+        domain: r[1],
+        owner: r[2],
+        txDay: r[3] ?? 0,
+        txWeek: r[4] ?? 0,
+        txMonth: r[5] ?? 0,
+        txCount: (period === "day" ? r[3] : period === "week" ? r[4] : r[5]) ?? 0,
+        lastUsed: r[6],
     }));
 
     const activeCount = data.filter((d) => d.txCount > 0).length;
@@ -150,7 +166,6 @@ async function fromLive(period: Period) {
 export async function GET(req: NextRequest) {
     const period = (req.nextUrl.searchParams.get("period") ?? "day") as Period;
 
-    // Try Turso first
     if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
         try {
             const result = await fromTurso(period);
@@ -164,7 +179,6 @@ export async function GET(req: NextRequest) {
         }
     }
 
-    // Fall back to live query
     try {
         const result = await fromLive(period);
         return NextResponse.json(result, {
