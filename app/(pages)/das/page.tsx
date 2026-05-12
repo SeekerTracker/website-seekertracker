@@ -84,7 +84,7 @@ export default function DasPage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch("/api/das")
+        fetch("https://seeker-das-scanner.gm-4e8.workers.dev/public/das")
             .then((r) => r.json())
             .then((d) => {
                 if (d?.error) setError(d.error);
