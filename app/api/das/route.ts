@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 function tursoUrl() {
-    const url = process.env.TURSO_DATABASE_URL ?? "";
+    const url = process.env.TURSO_DAS_URL ?? "";
     return url.startsWith("libsql://") ? url.replace("libsql://", "https://") : url;
 }
 
@@ -9,7 +9,7 @@ async function tursoQuery(sql: string, params: unknown[] = []) {
     const res = await fetch(tursoUrl(), {
         method: "POST",
         headers: {
-            Authorization: `Bearer ${process.env.TURSO_AUTH_TOKEN}`,
+            Authorization: `Bearer ${process.env.TURSO_DAS_TOKEN}`,
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ statements: [{ q: sql, params }] }),
@@ -21,12 +21,12 @@ async function tursoQuery(sql: string, params: unknown[] = []) {
 }
 
 export async function GET() {
-    if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
+    if (!process.env.TURSO_DAS_URL || !process.env.TURSO_DAS_TOKEN) {
         return NextResponse.json({ error: "Turso not configured" }, { status: 503 });
     }
 
     try {
-        const [current, history, meta] = await Promise.all([
+        const [current, history, dist, top, meta] = await Promise.all([
             tursoQuery(`
                 SELECT
                     COUNT(CASE WHEN tx_day  > 0 THEN 1 END) AS das,
@@ -41,11 +41,30 @@ export async function GET() {
                 ORDER BY date DESC
                 LIMIT 30
             `),
-            tursoQuery(`SELECT value FROM seeker_usage_meta WHERE key = 'last_run'`),
+            tursoQuery(`
+                SELECT
+                    SUM(CASE WHEN tx_month = 0 THEN 1 ELSE 0 END) AS dormant,
+                    SUM(CASE WHEN tx_month BETWEEN 1  AND 5   THEN 1 ELSE 0 END) AS light,
+                    SUM(CASE WHEN tx_month BETWEEN 6  AND 20  THEN 1 ELSE 0 END) AS regular,
+                    SUM(CASE WHEN tx_month BETWEEN 21 AND 100 THEN 1 ELSE 0 END) AS heavy,
+                    SUM(CASE WHEN tx_month > 100               THEN 1 ELSE 0 END) AS power
+                FROM seeker_usage
+            `),
+            tursoQuery(`
+                SELECT subdomain, domain, owner, tx_day, tx_week, tx_month, last_used, created_at
+                FROM seeker_usage
+                WHERE tx_day > 0
+                ORDER BY tx_day DESC, last_used DESC
+                LIMIT 20
+            `),
+            tursoQuery(`SELECT key, value FROM seeker_usage_meta`),
         ]);
 
         const row = current.rows?.[0] as [number, number, number, number] | undefined;
-        const updatedAt = meta.rows?.[0]?.[0] ? parseInt(meta.rows[0][0] as string) : null;
+        const distRow = dist.rows?.[0] as [number, number, number, number, number] | undefined;
+        const metaMap: Record<string, string> = {};
+        for (const [k, v] of (meta.rows ?? [])) metaMap[k] = v;
+        const updatedAt = metaMap.last_run ? parseInt(metaMap.last_run) : null;
 
         return NextResponse.json(
             {
@@ -57,6 +76,24 @@ export async function GET() {
                 history: (history.rows as [string, number, number, number][])
                     .map((r) => ({ date: r[0], das: r[1], was: r[2], mas: r[3] }))
                     .reverse(),
+                distribution: {
+                    dormant: distRow?.[0] ?? 0,
+                    light:   distRow?.[1] ?? 0,
+                    regular: distRow?.[2] ?? 0,
+                    heavy:   distRow?.[3] ?? 0,
+                    power:   distRow?.[4] ?? 0,
+                },
+                top: (top.rows as [string, string, string, number, number, number, number | null, string | null][])
+                    .map((r) => ({
+                        subdomain: r[0],
+                        domain: r[1],
+                        owner: r[2],
+                        txDay: r[3],
+                        txWeek: r[4],
+                        txMonth: r[5],
+                        lastUsed: r[6],
+                        createdAt: r[7],
+                    })),
             },
             { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60" } }
         );

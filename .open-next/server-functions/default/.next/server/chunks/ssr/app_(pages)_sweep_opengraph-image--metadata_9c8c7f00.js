@@ -1,0 +1,3 @@
+module.exports=[42783,a=>{"use strict";a.i(7997),a.i(99475);var b=a.i(52425);let c={alt:"Seeker Tracker Sweep - TRACKER Holder Rewards",contentType:"image/png",runtime:"edge",size:{width:1200,height:630}};async function d(a){let{__metadata_id__:d,...e}=await a.params,f=(0,b.fillMetadataSegment)("/(pages)/sweep",e,"opengraph-image");return[function(a,b){let c={alt:a.alt,type:a.contentType||"image/png",url:f+"?5544d21f9328f1fe"},{size:d}=a;return d&&(c.width=d.width,c.height=d.height),c}(c,0)]}a.s(["default",0,d],42783)}];
+
+//# sourceMappingURL=app_%28pages%29_sweep_opengraph-image--metadata_9c8c7f00.js.map

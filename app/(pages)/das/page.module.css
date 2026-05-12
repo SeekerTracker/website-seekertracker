@@ -638,3 +638,206 @@
         display: none;
     }
 }
+
+/* ── Headline ───────────────────────────────────────────────── */
+.headlineGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 1100px;
+}
+
+.headlineCard {
+    background: linear-gradient(135deg, rgba(0, 255, 217, 0.04), rgba(0, 255, 217, 0.01));
+    border: 1px solid rgba(0, 255, 217, 0.18);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    box-shadow: 0 0 30px rgba(0, 255, 217, 0.05);
+}
+
+.headlineLabel {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5d7777;
+    font-weight: 600;
+}
+
+.headlineValue {
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #00ffd9;
+    text-shadow: 0 0 20px rgba(0, 255, 217, 0.35);
+    font-variant-numeric: tabular-nums;
+}
+
+.headlinePct {
+    font-size: 0.85rem;
+    color: #889999;
+}
+
+.deltaUp {
+    font-size: 0.8rem;
+    color: #00ffae;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.deltaDown {
+    font-size: 0.8rem;
+    color: #ff5566;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.deltaFlat {
+    font-size: 0.8rem;
+    color: #5d7777;
+}
+
+/* ── Distribution ───────────────────────────────────────────── */
+.distCard {
+    width: 100%;
+    max-width: 1100px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(0, 255, 217, 0.12);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.distHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+}
+
+.distTitle {
+    font-weight: 700;
+    color: #00ffd9;
+    font-size: 0.95rem;
+}
+
+.distMeta {
+    color: #5d7777;
+    font-size: 0.8rem;
+}
+
+.distRow {
+    display: grid;
+    grid-template-columns: 130px 1fr 110px;
+    align-items: center;
+    gap: 1rem;
+}
+
+.distLabel {
+    display: flex;
+    flex-direction: column;
+}
+
+.distName {
+    color: #ededed;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.distHint {
+    color: #5d7777;
+    font-size: 0.72rem;
+}
+
+.distBarWrap {
+    background: rgba(255, 255, 255, 0.03);
+    height: 18px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.distBar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px currentColor;
+    opacity: 0.85;
+}
+
+.distCount {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.distNum {
+    color: #ededed;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.distPct {
+    color: #5d7777;
+    font-size: 0.75rem;
+}
+
+/* ── Leaderboard ────────────────────────────────────────────── */
+.boardCard {
+    width: 100%;
+    max-width: 1100px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(0, 255, 217, 0.12);
+    border-radius: 14px;
+    padding: 1.25rem 0;
+}
+
+.boardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.boardTitle {
+    font-weight: 700;
+    color: #00ffd9;
+    font-size: 0.95rem;
+}
+
+.loading {
+    color: #5d7777;
+}
+
+.error {
+    color: #ff5566;
+}
+
+.txCount {
+    color: #00ffd9;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+    .headlineGrid {
+        grid-template-columns: 1fr;
+    }
+    .headlineValue {
+        font-size: 2rem;
+    }
+    .distRow {
+        grid-template-columns: 90px 1fr 90px;
+        gap: 0.5rem;
+    }
+    .distHint {
+        display: none;
+    }
+}
