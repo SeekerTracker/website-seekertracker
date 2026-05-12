@@ -413,6 +413,20 @@
     color: #445555 !important;
 }
 
+.thDate {
+    color: #445555 !important;
+}
+
+.tdDate {
+    white-space: nowrap;
+}
+
+.dateCell {
+    font-size: 0.8rem;
+    color: #445555;
+    font-variant-numeric: tabular-nums;
+}
+
 .medalRow {
     background: rgba(0, 255, 217, 0.03);
 }
@@ -606,7 +620,9 @@
     }
 
     .thWallet,
-    .tdWallet {
+    .tdWallet,
+    .thDate,
+    .tdDate {
         display: none;
     }
 }

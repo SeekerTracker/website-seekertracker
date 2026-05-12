@@ -34,7 +34,7 @@ async function fromTurso(period: Period) {
 
     const [rows, meta] = await Promise.all([
         tursoQuery(`
-            SELECT subdomain, domain, owner, tx_day, tx_week, tx_month, last_used
+            SELECT subdomain, domain, owner, tx_day, tx_week, tx_month, last_used, created_at
             FROM seeker_usage
             ORDER BY ${col} DESC
         `),
@@ -46,7 +46,7 @@ async function fromTurso(period: Period) {
     const metaMap: Record<string, string> = {};
     for (const [k, v] of (meta.rows ?? [])) metaMap[k] = v;
 
-    const data = (rows.rows as [string, string, string, number, number, number, number | null][]).map((r) => ({
+    const data = (rows.rows as [string, string, string, number, number, number, number | null, string | null][]).map((r) => ({
         subdomain: r[0],
         domain: r[1],
         owner: r[2],
@@ -55,6 +55,7 @@ async function fromTurso(period: Period) {
         txMonth: r[5] ?? 0,
         txCount: (period === "day" ? r[3] : period === "week" ? r[4] : r[5]) ?? 0,
         lastUsed: r[6],
+        createdAt: r[7],
     }));
 
     const activeCount = data.filter((d) => d.txCount > 0).length;

@@ -16,6 +16,7 @@ type UsageRow = {
     txMonth: number;
     txCount: number;
     lastUsed: number | null;
+    createdAt: string | null;
 };
 
 type HistoryPoint = { date: string; das: number; was: number; mas: number };
@@ -274,13 +275,14 @@ export default function UsagePage() {
                                     <th className={`${styles.thNum} ${period === "week" ? styles.thActive : ""}`}>7d Txs</th>
                                     <th className={`${styles.thNum} ${period === "month" ? styles.thActive : ""}`}>30d Txs</th>
                                     <th className={styles.thNum}>Last Used</th>
+                                    <th className={styles.thDate}>Activated</th>
                                     <th className={styles.thWallet}>Wallet</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {pageRows.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} className={styles.empty}>
+                                        <td colSpan={8} className={styles.empty}>
                                             No results found.
                                         </td>
                                     </tr>
@@ -324,6 +326,13 @@ export default function UsagePage() {
                                             <td className={styles.tdNum}>
                                                 {row.lastUsed ? (
                                                     <span className={styles.lastUsed}>{timeAgo(row.lastUsed)}</span>
+                                                ) : (
+                                                    <span className={styles.noActivity}>—</span>
+                                                )}
+                                            </td>
+                                            <td className={styles.tdDate}>
+                                                {row.createdAt ? (
+                                                    <span className={styles.dateCell}>{row.createdAt.slice(0, 10)}</span>
                                                 ) : (
                                                     <span className={styles.noActivity}>—</span>
                                                 )}
