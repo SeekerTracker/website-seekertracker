@@ -146,7 +146,7 @@ const Navbar = () => {
                 </div>
                 <div className={styles.mobileNavLinks}>
                     <Link href="/skr" className={styles.skrButton} onClick={() => setMenuOpen(false)}>SKR</Link>
-                    <Link href="/usage" className={styles.usageButton} onClick={() => setMenuOpen(false)}>DAS</Link>
+                    <Link href="/das" className={styles.usageButton} onClick={() => setMenuOpen(false)}>DAS</Link>
                     <Link href="/activations" className={styles.activationsButton} onClick={() => setMenuOpen(false)}>Activations</Link>
                     <Link href="/sweep" className={styles.sweepButton} onClick={() => setMenuOpen(false)}>Sweep</Link>
                     <Link href="/apps" className={styles.appsButton} onClick={() => setMenuOpen(false)}>Apps</Link>
@@ -195,7 +195,7 @@ const Navbar = () => {
 
             <div className={styles.navButtons}>
                 <Link href="/skr" className={styles.skrButton}>SKR</Link>
-                <Link href="/usage" className={styles.usageButton}>DAS</Link>
+                <Link href="/das" className={styles.usageButton}>DAS</Link>
                 <Link href="/activations" className={styles.activationsButton}>Activations</Link>
                 <Link href="/sweep" className={styles.sweepButton}>Sweep</Link>
                 <Link href="/apps" className={styles.appsButton}>Apps</Link>
