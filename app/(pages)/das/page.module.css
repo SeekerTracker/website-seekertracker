@@ -841,3 +841,78 @@
         display: none;
     }
 }
+
+/* ── Share + disclaimer ─────────────────────────────────────── */
+.shareRow {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: -0.5em 0 0;
+}
+
+.shareLabel {
+    color: #5d7777;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+.shareBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(0, 255, 217, 0.06);
+    border: 1px solid rgba(0, 255, 217, 0.25);
+    color: #00ffd9;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.shareBtn:hover {
+    background: rgba(0, 255, 217, 0.14);
+    box-shadow: 0 0 18px rgba(0, 255, 217, 0.25);
+}
+
+.shareBtn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.shareBtnTg {
+    color: #4fb6f0;
+    background: rgba(79, 182, 240, 0.06);
+    border-color: rgba(79, 182, 240, 0.3);
+}
+
+.shareBtnTg:hover {
+    background: rgba(79, 182, 240, 0.14);
+    box-shadow: 0 0 18px rgba(79, 182, 240, 0.25);
+}
+
+.disclaimer {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    max-width: 1100px;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px dashed rgba(255, 200, 0, 0.35);
+    border-radius: 10px;
+    background: rgba(255, 200, 0, 0.03);
+    color: #b8a060;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.disclaimer svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: #ffc800;
+    font-size: 1rem;
+}

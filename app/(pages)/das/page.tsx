@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import Backbutton from "app/(components)/shared/Backbutton";
-import { IoPhonePortraitOutline } from "react-icons/io5";
+import { IoPhonePortraitOutline, IoWarningOutline } from "react-icons/io5";
+import { FaXTwitter, FaTelegram } from "react-icons/fa6";
 
 type Period = "day" | "week" | "month";
 type HistoryPoint = { date: string; das: number; was: number; mas: number };
@@ -131,6 +132,17 @@ export default function DasPage() {
             <p className={styles.subtitle}>
                 On-chain activity across all {das ? das.totalIndexed.toLocaleString() : "—"} .skr IDs
             </p>
+
+            <ShareRow das={das} />
+
+            <div className={styles.disclaimer}>
+                <IoWarningOutline />
+                <span>
+                    Unofficial figures. Numbers are best-effort estimates derived from public RPC scans and
+                    refresh every ~6 hours — they may contain errors, gaps, or stale data. Don't use this
+                    page for trading or compliance decisions.
+                </span>
+            </div>
 
             {error && <p className={styles.error}>{error}</p>}
 
@@ -297,6 +309,46 @@ export default function DasPage() {
                     </div>
                 </>
             )}
+        </div>
+    );
+}
+
+function ShareRow({ das }: { das: DasResponse | null }) {
+    const text = das
+        ? `📱 Seeker DAS\n\n` +
+          `DAS · 24h: ${das.das.toLocaleString()}\n` +
+          `WAS · 7d:  ${das.was.toLocaleString()}\n` +
+          `MAS · 30d: ${das.mas.toLocaleString()}\n` +
+          `of ${das.totalIndexed.toLocaleString()} .skr IDs`
+        : "📱 Seeker DAS — Daily Active Seekers";
+    const url = "https://seekertracker.com/das";
+    const tweet = `${text}\n\n${url}\n\nvia @seeker_tracker`;
+    const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
+    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+
+    return (
+        <div className={styles.shareRow}>
+            <span className={styles.shareLabel}>Share:</span>
+            <a
+                href={xUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.shareBtn}
+                aria-label="Share on X"
+            >
+                <FaXTwitter />
+                <span>X</span>
+            </a>
+            <a
+                href={tgUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${styles.shareBtn} ${styles.shareBtnTg}`}
+                aria-label="Share on Telegram"
+            >
+                <FaTelegram />
+                <span>Telegram</span>
+            </a>
         </div>
     );
 }
