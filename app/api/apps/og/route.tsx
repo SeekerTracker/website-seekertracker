@@ -6,6 +6,13 @@ export const runtime = 'edge'
 const DAPPSTORE_API = "https://dappstore.solanamobile.com/graphql"
 const SC = `{locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}`
 
+// next/og (Satori) can't decode WebP, which is what the dApp Store CDN serves
+// for many icons — they'd render as empty boxes. Route every icon through an
+// image proxy that re-encodes to PNG so it always paints.
+function pngIcon(uri: string, size = 260): string {
+    return `https://images.weserv.nl/?url=${encodeURIComponent(uri)}&output=png&w=${size}&h=${size}`
+}
+
 const EXPLORE_QUERY = `query {
     explore {
         units(systemContext: ${SC}) {
@@ -95,21 +102,6 @@ export async function GET(request: NextRequest) {
     if (!appPackage) {
         const { count: appCount, icons } = await fetchAppsData()
 
-        // Icon positions - scattered around the edges (left uses 'left', right uses 'right')
-        const iconPositions: Array<{ top: number; left?: number; right?: number; size: number; rotate: number }> = [
-            { top: 40, left: 50, size: 72, rotate: -8 },
-            { top: 150, left: 130, size: 64, rotate: 5 },
-            { top: 280, left: 50, size: 56, rotate: -3 },
-            { top: 400, left: 120, size: 58, rotate: 10 },
-            { top: 520, left: 50, size: 52, rotate: -6 },
-            // Right side
-            { top: 40, right: 50, size: 70, rotate: 8 },
-            { top: 150, right: 120, size: 62, rotate: -5 },
-            { top: 280, right: 50, size: 58, rotate: 3 },
-            { top: 400, right: 130, size: 54, rotate: -8 },
-            { top: 520, right: 50, size: 56, rotate: 6 },
-        ]
-
         return new ImageResponse(
             (
                 <div
@@ -137,45 +129,45 @@ export async function GET(request: NextRequest) {
 
                     {/* Scattered app icons - left side */}
                     {icons[0] && (
-                        <img src={icons[0]} width={72} height={72}
+                        <img src={pngIcon(icons[0], 144)} width={72} height={72}
                             style={{ position: 'absolute', top: 40, left: 50, borderRadius: 16, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
                     {icons[1] && (
-                        <img src={icons[1]} width={64} height={64}
+                        <img src={pngIcon(icons[1], 144)} width={64} height={64}
                             style={{ position: 'absolute', top: 150, left: 130, borderRadius: 14, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
                     {icons[2] && (
-                        <img src={icons[2]} width={56} height={56}
+                        <img src={pngIcon(icons[2], 144)} width={56} height={56}
                             style={{ position: 'absolute', top: 280, left: 50, borderRadius: 12, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
                     {icons[3] && (
-                        <img src={icons[3]} width={58} height={58}
+                        <img src={pngIcon(icons[3], 144)} width={58} height={58}
                             style={{ position: 'absolute', top: 400, left: 120, borderRadius: 13, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
                     {icons[4] && (
-                        <img src={icons[4]} width={52} height={52}
+                        <img src={pngIcon(icons[4], 144)} width={52} height={52}
                             style={{ position: 'absolute', top: 530, left: 50, borderRadius: 11, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
 
                     {/* Scattered app icons - right side */}
                     {icons[5] && (
-                        <img src={icons[5]} width={70} height={70}
+                        <img src={pngIcon(icons[5], 144)} width={70} height={70}
                             style={{ position: 'absolute', top: 40, right: 50, borderRadius: 15, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
                     {icons[6] && (
-                        <img src={icons[6]} width={62} height={62}
+                        <img src={pngIcon(icons[6], 144)} width={62} height={62}
                             style={{ position: 'absolute', top: 150, right: 120, borderRadius: 14, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
                     {icons[7] && (
-                        <img src={icons[7]} width={58} height={58}
+                        <img src={pngIcon(icons[7], 144)} width={58} height={58}
                             style={{ position: 'absolute', top: 280, right: 50, borderRadius: 13, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
                     {icons[8] && (
-                        <img src={icons[8]} width={54} height={54}
+                        <img src={pngIcon(icons[8], 144)} width={54} height={54}
                             style={{ position: 'absolute', top: 400, right: 130, borderRadius: 12, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
                     {icons[9] && (
-                        <img src={icons[9]} width={56} height={56}
+                        <img src={pngIcon(icons[9], 144)} width={56} height={56}
                             style={{ position: 'absolute', top: 530, right: 50, borderRadius: 12, border: '2px solid rgba(0, 255, 217, 0.3)' }} />
                     )}
 
@@ -190,6 +182,38 @@ export async function GET(request: NextRequest) {
                             padding: '40px',
                         }}
                     >
+                        {/* SeekerTracker logo + wordmark */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                marginBottom: '24px',
+                            }}
+                        >
+                            <img
+                                src="https://seekertracker.com/logo.png"
+                                width={72}
+                                height={72}
+                                style={{
+                                    borderRadius: '18px',
+                                    border: '2px solid rgba(0, 255, 217, 0.4)',
+                                    boxShadow: '0 0 30px rgba(0, 255, 217, 0.35)',
+                                }}
+                            />
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    fontSize: 34,
+                                    fontWeight: 'bold',
+                                    color: '#ededed',
+                                    marginLeft: '18px',
+                                    letterSpacing: '-0.01em',
+                                }}
+                            >
+                                SeekerTracker
+                            </div>
+                        </div>
+
                         {/* Big number */}
                         <div
                             style={{
@@ -363,7 +387,7 @@ export async function GET(request: NextRequest) {
                 >
                     {release?.icon?.uri ? (
                         <img
-                            src={release.icon.uri}
+                            src={pngIcon(release.icon.uri, 260)}
                             width={260}
                             height={260}
                             style={{
