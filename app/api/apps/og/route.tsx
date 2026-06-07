@@ -13,54 +13,31 @@ function pngIcon(uri: string, size = 260): string {
     return `https://images.weserv.nl/?url=${encodeURIComponent(uri)}&output=png&w=${size}&h=${size}`
 }
 
-const EXPLORE_QUERY = `query {
-    explore {
-        units(systemContext: ${SC}) {
-            edges {
-                node {
-                    __typename
-                    ... on DAppsByCategoryUnit {
-                        dApps(systemContext: ${SC}, first: 20) {
-                            edges {
-                                node {
-                                    lastRelease(systemContext: ${SC}) {
-                                        icon { uri }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}`
+const SITE_URL = 'https://seekertracker.com'
 
+// Reuse the main listing endpoint, which paginates every category and returns
+// an accurate, deduped `totalApps` (cached 6h server-side). The previous
+// approach walked `explore` once with first:20/category — it summed duplicates
+// across categories AND never paginated, so it undercounted badly (~220 vs the
+// true ~980+). Icons come from the same response, so it's a single fetch.
 async function fetchAppsData(): Promise<{ count: number; icons: string[] }> {
     try {
-        const response = await fetch(DAPPSTORE_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: EXPLORE_QUERY }),
+        const response = await fetch(`${SITE_URL}/api/dappstore`, {
+            next: { revalidate: 3600 },
         })
         const data = await response.json()
-        const units = data?.data?.explore?.units?.edges || []
-        let total = 0
+        const count = typeof data?.totalApps === 'number' ? data.totalApps : 0
         const icons: string[] = []
 
+        const units = data?.data?.explore?.units?.edges || []
         for (const unit of units) {
-            if (unit.node?.__typename === 'DAppsByCategoryUnit') {
-                const apps = unit.node.dApps?.edges || []
-                total += apps.length
-                for (const app of apps) {
-                    const iconUri = app.node?.lastRelease?.icon?.uri
-                    if (icons.length < 10 && iconUri) {
-                        icons.push(iconUri)
-                    }
-                }
+            for (const app of unit.node?.dApps?.edges || []) {
+                const iconUri = app.node?.lastRelease?.icon?.uri
+                if (iconUri && icons.length < 10) icons.push(iconUri)
             }
+            if (icons.length >= 10) break
         }
-        return { count: total || 178, icons }
+        return { count: count || 178, icons }
     } catch {
         return { count: 178, icons: [] }
     }
