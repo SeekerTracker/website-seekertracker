@@ -41,7 +41,7 @@ function DetailRow({ label, value, mono, href, extra, onCopy, copied }: {
                 {extra && <span className={styles.valExtra}>{extra}</span>}
                 {onCopy && (
                     <button className={styles.miniCopy} aria-label={`Copy ${label}`} onClick={onCopy}>
-                        {copied ? '✅' : '⧉'}
+                        {copied ? 'Copied' : 'Copy'}
                     </button>
                 )}
             </dd>
@@ -150,19 +150,22 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={`/image/${subdomain}?age=true`}
-                        alt={`${userDomain} — SeekerID passport`}
+                        alt={`${userDomain} SeekerID passport`}
                         width={1200}
                         height={630}
                         className={styles.passportImg}
                         onClick={copyImage}
                     />
+                    {copied === 'image' && (
+                        <div className={styles.copiedOverlay} aria-live="polite">Copied</div>
+                    )}
                 </div>
                 <div className={styles.heroActions}>
                     <button className={styles.ghostBtn} onClick={() => copyText('profile', profileLink)}>
-                        {copied === 'profile' ? '✅ Link copied' : '🔗 Copy profile link'}
+                        {copied === 'profile' ? 'Link copied' : 'Copy profile link'}
                     </button>
                     <button className={styles.ghostBtn} onClick={copyImage}>
-                        {copied === 'image' ? '✅ Image copied' : '🖼 Copy card image'}
+                        {copied === 'image' ? 'Copied' : 'Copy card image'}
                     </button>
                 </div>
             </section>
@@ -176,7 +179,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                     <div className={styles.card}>
                         <header className={styles.cardHead}>
                             <h2 className={styles.cardTitle}>Activation</h2>
-                            <span className={styles.badge}>✅ Activated</span>
+                            <span className={styles.badge}>Activated</span>
                         </header>
                         <dl className={styles.details}>
                             <DetailRow
@@ -297,7 +300,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                         <div className={styles.copyRow}>
                             <code className={styles.copyText}>{imageLink}</code>
                             <button className={styles.copyBtn} onClick={() => copyText('imglink', imageLink)}>
-                                {copied === 'imglink' ? '✅ Copied' : 'Copy image URL'}
+                                {copied === 'imglink' ? 'Copied' : 'Copy image URL'}
                             </button>
                         </div>
                     </div>

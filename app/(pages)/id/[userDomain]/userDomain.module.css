@@ -66,6 +66,24 @@
   box-shadow: 0 26px 60px rgba(0, 0, 0, 0.4), 0 0 36px rgba(0, 255, 217, 0.22);
 }
 
+.copiedOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(0, 22, 18, 0.62);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+  animation: fadeOverlay 160ms var(--ease) both;
+}
+
 .heroActions {
   display: flex;
   flex-wrap: wrap;
@@ -245,9 +263,11 @@
   background: none;
   color: #7fede0;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   line-height: 1;
-  padding: 2px;
+  padding: 2px 4px;
+  white-space: nowrap;
   transition: color 200ms var(--ease);
 }
 
@@ -461,6 +481,11 @@
 @keyframes shimmer {
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
+}
+
+@keyframes fadeOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @media screen and (max-width: 520px) {
