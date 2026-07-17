@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PublicKey, Connection, Transaction } from "@solana/web3.js";
 import bs58 from "bs58";
-import { io } from "socket.io-client";
 import {
-    WS_URL,
     CONN_RPC_URL,
     REQUIRED_TRACKER_BALANCE,
-    BEPATH,
 } from "../../(utils)/constant";
 import { getTrackerTokenBalance } from "../../(utils)/lib/tokenBalance";
 import { DomainInfo } from "../../(utils)/constantTypes";
+import { listDomains } from "../../(utils)/lib/domainStore";
 
 type ExportRequestBody = {
     walletAddress: string;
@@ -56,22 +54,19 @@ type fetchAllDomainResponse = {
 }
 
 const fetchAllDomains = async (options: FetchOptions): Promise<fetchAllDomainResponse> => {
-    const { maxCount, beforeTimestamp, onProgress } = options;
-
-    const allDomainData = await fetch(`${BEPATH.allDomains}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            // fromLast: false, //true if inverse or last 5k mints like that
-            pageSize: maxCount || 200_000,
-            beforeTimestamp: beforeTimestamp || null
-        })
-    })
-    const domainDataJson = await allDomainData.json();
-    return domainDataJson;
-
+    const { maxCount, beforeTimestamp } = options;
+    const result = listDomains({
+        page: 1,
+        pageSize: maxCount || 200_000,
+        beforeTimestamp:
+            beforeTimestamp != null ? new Date(beforeTimestamp * 1000).toISOString() : null,
+        sortBy: "newest",
+    });
+    return {
+        success: result.success,
+        message: result.message,
+        data: result.data,
+    };
 }
 
 export async function POST(request: NextRequest) {

@@ -9,7 +9,7 @@ export const contentType = 'image/png';
 async function getLiveStats(): Promise<{ activations: number; dApps: number }> {
     try {
         const [domainRes, dappRes] = await Promise.allSettled([
-            fetch('https://api.seeker.solana.charity/allDomains', {
+            fetch('https://seekertracker.com/api/domains', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pageSize: 1 }),

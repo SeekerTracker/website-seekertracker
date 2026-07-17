@@ -58,7 +58,7 @@ export const socialMediaLinks = [
 ];
 
 const Navbar = () => {
-    const { solPrice, backendHealth, backendWS, seekerData } = useDataContext();
+    const { solPrice, backendHealth, live, seekerData } = useDataContext();
     const { openJupiter, isJupiterReady } = useJupiter();
     const [copiedName, setCopiedName] = useState<string | null>(null);
     const [skrPrice, setSkrPrice] = useState<number | null>(null);
@@ -118,9 +118,9 @@ const Navbar = () => {
                     <span>SeekerTracker</span>
                 </Link>
                 <div className={styles.mobileRight}>
-                    <div className={`${styles.liveButton} ${backendWS ? styles.live : styles.offline}`}>
+                    <div className={`${styles.liveButton} ${live ? styles.live : styles.offline}`}>
                         <div className={styles.dot} />
-                        <span>{backendWS ? "Live" : "Offline"}</span>
+                        <span>{live ? "Live" : "Offline"}</span>
                     </div>
                     <button
                         className={`${styles.hamburger} ${menuOpen ? styles.hamburgerOpen : ""}`}
@@ -208,14 +208,14 @@ const Navbar = () => {
 
             <div className={styles.socialMediaTab}>
                 <div
-                    className={`${styles.liveButton} ${backendWS ? styles.live : styles.offline}`}
+                    className={`${styles.liveButton} ${live ? styles.live : styles.offline}`}
                     title={backendHealth ? "Backend Healthy" : "Backend Down"}
                 >
                     <div
                         className={styles.dot}
                     />
 
-                    <span>{backendWS ? "Live" : "Offline"}</span>
+                    <span>{live ? "Live" : "Offline"}</span>
                 </div>
 
                 <div className={styles.socialLinks}>

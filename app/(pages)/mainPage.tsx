@@ -9,6 +9,7 @@ import Link from 'next/link';
 import TelegramModal from 'app/(components)/TelegramModal';
 import PixelSnake from 'app/(components)/PixelSnake';
 import { analytics } from 'app/(utils)/lib/analytics';
+import { fetchDomains } from 'app/(utils)/lib/fetchDomains';
 import { IoArrowDownOutline } from 'react-icons/io5';
 
 
@@ -49,7 +50,7 @@ function useCountUp(target: number, duration = 1200): number {
 }
 
 const MainPage = () => {
-    const { seekerData, backendWS } = useDataContext()
+    const { seekerData } = useDataContext()
 
     const [totalSeekerIds, setTotalSeekerIds] = useState(0)
     const [dAppCount, setDAppCount] = useState<number | null>(null)
@@ -83,120 +84,78 @@ const MainPage = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentPage, setCurrentPage] = useState<number>(1);
 
+    const applyDomainsPayload = useCallback((data: {
+        totalDomains: number,
+        domainsByDate: Record<string, number>,
+        domainsByTimeRange: Record<string, number>,
+        data: DomainInfo[]
+    }) => {
+        const {
+            totalDomains,
+            data: domains,
+            domainsByDate,
+            domainsByTimeRange
+        } = data;
+        setTotalSeekerIds(totalDomains)
+        currSkrIdCount.current = totalDomains;
+        setUiSeekerData(domains)
+
+        const todayDate = new Date().toISOString().split('T')[0];
+        setTodaySeekerIds(domainsByDate[todayDate] || 0)
+
+        if (domainsByTimeRange) {
+            setRegionDistribution({
+                Americas: domainsByTimeRange["12-18"] || 0,
+                Europe: domainsByTimeRange["6-12"] || 0,
+                "Asia-Pacific": domainsByTimeRange["0-6"] || 0,
+                Other: domainsByTimeRange["18-24"] || 0,
+            });
+        }
+    }, []);
+
+    const loadDomains = useCallback(async (opts?: {
+        sortBy?: typeof sortBy;
+        query?: string;
+        rank?: number;
+        limit?: number;
+        page?: number;
+    }) => {
+        try {
+            const data = await fetchDomains({
+                sortBy: opts?.sortBy ?? sortBy,
+                query: opts?.query ?? searchText.replace(".skr", "").trim(),
+                rank: opts?.rank ?? filterRank,
+                limit: opts?.limit ?? pageLimit,
+                page: opts?.page ?? currentPage,
+            });
+            applyDomainsPayload(data);
+        } catch (e) {
+            console.error("loadDomains", e);
+        }
+    }, [sortBy, searchText, filterRank, pageLimit, currentPage, applyDomainsPayload]);
+
+    // Initial load + poll for new activations (replaces WebSocket)
     useEffect(() => {
-        if (!backendWS) return;
-
-        backendWS.emit("getDomains", { sortBy: "newest", limit: pageLimit });
-
-        backendWS.on("sortedDomains", (data: {
-            totalDomains: number,
-            domainsByDate: Record<string, number>,
-            domainsByTimeRange: Record<string, number>,
-            data: DomainInfo[]
-        }) => {
-            const {
-                totalDomains,
-                data: domains,
-                domainsByDate,
-                domainsByTimeRange
-            } = data;
-            setTotalSeekerIds(totalDomains)
-            currSkrIdCount.current = totalDomains;
-
-            setUiSeekerData(domains)
-
-            const todayDate = new Date().toISOString().split('T')[0];
-            setTodaySeekerIds(domainsByDate[todayDate] || 0)
-
-            // regwinal
-            if (domainsByTimeRange) {
-                const asiaPacific = domainsByTimeRange["0-6"] || 0;
-                const europe = domainsByTimeRange["6-12"] || 0;
-                const americas = domainsByTimeRange["12-18"] || 0;
-                const other = domainsByTimeRange["18-24"] || 0;
-
-                setRegionDistribution({
-                    Americas: americas,
-                    Europe: europe,
-                    "Asia-Pacific": asiaPacific,
-                    Other: other,
-                });
-
+        loadDomains();
+        const id = setInterval(() => {
+            // Only auto-refresh when not searching/filtering
+            if (!searchText && !filterRank) {
+                loadDomains({ sortBy: "newest", query: "", rank: undefined });
             }
-
-
-        })
-
-        setInterval(() => {
-            if (currSkrIdCount.current > 0) return;
-            console.log("Fetching latest domains...");
-            backendWS.emit("getDomains", {
-                sortBy: "newest",
-            })
-        }, 5 * 1000);
-
-        backendWS.on("newDomain", (data) => {
-            console.log("New domain received:", data);
-            setTodaySeekerIds(prev => prev + 1)
-            setTotalSeekerIds(prev => prev + 1)
-            currSkrIdCount.current += 1;
-            setUiSeekerData(prev => {
-                const next = [...prev];
-                if (!next.find(d => d.name_account === data.name_account)) {
-                    const newData = {
-                        ...data,
-                        rank: data.rank ?? currSkrIdCount.current, // Assign rank if not present
-                    };
-
-                    next.unshift(newData);
-                }
-                return next;
-            });
-
-            const currentHour = new Date(data.created_at).getUTCHours();
-            setRegionDistribution(prev => {
-                const updated = { ...prev };
-                if (currentHour >= 0 && currentHour < 6) {
-                    updated["Asia-Pacific"] += 1;
-                }
-                else if (currentHour >= 6 && currentHour < 12) {
-                    updated["Europe"] += 1;
-                }
-                else if (currentHour >= 12 && currentHour < 18) {
-                    updated["Americas"] += 1;
-                }
-                else {
-                    updated["Other"] += 1;
-                }
-                return updated;
-            });
-        })
-
-    }, [backendWS]);
+        }, 30_000);
+        return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleSort = (by: "newest" | "oldest" | "name" | "length") => {
         if (by === sortBy) return;
         setSortBy(by);
-        if (!backendWS) return;
-        backendWS.emit("getDomains", {
-            page: currentPage,
-            query: searchText,
-            sortBy: by,
-            limit: pageLimit
-        });
+        loadDomains({ sortBy: by });
     }
 
     const handlePageLimitChange = (newLimit: number) => {
         setPageLimit(newLimit);
-
-        if (!backendWS) return;
-
-        backendWS.emit("getDomains", {
-            query: searchText,
-            sortBy,
-            limit: newLimit,
-            page: currentPage, // optional: reset to first page when limit changes
-        });
+        loadDomains({ limit: newLimit });
     };
 
     useEffect(() => {
@@ -243,33 +202,20 @@ const MainPage = () => {
     }, []);
 
     const handleRankSearch = (rankNumber?: number) => {
-
-        if (!backendWS) return;
         if (rankNumber && rankNumber <= 0) return;
-
         if (rankNumber === 0 || !rankNumber) {
             handleTextSearch(searchText);
             return;
         }
-
-        backendWS.emit("getDomains", {
-            rankQuery: rankNumber
-        });
-
+        loadDomains({ rank: rankNumber, query: "" });
     }
 
 
     const handleTextSearch = (text: string) => {
-        if (!backendWS) return;
         if (text.trim()) {
             analytics.domainSearch(text.trim());
         }
-        backendWS.emit("getDomains", {
-            query: text,
-            limit: pageLimit,
-            page: currentPage,
-            sortBy
-        })
+        loadDomains({ query: text, rank: undefined });
     }
 
 

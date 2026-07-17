@@ -3,9 +3,9 @@ import { useState, useEffect, useMemo } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import styles from "./page.module.css";
 import Backbutton from "app/(components)/shared/Backbutton";
-import { useDataContext } from "app/(utils)/context/dataProvider";
 import { DomainInfo } from "app/(utils)/constantTypes";
 import { getPaginationItems } from "app/(utils)/functions";
+import { fetchDomains } from "app/(utils)/lib/fetchDomains";
 import Link from "next/link";
 import SeekerCard from "app/(components)/seekerCard";
 import { IoArrowDownOutline } from "react-icons/io5";
@@ -16,9 +16,16 @@ type Categories = "100" | "1K" | "10K";
 type SortOptions = "newest" | "oldest" | "name" | "name-desc" | "length" | "length-desc";
 type pageLimits = 10 | 20 | 50 | 100;
 
-export default function Page() {
-  const { backendWS } = useDataContext();
+function mapSort(sortBy: SortOptions): "newest" | "oldest" | "name" | "name-reverse" | "length" {
+  if (sortBy === "name-desc") return "name-reverse";
+  if (sortBy === "length-desc") return "length";
+  if (sortBy === "name" || sortBy === "oldest" || sortBy === "newest" || sortBy === "length") {
+    return sortBy;
+  }
+  return "newest";
+}
 
+export default function Page() {
   // --- State ---
   const [totalDomains, setTotalDomains] = useState(0);
   const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([]);
@@ -34,71 +41,40 @@ export default function Page() {
   const [exactMatch, setExactMatch] = useState<boolean>(false);
 
 
-  // This runs automatically whenever ANY filter changes.
+  // Load from Turso-backed API whenever filters change
   useEffect(() => {
-    if (!backendWS) return;
-
-    backendWS.emit("getDomains", {
-      sortBy,
-      limit: category ? 10000 : pageLimit,
-      page: currentPage,
-      category,
-      query: searchQuery,
-      rankQuery,
-    });
-
-  }, [backendWS, sortBy, pageLimit, currentPage, category, searchQuery, rankQuery]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const rank = rankQuery ? Number(rankQuery) : undefined;
+        const data = await fetchDomains({
+          sortBy: mapSort(sortBy),
+          limit: category ? 10000 : pageLimit,
+          page: currentPage,
+          query: searchQuery,
+          rank: rank && rank > 0 ? rank : undefined,
+        });
+        if (cancelled) return;
+        setTotalDomains(data.totalDomains);
+        // Client-side category band filter (ranks 1–100 / 1–1k / 1–10k)
+        let domains = data.data;
+        if (category === "100") domains = domains.filter((d) => (d.rank ?? 0) <= 100);
+        if (category === "1K") domains = domains.filter((d) => (d.rank ?? 0) <= 1000);
+        if (category === "10K") domains = domains.filter((d) => (d.rank ?? 0) <= 10000);
+        if (exactMatch && searchQuery) {
+          const q = searchQuery.toLowerCase();
+          domains = domains.filter((d) => d.subdomain.toLowerCase() === q);
+        }
+        setUiSeekerData(domains);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [sortBy, pageLimit, currentPage, category, searchQuery, rankQuery, exactMatch]);
 
   // --- Derived State ---
   const maxPage = Math.ceil(totalDomains / pageLimit) || 1;
-
-  // --- Effect 2: Handle Incoming Data (Listeners) ---
-  useEffect(() => {
-    if (!backendWS) return;
-
-    backendWS.emit("getDomains", {
-      sortBy: sortBy,
-      limit: pageLimit,
-      page: currentPage,
-      category: category,
-      query: searchQuery,
-      rankQuery: rankQuery,
-    });
-
-    backendWS.on("sortedDomains", (data: {
-      totalDomains: number,
-      domainsByDate: Record<string, number>,
-      domainsByTimeRange: Record<string, number>,
-      data: DomainInfo[]
-    }) => {
-      const {
-        totalDomains,
-        data: domains,
-      } = data;
-      setTotalDomains(totalDomains)
-      setUiSeekerData(domains)
-    })
-
-    backendWS.on("newDomain", (data) => {
-      setTotalDomains(prev => prev + 1)
-      setUiSeekerData(prev => {
-        const next = [...prev];
-        if (!next.find(d => d.name_account === data.name_account)) {
-          const newData = {
-            ...data,
-            rank: data.rank ?? totalDomains,
-          };
-
-          next.unshift(newData);
-        }
-        return next;
-      });
-
-
-    })
-
-  }, [backendWS]);
-
 
 
   const handlePageChange = (newPage: number) => {

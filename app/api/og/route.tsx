@@ -5,7 +5,7 @@ export const runtime = 'edge'
 
 async function fetchSeekersCount(): Promise<number> {
     try {
-        const response = await fetch('https://api.seeker.solana.charity/allDomains', {
+        const response = await fetch('https://seekertracker.com/api/domains', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pageSize: 1 }),

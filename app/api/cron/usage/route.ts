@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
-import { io } from "socket.io-client";
-import { WS_URL, CONN_RPC_URL } from "app/(utils)/constant";
+import { CONN_RPC_URL } from "app/(utils)/constant";
 import { DomainInfo } from "app/(utils)/constantTypes";
+import { listDomains } from "app/(utils)/lib/domainStore";
 
 const HELIUS_CONCURRENCY = 20;
 const MAX_DURATION_MS = 250_000; // stop gracefully before Vercel's 300s limit
@@ -51,26 +51,8 @@ async function ensureSchema(client: ReturnType<typeof getTurso>) {
 }
 
 async function fetchAllDomains(): Promise<DomainInfo[]> {
-    return new Promise((resolve, reject) => {
-        const socket = io(WS_URL, { transports: ["websocket"], timeout: 15_000 });
-        const timer = setTimeout(() => { socket.disconnect(); reject(new Error("WS timeout")); }, 20_000);
-
-        socket.on("connect", () => {
-            socket.emit("getDomains", { sortBy: "oldest", limit: 100_000, page: 1 });
-        });
-
-        socket.on("sortedDomains", (data: { data: DomainInfo[] }) => {
-            clearTimeout(timer);
-            socket.disconnect();
-            resolve(data.data ?? []);
-        });
-
-        socket.on("connect_error", (err: Error) => {
-            clearTimeout(timer);
-            socket.disconnect();
-            reject(err);
-        });
-    });
+    const result = listDomains({ page: 1, pageSize: 200_000, sortBy: "oldest" });
+    return result.data;
 }
 
 async function getOwnerTxCounts(owner: string, now: number) {

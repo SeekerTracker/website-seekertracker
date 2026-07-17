@@ -8,15 +8,11 @@ import { WalletProviderWrapper } from "./(utils)/context/walletProvider";
 import Navbar from "./(components)/navbar";
 import Footer from "./(components)/footer";
 import ToastMessage from "./(components)/toastMessage";
-import { Analytics } from "@vercel/analytics/next";
-
 const jetBrains = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
-
-
 
 const SLOGAN = "The unofficial Solana Mobile ecosystem explorer";
 const DESCRIPTION = `${SLOGAN}. Search and track .skr SeekerIDs, on-chain activity, apps, and analytics.`;
@@ -62,12 +58,7 @@ export default async function RootLayout({
           strategy="beforeInteractive"
           data-preload
         />
-        <Script
-          defer
-          src="https://stats.sal.fun/script.js"
-          data-website-id="9fd8f232-a438-449a-a6d9-ac217f403a51"
-        />
-      </head>
+</head>
       <body className={`${jetBrains.variable}`}>
         <div className={`mainWholeAppContainer`}>
           <WalletProviderWrapper>
@@ -76,8 +67,7 @@ export default async function RootLayout({
               <Navbar />
               <ToastMessage />
               {children}
-              <Analytics />
-              <Footer />
+<Footer />
             </DataProviderClient>
           </WalletProviderWrapper>
         </div>

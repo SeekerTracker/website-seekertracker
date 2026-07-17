@@ -9,14 +9,18 @@ import React, {
     useEffect,
 } from "react";
 import { SeekerData } from "../constantTypes";
-import { getWebSocket } from "../lib/webSocket";
-import { Socket } from "socket.io-client";
 
 type Ctx = {
     solPrice: number;
     backendHealth: boolean;
     seekerData: SeekerData;
-    backendWS: Socket | null;
+    /** True when Turso-backed APIs are healthy (replaces old WebSocket "Live") */
+    live: boolean;
+    /**
+     * @deprecated Socket.io removed with Supabase/charity backend.
+     * Always null — kept so older call sites compile during migration.
+     */
+    backendWS: null;
 };
 
 const defaultCtx: Ctx = {
@@ -27,6 +31,7 @@ const defaultCtx: Ctx = {
         token24hVol: 0,
         fundBalance: 0,
     },
+    live: false,
     backendWS: null,
 };
 
@@ -37,41 +42,56 @@ export default function DataProviderClient({
     initialData,
 }: {
     children: ReactNode;
-    initialData: Omit<Ctx, "backendWS">;
+    initialData: Omit<Ctx, "backendWS" | "live">;
 }) {
     const [solPrice, setSolPrice] = useState<number>(initialData.solPrice);
-    const [backendWS, setBackendWS] = useState<Socket | null>(null);
+    const [live, setLive] = useState<boolean>(initialData.backendHealth);
 
-    // ✅ connect websocket only on client
+    // Poll health + SOL price (replaces WebSocket priceUpdate)
     useEffect(() => {
-        const ws = getWebSocket();
-        if (!ws) return;
+        let cancelled = false;
 
-        setBackendWS(ws);
+        const tick = async () => {
+            try {
+                const [h, p] = await Promise.all([
+                    fetch("/api/health", { cache: "no-store" }),
+                    fetch("/api/price", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: "{}",
+                        cache: "no-store",
+                    }),
+                ]);
+                if (cancelled) return;
+                setLive(h.ok);
+                if (p.ok) {
+                    const j = await p.json();
+                    if (typeof j.usdPrice === "number" && j.usdPrice > 0) {
+                        setSolPrice(j.usdPrice);
+                    }
+                }
+            } catch {
+                if (!cancelled) setLive(false);
+            }
+        };
 
-        ws.on("priceUpdate", (data) => {
-            const { usdPrice } = data;
-            console.log("💰 Received price update:", usdPrice);
-            setSolPrice(usdPrice);
-        });
-
-        ws.on("disconnect", () => console.log("❌ WebSocket disconnected"));
-
+        tick();
+        const id = setInterval(tick, 30_000);
         return () => {
-            ws.off("priceUpdate");
-            ws.off("disconnect");
+            cancelled = true;
+            clearInterval(id);
         };
     }, []);
 
-    // ✅ memoized context data
     const toSend = useMemo<Ctx>(
         () => ({
             solPrice,
-            backendHealth: initialData.backendHealth,
+            backendHealth: live,
             seekerData: initialData.seekerData,
-            backendWS,
+            live,
+            backendWS: null,
         }),
-        [solPrice, initialData, backendWS]
+        [solPrice, initialData.seekerData, live]
     );
 
     return <DataContext.Provider value={toSend}>{children}</DataContext.Provider>;

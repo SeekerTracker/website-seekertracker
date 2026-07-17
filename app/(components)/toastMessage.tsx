@@ -14,44 +14,13 @@ type ToastMessage = {
     link?: string;
 }
 const ToastMessage = () => {
-    const { backendWS } = useDataContext()
+    const { live } = useDataContext()
     const [newMessage, setNewMessage] = useState<ToastMessage[]>([])
     const router = useRouter()
 
     useEffect(() => {
-        if (!backendWS) return
-        backendWS.on("newDomain", (data) => {
-            const { subdomain, domain } = data
-            const message: ToastMessage = {
-                id: uuid(),
-                message: `New Seeker Activated: ${subdomain}${domain}`,
-                timestamp: Date.now(),
-                link: `/id/${subdomain}${domain}`
-            }
-            setNewMessage(prev => [message, ...prev])
-            setTimeout(() => {
-                setNewMessage(prev => prev.filter(msg => msg.id !== message.id))
-            }, MSG_TIMEOUT)
-        })
-
-        // setInterval(() => {
-        //     const newTestMessage = {
-        //         id: uuid(),
-        //         message: `This is a test message ${uuid()}`,
-        //         timestamp: Date.now(),
-        //     }
-        //     setNewMessage(prev => [newTestMessage, ...prev])
-        //     setTimeout(() => {
-        //         setNewMessage(prev => prev.filter(msg => msg.id !== newTestMessage.id))
-        //     }, MSG_TIMEOUT)
-        // }, 1000);
-
-        return () => {
-            backendWS.off("newDomain")
-        }
-
-
-    }, [backendWS])
+        // Live domain toasts used charity WebSocket; REST polling on homepage covers updates.
+    }, [live])
 
     function handleRedirect(link?: string) {
         if (!link) return

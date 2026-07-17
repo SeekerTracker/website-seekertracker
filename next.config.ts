@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Bundle domain snapshot for serverless domain APIs
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./data/**/*"],
+    "/*": ["./data/**/*"],
+  },
+
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "pbs.twimg.com" },

@@ -1,64 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
+import { getOwnerToShortestSubdomain } from "app/(utils)/lib/domainStore";
 
-const BE_URL = "https://api.seeker.solana.charity";
-
-type DomainInfo = {
-    owner: string;
-    subdomain: string;
-};
-
-// Cache for domain lookups (5 minute TTL)
-let domainCache: Map<string, string> | null = null;
-let cacheTimestamp = 0;
-const CACHE_TTL = 5 * 60 * 1000;
-
-async function getDomainsByOwner(wallets: string[]): Promise<Map<string, string>> {
-    const now = Date.now();
-
-    // Return cached data if valid
-    if (domainCache && domainCache.size > 0 && (now - cacheTimestamp) < CACHE_TTL) {
-        return domainCache;
-    }
-
+async function getDomainsByOwner(_wallets: string[]): Promise<Map<string, string>> {
     try {
-        const response = await fetch(`${BE_URL}/allDomains`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pageSize: 200000 }),
-            cache: 'no-store'
-        });
-
-        if (!response.ok) {
-            console.error("Failed to fetch domains:", response.status);
-            return domainCache || new Map();
-        }
-
-        const data = await response.json();
-        const ownerToDomain = new Map<string, string>();
-
-        if (data.success && Array.isArray(data.data)) {
-            // Process all domains, prefer shorter/cleaner subdomain names
-            for (const domain of data.data as DomainInfo[]) {
-                if (domain.owner && domain.subdomain) {
-                    const existing = ownerToDomain.get(domain.owner);
-                    // Keep shorter subdomain names (they're usually the "main" ones)
-                    if (!existing || domain.subdomain.length < existing.length) {
-                        ownerToDomain.set(domain.owner, domain.subdomain);
-                    }
-                }
-            }
-            console.log(`Loaded ${ownerToDomain.size} domain owners from ${data.data.length} domains`);
-        }
-
-        if (ownerToDomain.size > 0) {
-            domainCache = ownerToDomain;
-            cacheTimestamp = now;
-        }
-        return ownerToDomain;
+        return getOwnerToShortestSubdomain();
     } catch (error) {
         console.error("Error fetching domains:", error);
-        return domainCache || new Map();
+        return new Map();
     }
 }
 

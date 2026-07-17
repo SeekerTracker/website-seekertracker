@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import styles from "./page.module.css";
-import { useDataContext } from "app/(utils)/context/dataProvider";
 import { IoBarChart, IoChevronBack, IoChevronForward } from "react-icons/io5";
 import {
     BarChart,
@@ -49,7 +48,6 @@ const getWeekRange = (weekKey: string) => {
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export default function ActivationsPage() {
-    const { backendWS } = useDataContext();
     const [domainsByDate, setDomainsByDate] = useState<Record<string, number>>({});
     const [totalDomains, setTotalDomains] = useState(0);
     const [loaded, setLoaded] = useState(false);
@@ -59,16 +57,27 @@ export default function ActivationsPage() {
     const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
 
     useEffect(() => {
-        if (!backendWS) return;
-        backendWS.emit("getDomains", { sortBy: "newest", limit: 1 });
-        const handler = (data: { totalDomains: number; domainsByDate: Record<string, number> }) => {
-            setTotalDomains(data.totalDomains);
-            setDomainsByDate(data.domainsByDate || {});
-            setLoaded(true);
-        };
-        backendWS.on("sortedDomains", handler);
-        return () => { backendWS.off("sortedDomains", handler); };
-    }, [backendWS]);
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await fetch("/api/domains", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ sortBy: "newest", limit: 1 }),
+                    cache: "no-store",
+                });
+                if (!res.ok || cancelled) return;
+                const data = await res.json();
+                if (cancelled) return;
+                setTotalDomains(data.totalDomains || 0);
+                setDomainsByDate(data.domainsByDate || {});
+                setLoaded(true);
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
     const today = new Date().toISOString().slice(0, 10);
 
