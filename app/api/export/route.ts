@@ -55,7 +55,7 @@ type fetchAllDomainResponse = {
 
 const fetchAllDomains = async (options: FetchOptions): Promise<fetchAllDomainResponse> => {
     const { maxCount, beforeTimestamp } = options;
-    const result = listDomains({
+    const result = await listDomains({
         page: 1,
         pageSize: maxCount || 200_000,
         beforeTimestamp:

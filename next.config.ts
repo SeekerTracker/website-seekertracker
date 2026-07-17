@@ -3,9 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Bundle domain snapshot for serverless domain APIs
   outputFileTracingIncludes: {
-    "/api/**/*": ["./data/**/*"],
-    "/*": ["./data/**/*"],
+    "/api/**/*": ["./data/**/*", "./public/data/**/*"],
+    "/*": ["./data/**/*", "./public/data/**/*"],
   },
+  // Native canvas used only for legacy passport PNG route — externalize for CF
+  serverExternalPackages: ["canvas", "@napi-rs/canvas"],
 
   images: {
     remotePatterns: [

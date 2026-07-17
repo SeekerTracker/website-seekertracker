@@ -57,3 +57,9 @@ package-lock.json
 .open-next/
 .dev.vars
 .wrangler/
+
+# Large binaries excluded from CF Workers assets (25MB limit)
+_cf_exclude/
+public/**/*.apk
+public/snake/snake.apk
+public/seekertracker.apk

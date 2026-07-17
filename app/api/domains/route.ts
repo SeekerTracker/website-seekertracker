@@ -25,7 +25,7 @@ async function handle(body: Record<string, unknown>) {
   const beforeTimestamp =
     body.beforeTimestamp != null ? String(body.beforeTimestamp) : null;
 
-  const result = listDomains({
+  const result = await listDomains({
     page,
     pageSize,
     sortBy,

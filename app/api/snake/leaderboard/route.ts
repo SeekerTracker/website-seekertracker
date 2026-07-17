@@ -4,7 +4,7 @@ import { getOwnerToShortestSubdomain } from "app/(utils)/lib/domainStore";
 
 async function getDomainsByOwner(_wallets: string[]): Promise<Map<string, string>> {
     try {
-        return getOwnerToShortestSubdomain();
+        return await getOwnerToShortestSubdomain();
     } catch (error) {
         console.error("Error fetching domains:", error);
         return new Map();

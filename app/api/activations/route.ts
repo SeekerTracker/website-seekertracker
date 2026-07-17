@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     new Date().toISOString().slice(0, 10);
 
   try {
-    const { total, domainsByDate } = domainStats();
+    const { total, domainsByDate } = await domainStats();
     const entries = Object.entries(domainsByDate).sort(([a], [b]) =>
       a.localeCompare(b)
     );

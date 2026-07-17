@@ -6,34 +6,38 @@
     "dev": "next dev --turbopack -p 8002",
     "build": "next build",
     "start": "next start -p 8002",
-    "lint": "eslint"
+    "lint": "eslint",
+    "preview": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build --dangerouslyUseUnsupportedNextVersion && wrangler deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
-    "@napi-rs/canvas": "^0.1.84",
     "@solana/connector": "^0.1.10",
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
     "@vercel/analytics": "^1.6.1",
     "bn.js": "^5.2.2",
     "bs58": "^6.0.0",
-    "canvas": "^3.2.0",
     "next": "16.0.10",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-icons": "^5.5.0",
+    "react-is": "^19.2.7",
     "react-zoom-pan-pinch": "^3.7.0",
     "recharts": "^3.7.0",
     "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@opennextjs/cloudflare": "^1.20.1",
     "@types/bn.js": "^5.2.0",
     "@types/node": "^25.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.112.0"
   }
 }

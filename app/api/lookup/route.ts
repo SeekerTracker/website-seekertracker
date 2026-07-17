@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const domains = getDomainsByOwner(wallet).map((d) => ({
+    const rows = await getDomainsByOwner(wallet);
+    const domains = rows.map((d) => ({
       subdomain: d.subdomain,
       domain: d.domain || ".skr",
       createdAt: d.created_at,

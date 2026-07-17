@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     if (!raw) {
       return NextResponse.json({ message: "Invalid domain" }, { status: 400 });
     }
-    const row = getDomainByName(raw);
+    const row = await getDomainByName(raw);
     if (!row) {
       return NextResponse.json({ message: "Domain not found" }, { status: 404 });
     }

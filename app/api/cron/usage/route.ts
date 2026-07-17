@@ -51,7 +51,7 @@ async function ensureSchema(client: ReturnType<typeof getTurso>) {
 }
 
 async function fetchAllDomains(): Promise<DomainInfo[]> {
-    const result = listDomains({ page: 1, pageSize: 200_000, sortBy: "oldest" });
+    const result = await listDomains({ page: 1, pageSize: 200_000, sortBy: "oldest" });
     return result.data;
 }
 

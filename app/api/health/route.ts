@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const stats = domainStats();
+    const stats = await domainStats();
     return NextResponse.json({
       status: stats.total > 0 ? "ok" : "empty",
       domains: stats.total,
