@@ -22,3 +22,9 @@ zone_name = "seekertracker.com"
 
 [vars]
 NEXT_PUBLIC_SITE_URL = "https://seekertracker.com"
+
+# Large downloads (APKs exceed Workers static asset 25MB limit)
+[[r2_buckets]]
+binding = "DOWNLOADS"
+bucket_name = "seekertracker-assets"
+
