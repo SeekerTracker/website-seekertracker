@@ -1,0 +1,8 @@
+name = "seekertracker-domain-indexer"
+main = "index.js"
+compatibility_date = "2025-05-01"
+workers_dev = false
+
+# Every 15 minutes — pull new .skr registrations from chain into Turso
+[triggers]
+crons = ["*/15 * * * *"]

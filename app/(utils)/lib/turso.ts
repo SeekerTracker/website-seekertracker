@@ -2,13 +2,22 @@ import { createClient, type Client } from "@libsql/client";
 
 let client: Client | null = null;
 
+function tursoUrl(): string | undefined {
+  const raw =
+    process.env.TURSO_DATABASE_URL || process.env.TURSO_URL || undefined;
+  if (!raw) return undefined;
+  // libsql client accepts libsql:// or https://
+  return raw.replace(/^http:\/\//, "https://");
+}
+
 export function getTurso(): Client {
-  if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
+  const url = tursoUrl();
+  if (!url || !process.env.TURSO_AUTH_TOKEN) {
     throw new Error("TURSO_DATABASE_URL / TURSO_AUTH_TOKEN not configured");
   }
   if (!client) {
     client = createClient({
-      url: process.env.TURSO_DATABASE_URL,
+      url,
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
   }
@@ -16,7 +25,7 @@ export function getTurso(): Client {
 }
 
 export function hasTurso(): boolean {
-  return Boolean(process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN);
+  return Boolean(tursoUrl() && process.env.TURSO_AUTH_TOKEN);
 }
 
 /** Domain row as stored in Turso / returned by list APIs */
