@@ -1,27 +1,12 @@
 import { generateMetaTagsHtml, isSocialMediaBot } from "app/(utils)/metadata";
 import { DomainOgCard } from "app/(utils)/lib/domainOgCard";
 import { getDomainByName } from "app/(utils)/lib/domainStore";
+import { LOGO_OG_DATA_URL } from "app/(utils)/lib/logoOgDataUrl";
+import { getOnchainDomainData } from "app/(utils)/onchainData";
 import { ImageResponse } from "next/og";
 import { NextResponse } from "next/server";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
 
 export const runtime = "nodejs";
-
-let logoDataUrlCache: string | null = null;
-
-async function getLogoDataUrl(): Promise<string | undefined> {
-  if (logoDataUrlCache) return logoDataUrlCache;
-  try {
-    // RGBA logo — Satori is flaky with indexed/palette PNGs
-    const buf = await readFile(join(process.cwd(), "public", "logo-og.png"));
-    logoDataUrlCache = `data:image/png;base64,${buf.toString("base64")}`;
-    return logoDataUrlCache;
-  } catch (e) {
-    console.error("OG logo load failed", e);
-    return undefined;
-  }
-}
 
 /**
  * SeekerID Open Graph / Telegram share image (1200×630).
@@ -67,7 +52,15 @@ export async function GET(request: Request) {
     console.error("OG domain lookup failed", e);
   }
 
-  const logoSrc = await getLogoDataUrl();
+  // Snapshot/Turso miss (e.g. rare names) — still show activation from chain
+  if (!activatedAt) {
+    try {
+      const onchain = await getOnchainDomainData(".skr", baseName);
+      if (onchain?.created_at) activatedAt = onchain.created_at;
+    } catch (e) {
+      console.error("OG on-chain fallback failed", e);
+    }
+  }
 
   return new ImageResponse(
     (
@@ -75,14 +68,15 @@ export async function GET(request: Request) {
         displayName={displayName}
         rank={rank}
         activatedAt={activatedAt}
-        logoSrc={logoSrc}
+        logoSrc={LOGO_OG_DATA_URL}
       />
     ),
     {
       width: 1200,
       height: 630,
       headers: {
-        "Cache-Control": "public, max-age=300, s-maxage=600",
+        // Bust path when design changes: bump v query or wait max-age
+        "Cache-Control": "public, max-age=120, s-maxage=300",
       },
     }
   );

@@ -218,15 +218,16 @@ export function DomainOgCard({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={logoSrc}
-                  width={56}
-                  height={56}
+                  width={64}
+                  height={64}
                   alt=""
                   style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 14,
-                    border: "1.5px solid rgba(20,241,149,0.45)",
-                    background: "rgba(0,0,0,0.35)",
+                    width: 64,
+                    height: 64,
+                    borderRadius: 16,
+                    border: "2px solid rgba(20,241,149,0.55)",
+                    background: "#000000",
+                    boxShadow: "0 0 20px rgba(20,241,149,0.35)",
                   }}
                 />
               ) : (
