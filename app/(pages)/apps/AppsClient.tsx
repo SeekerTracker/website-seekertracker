@@ -28,7 +28,12 @@ interface DApp {
             name: string
             website?: string
             supportEmail?: string
+            twitter?: string
+            telegram?: string
+            websiteOverride?: string
         }
+        blurb?: string
+        claimed?: boolean
         androidDetails?: {
             version: string
             versionCode?: number
@@ -496,6 +501,55 @@ const AppsContent = () => {
                         <p className={styles.modalSubtitle}>{release.subtitle}</p>
                     )}
 
+                    {release.blurb && (
+                        <p className={styles.ownerBlurb}>{release.blurb}</p>
+                    )}
+
+                    {(release.publisherDetails?.twitter ||
+                        release.publisherDetails?.telegram ||
+                        release.publisherDetails?.websiteOverride ||
+                        release.publisherDetails?.website) && (
+                        <div className={styles.ownerLinks}>
+                            {(release.publisherDetails.websiteOverride ||
+                                release.publisherDetails.website) && (
+                                <a
+                                    className={styles.ownerLink}
+                                    href={
+                                        release.publisherDetails.websiteOverride ||
+                                        release.publisherDetails.website
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    Website
+                                </a>
+                            )}
+                            {release.publisherDetails.twitter && (
+                                <a
+                                    className={styles.ownerLink}
+                                    href={`https://x.com/${release.publisherDetails.twitter.replace(/^@/, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    @{release.publisherDetails.twitter.replace(/^@/, '')}
+                                </a>
+                            )}
+                            {release.publisherDetails.telegram && (
+                                <a
+                                    className={styles.ownerLink}
+                                    href={`https://t.me/${release.publisherDetails.telegram.replace(/^@/, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    Telegram
+                                </a>
+                            )}
+                        </div>
+                    )}
+
                     {release.description && (
                         <div className={styles.modalDescription}>
                             <h3 className={styles.modalSectionTitle}>About</h3>
@@ -542,6 +596,16 @@ const AppsContent = () => {
                             <span className={styles.detailValue}>{app.androidPackage}</span>
                         </div>
                     </div>
+
+                    <p className={styles.maintainInModal}>
+                        <a
+                            href={`/apps/manage`}
+                            className={styles.maintainLink}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            Own this app? Maintain listing
+                        </a>
+                    </p>
 
                     <div className={styles.shareSection}>
                         <h3 className={styles.modalSectionTitle}>Share</h3>
@@ -635,6 +699,12 @@ const AppsContent = () => {
             <div className={styles.header}>
                 <h1 className={styles.title}>Seeker dApp Store</h1>
                 <p className={styles.description}>Discover apps optimized for Solana Seeker</p>
+                <p className={styles.maintainHint}>
+                    <a href="/apps/manage" className={styles.maintainLink}>
+                        Maintain your listing
+                    </a>
+                    {' — '}claim with your store support email to add X, Telegram, and a pitch.
+                </p>
                 <div className={styles.totalCount}>
                     <span className={styles.totalNumber}>{totalApps}</span>
                     <span className={styles.totalLabel}>

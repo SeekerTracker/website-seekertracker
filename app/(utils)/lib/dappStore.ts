@@ -1,7 +1,9 @@
 /**
  * Turso-backed Seeker dApp catalog.
  * Syncs from Solana Mobile GraphQL; marks packages missing from a sync as removed.
+ * Curated owner fields (twitter, blurb, …) survive sync and are editable via claim flow.
  */
+import { createHash, randomBytes } from "crypto";
 import type { Client } from "@libsql/client";
 import { getTurso, hasTurso } from "./turso";
 
@@ -16,9 +18,14 @@ export type DappRow = {
   publisher_name: string | null;
   publisher_website: string | null;
   support_email: string | null;
-  // Curated contact fields (not synced from upstream; for project outreach)
+  // Curated fields (owner-maintained; never overwritten by store sync)
   twitter: string | null;
   contact_email: string | null;
+  telegram: string | null;
+  blurb: string | null;
+  website_override: string | null;
+  claimed_at: string | null;
+  claimed_email: string | null;
   rating: number | null;
   reviews_json: string | null;
   category_id: string | null;
@@ -35,6 +42,15 @@ export type DappRow = {
   removed_at: string | null;
 };
 
+/** Public fields owners can set on Seeker Tracker (not the official store). */
+export type DappOwnerFields = {
+  twitter: string | null;
+  telegram: string | null;
+  blurb: string | null;
+  website_override: string | null;
+  contact_email: string | null;
+};
+
 export async function ensureDappSchema(db: Client = getTurso()) {
   await db.batch(
     [
@@ -49,6 +65,11 @@ export async function ensureDappSchema(db: Client = getTurso()) {
         support_email TEXT,
         twitter TEXT,
         contact_email TEXT,
+        telegram TEXT,
+        blurb TEXT,
+        website_override TEXT,
+        claimed_at TEXT,
+        claimed_email TEXT,
         rating REAL,
         reviews_json TEXT,
         category_id TEXT,
@@ -71,23 +92,45 @@ export async function ensureDappSchema(db: Client = getTurso()) {
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
       )`,
+      `CREATE TABLE IF NOT EXISTS seeker_dapp_claims (
+        token_hash TEXT PRIMARY KEY,
+        android_package TEXT NOT NULL,
+        email TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        used_at TEXT,
+        created_at TEXT NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS seeker_dapp_sessions (
+        token_hash TEXT PRIMARY KEY,
+        android_package TEXT NOT NULL,
+        email TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_dapp_claims_pkg ON seeker_dapp_claims(android_package)`,
+      `CREATE INDEX IF NOT EXISTS idx_dapp_sessions_pkg ON seeker_dapp_sessions(android_package)`,
     ],
     "write"
   );
 
-  // Migrate pre-existing tables: add curated contact columns if absent.
-  // (CREATE TABLE IF NOT EXISTS above won't add columns to a table that
-  // already exists, so back-fill via ALTER for the live DB.)
+  // Migrate pre-existing tables: add curated columns if absent.
   const info = await db.execute(`PRAGMA table_info(seeker_dapps)`);
   const cols = new Set(
     info.rows.map((r) => String((r as Record<string, unknown>).name))
   );
   const migrations: string[] = [];
-  if (!cols.has("twitter")) {
-    migrations.push(`ALTER TABLE seeker_dapps ADD COLUMN twitter TEXT`);
-  }
-  if (!cols.has("contact_email")) {
-    migrations.push(`ALTER TABLE seeker_dapps ADD COLUMN contact_email TEXT`);
+  for (const col of [
+    "twitter",
+    "contact_email",
+    "telegram",
+    "blurb",
+    "website_override",
+    "claimed_at",
+    "claimed_email",
+  ] as const) {
+    if (!cols.has(col)) {
+      migrations.push(`ALTER TABLE seeker_dapps ADD COLUMN ${col} TEXT`);
+    }
   }
   if (migrations.length) {
     await db.batch(migrations, "write");
@@ -298,9 +341,15 @@ function rowToApiApp(row: Record<string, unknown>) {
           row.publisher_website != null ? String(row.publisher_website) : "",
         supportEmail:
           row.support_email != null ? String(row.support_email) : "",
-        // Curated project X/Twitter (public); contact_email intentionally omitted
+        // Curated (owner-maintained on Seeker Tracker)
         twitter: row.twitter != null ? String(row.twitter) : "",
+        telegram: row.telegram != null ? String(row.telegram) : "",
+        websiteOverride:
+          row.website_override != null ? String(row.website_override) : "",
       },
+      // Owner pitch for Seeker Tracker (not official store copy)
+      blurb: row.blurb != null ? String(row.blurb) : "",
+      claimed: Boolean(row.claimed_at),
       androidDetails: {
         version: row.version != null ? String(row.version) : "",
         versionCode:
@@ -309,6 +358,240 @@ function rowToApiApp(row: Record<string, unknown>) {
       },
     },
   };
+}
+
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function newToken(): string {
+  return randomBytes(32).toString("base64url");
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+/** True if email matches store support email or curated contact email. */
+export function emailCanClaimDapp(
+  row: Record<string, unknown>,
+  email: string
+): boolean {
+  const e = normalizeEmail(email);
+  if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return false;
+  const support =
+    row.support_email != null ? normalizeEmail(String(row.support_email)) : "";
+  const contact =
+    row.contact_email != null ? normalizeEmail(String(row.contact_email)) : "";
+  const claimed =
+    row.claimed_email != null ? normalizeEmail(String(row.claimed_email)) : "";
+  return e === support || e === contact || e === claimed;
+}
+
+export async function getDappRow(
+  androidPackage: string,
+  db: Client = getTurso()
+): Promise<Record<string, unknown> | null> {
+  await ensureDappSchema(db);
+  const res = await db.execute({
+    sql: `SELECT * FROM seeker_dapps WHERE android_package = ? LIMIT 1`,
+    args: [androidPackage],
+  });
+  return (res.rows[0] as unknown as Record<string, unknown>) || null;
+}
+
+/**
+ * Create a single-use magic link token (raw returned once; only hash stored).
+ * Valid 30 minutes.
+ */
+export async function createClaimToken(
+  androidPackage: string,
+  email: string,
+  db: Client = getTurso()
+): Promise<{ token: string; expiresAt: string }> {
+  await ensureDappSchema(db);
+  const token = newToken();
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+  await db.execute({
+    sql: `INSERT INTO seeker_dapp_claims (token_hash, android_package, email, expires_at, created_at)
+          VALUES (?, ?, ?, ?, ?)`,
+    args: [
+      hashToken(token),
+      androidPackage,
+      normalizeEmail(email),
+      expiresAt,
+      new Date().toISOString(),
+    ],
+  });
+  return { token, expiresAt };
+}
+
+/** Consume claim token → create session (7 days). Returns session raw token. */
+export async function consumeClaimToken(
+  token: string,
+  db: Client = getTurso()
+): Promise<{ sessionToken: string; androidPackage: string; email: string } | null> {
+  await ensureDappSchema(db);
+  const th = hashToken(token);
+  const res = await db.execute({
+    sql: `SELECT * FROM seeker_dapp_claims WHERE token_hash = ? LIMIT 1`,
+    args: [th],
+  });
+  const row = res.rows[0] as unknown as Record<string, unknown> | undefined;
+  if (!row) return null;
+  if (row.used_at) return null;
+  if (new Date(String(row.expires_at)).getTime() < Date.now()) return null;
+
+  await db.execute({
+    sql: `UPDATE seeker_dapp_claims SET used_at = ? WHERE token_hash = ?`,
+    args: [new Date().toISOString(), th],
+  });
+
+  const sessionToken = newToken();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const pkg = String(row.android_package);
+  const email = normalizeEmail(String(row.email));
+  await db.execute({
+    sql: `INSERT INTO seeker_dapp_sessions (token_hash, android_package, email, expires_at, created_at)
+          VALUES (?, ?, ?, ?, ?)`,
+    args: [hashToken(sessionToken), pkg, email, expiresAt, new Date().toISOString()],
+  });
+
+  // Mark claimed on listing
+  await db.execute({
+    sql: `UPDATE seeker_dapps
+          SET claimed_at = COALESCE(claimed_at, ?), claimed_email = ?
+          WHERE android_package = ?`,
+    args: [new Date().toISOString(), email, pkg],
+  });
+
+  return { sessionToken, androidPackage: pkg, email };
+}
+
+export async function getSession(
+  sessionToken: string,
+  db: Client = getTurso()
+): Promise<{ androidPackage: string; email: string } | null> {
+  if (!sessionToken) return null;
+  await ensureDappSchema(db);
+  const res = await db.execute({
+    sql: `SELECT * FROM seeker_dapp_sessions WHERE token_hash = ? LIMIT 1`,
+    args: [hashToken(sessionToken)],
+  });
+  const row = res.rows[0] as unknown as Record<string, unknown> | undefined;
+  if (!row) return null;
+  if (new Date(String(row.expires_at)).getTime() < Date.now()) return null;
+  return {
+    androidPackage: String(row.android_package),
+    email: normalizeEmail(String(row.email)),
+  };
+}
+
+export async function updateOwnerFields(
+  androidPackage: string,
+  fields: DappOwnerFields,
+  db: Client = getTurso()
+): Promise<void> {
+  await ensureDappSchema(db);
+  await db.execute({
+    sql: `UPDATE seeker_dapps SET
+            twitter = ?,
+            telegram = ?,
+            blurb = ?,
+            website_override = ?,
+            contact_email = ?
+          WHERE android_package = ?`,
+    args: [
+      fields.twitter,
+      fields.telegram,
+      fields.blurb,
+      fields.website_override,
+      fields.contact_email,
+      androidPackage,
+    ],
+  });
+}
+
+export function sanitizeOwnerFields(input: {
+  twitter?: string | null;
+  telegram?: string | null;
+  blurb?: string | null;
+  website_override?: string | null;
+  contact_email?: string | null;
+}): DappOwnerFields {
+  const clean = (s: string | null | undefined, max: number) => {
+    if (s == null) return null;
+    const t = String(s).trim();
+    if (!t) return null;
+    return t.slice(0, max);
+  };
+
+  let twitter = clean(input.twitter, 64);
+  if (twitter) {
+    twitter = twitter.replace(/^@/, "").replace(/https?:\/\/(www\.)?(twitter|x)\.com\//i, "");
+    twitter = twitter.split("/")[0].split("?")[0] || null;
+  }
+
+  let telegram = clean(input.telegram, 64);
+  if (telegram) {
+    telegram = telegram.replace(/^@/, "").replace(/https?:\/\/(t\.me|telegram\.me)\//i, "");
+    telegram = telegram.split("/")[0].split("?")[0] || null;
+  }
+
+  let website = clean(input.website_override, 200);
+  if (website && !/^https?:\/\//i.test(website)) {
+    website = `https://${website}`;
+  }
+  if (website) {
+    try {
+      const u = new URL(website);
+      if (!["http:", "https:"].includes(u.protocol)) website = null;
+    } catch {
+      website = null;
+    }
+  }
+
+  let contact = clean(input.contact_email, 120);
+  if (contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) {
+    contact = null;
+  }
+
+  return {
+    twitter,
+    telegram,
+    blurb: clean(input.blurb, 280),
+    website_override: website,
+    contact_email: contact ? normalizeEmail(contact) : null,
+  };
+}
+
+export async function searchDappsForClaim(
+  query: string,
+  db: Client = getTurso(),
+  limit = 20
+) {
+  await ensureDappSchema(db);
+  const q = `%${query.trim().toLowerCase()}%`;
+  const res = await db.execute({
+    sql: `SELECT android_package, display_name, icon_uri, publisher_name, support_email, status
+          FROM seeker_dapps
+          WHERE lower(display_name) LIKE ? OR lower(android_package) LIKE ? OR lower(publisher_name) LIKE ?
+          ORDER BY status ASC, display_name ASC
+          LIMIT ?`,
+    args: [q, q, q, limit],
+  });
+  return res.rows.map((r) => ({
+    androidPackage: String(r.android_package),
+    displayName: r.display_name != null ? String(r.display_name) : String(r.android_package),
+    iconUri: r.icon_uri != null ? String(r.icon_uri) : null,
+    publisherName: r.publisher_name != null ? String(r.publisher_name) : null,
+    // Mask email for privacy — only show domain
+    supportEmailDomain:
+      r.support_email != null && String(r.support_email).includes("@")
+        ? String(r.support_email).split("@")[1]
+        : null,
+    status: String(r.status || "active"),
+  }));
 }
 
 /** Build explore-shaped response from Turso for the apps UI. */
