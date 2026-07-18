@@ -76,18 +76,22 @@ const AppsContent = () => {
     const fetchCatalog = useCallback(async () => {
         try {
             setLoading(true)
-            const response = await fetch('/api/dappstore')
-
+            setError(null)
+            const response = await fetch('/api/dappstore', { cache: 'no-store' })
             const data = await response.json()
 
-            if (data.error) {
-                throw new Error(data.error)
+            if (!response.ok || data.error) {
+                throw new Error(data.detail || data.error || `Catalog failed (${response.status})`)
             }
 
             const units = data.data?.explore?.units?.edges || []
             const categoryUnits = units
                 .filter((edge: any) => edge.node.__typename === 'DAppsByCategoryUnit')
                 .map((edge: any) => edge.node)
+
+            if (categoryUnits.length === 0 || (data.totalApps ?? 0) === 0) {
+                throw new Error('dApp catalog returned empty — try again in a moment')
+            }
 
             setCategories(categoryUnits)
         } catch (err) {
@@ -129,19 +133,40 @@ const AppsContent = () => {
         }
     }, [router])
 
-    // Open app from URL param after data loads
+    // Open app from URL param after data loads (deep link /apps?app=com.foo)
     useEffect(() => {
         const appParam = searchParams.get('app')
-        if (appParam && categories.length > 0 && !selectedApp) {
-            // Find the app in categories
+        if (!appParam || selectedApp) return
+
+        // Prefer catalog hit
+        if (categories.length > 0) {
             for (const cat of categories) {
                 const found = cat.dApps.edges.find(edge => edge.node.androidPackage === appParam)
                 if (found) {
                     setSelectedApp(found.node)
-                    break
+                    return
                 }
             }
         }
+
+        // Fallback: package lookup if catalog missed it (partial fetch / CF budget)
+        let cancelled = false
+        ;(async () => {
+            try {
+                const res = await fetch(
+                    `/api/dappstore?package=${encodeURIComponent(appParam)}`,
+                    { cache: 'no-store' }
+                )
+                if (!res.ok || cancelled) return
+                const data = await res.json()
+                if (data.app && !cancelled) {
+                    setSelectedApp(data.app as DApp)
+                }
+            } catch {
+                /* ignore — user still sees catalog when it loads */
+            }
+        })()
+        return () => { cancelled = true }
     }, [searchParams, categories, selectedApp])
 
     const toggleFavorite = (packageName: string, e: React.MouseEvent) => {
