@@ -3,8 +3,25 @@ import { DomainOgCard } from "app/(utils)/lib/domainOgCard";
 import { getDomainByName } from "app/(utils)/lib/domainStore";
 import { ImageResponse } from "next/og";
 import { NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const runtime = "nodejs";
+
+let logoDataUrlCache: string | null = null;
+
+async function getLogoDataUrl(): Promise<string | undefined> {
+  if (logoDataUrlCache) return logoDataUrlCache;
+  try {
+    // RGBA logo — Satori is flaky with indexed/palette PNGs
+    const buf = await readFile(join(process.cwd(), "public", "logo-og.png"));
+    logoDataUrlCache = `data:image/png;base64,${buf.toString("base64")}`;
+    return logoDataUrlCache;
+  } catch (e) {
+    console.error("OG logo load failed", e);
+    return undefined;
+  }
+}
 
 /**
  * SeekerID Open Graph / Telegram share image (1200×630).
@@ -50,12 +67,15 @@ export async function GET(request: Request) {
     console.error("OG domain lookup failed", e);
   }
 
+  const logoSrc = await getLogoDataUrl();
+
   return new ImageResponse(
     (
       <DomainOgCard
         displayName={displayName}
         rank={rank}
         activatedAt={activatedAt}
+        logoSrc={logoSrc}
       />
     ),
     {

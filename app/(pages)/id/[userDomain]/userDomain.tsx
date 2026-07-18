@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styles from './userDomain.module.css'
 import { getOnchainDomainData } from 'app/(utils)/onchainData';
 import { DomainInfo } from 'app/(utils)/constantTypes';
@@ -56,10 +56,35 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
     const [portfolioLoading, setPortfolioLoading] = useState(false);
     const [showAllTokens, setShowAllTokens] = useState(false);
     const [copied, setCopied] = useState<string>('');
+    const passportRef = useRef<HTMLDivElement>(null);
+    const [tilt, setTilt] = useState({ rx: 0, ry: 0, glareX: 50, glareY: 50 });
+    const [tilting, setTilting] = useState(false);
 
     const splitted = userDomain.split('.');
     const subdomain = splitted[0];
     const domain = "." + splitted[1];
+
+    const onPassportMove = useCallback((e: React.PointerEvent) => {
+        const el = passportRef.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const px = (e.clientX - rect.left) / rect.width; // 0..1
+        const py = (e.clientY - rect.top) / rect.height;
+        const ry = (px - 0.5) * 18; // rotateY
+        const rx = (0.5 - py) * 12; // rotateX
+        setTilt({
+            rx,
+            ry,
+            glareX: px * 100,
+            glareY: py * 100,
+        });
+        setTilting(true);
+    }, []);
+
+    const onPassportLeave = useCallback(() => {
+        setTilting(false);
+        setTilt({ rx: 0, ry: 0, glareX: 50, glareY: 50 });
+    }, []);
 
     useEffect(() => {
         analytics.domainView(userDomain);
@@ -143,19 +168,50 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
         <div className={styles.main}>
             <Backbutton />
 
-            {/* HERO — the shareable SeekerID passport */}
+            {/* HERO — flat OG card, live 3D tilt on hover */}
             <section className={styles.hero}>
-                <div className={styles.passport}>
+                <div
+                    ref={passportRef}
+                    className={styles.passport}
+                    onPointerMove={onPassportMove}
+                    onPointerLeave={onPassportLeave}
+                    onPointerCancel={onPassportLeave}
+                >
                     <div className={styles.passportGlow} aria-hidden="true" />
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                        src={`/image/${subdomain}?age=true`}
-                        alt={`${userDomain} SeekerID passport`}
-                        width={1200}
-                        height={630}
-                        className={styles.passportImg}
+                    <div
+                        className={`${styles.passportStage} ${tilting ? styles.passportTilting : ''}`}
+                        style={{
+                            transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg) scale(${tilting ? 1.02 : 1})`,
+                        }}
                         onClick={copyImage}
-                    />
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                copyImage();
+                            }
+                        }}
+                        aria-label={`Copy ${userDomain} SeekerID card image`}
+                    >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src={`/image/${subdomain}?age=true&raw=true`}
+                            alt={`${userDomain} SeekerID passport`}
+                            width={1200}
+                            height={630}
+                            className={styles.passportImg}
+                            draggable={false}
+                        />
+                        <div
+                            className={styles.passportGlare}
+                            aria-hidden="true"
+                            style={{
+                                background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,255,255,0.28) 0%, rgba(20,241,149,0.08) 28%, transparent 58%)`,
+                                opacity: tilting ? 1 : 0,
+                            }}
+                        />
+                    </div>
                     {copied === 'image' && (
                         <div className={styles.copiedOverlay} aria-live="polite">Copied</div>
                     )}

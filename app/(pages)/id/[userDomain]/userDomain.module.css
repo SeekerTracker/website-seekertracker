@@ -34,7 +34,8 @@
 .passport {
   position: relative;
   width: 100%;
-  perspective: 1200px;
+  perspective: 1400px;
+  perspective-origin: 50% 45%;
 }
 
 .passportGlow {
@@ -44,26 +45,57 @@
   filter: blur(44px);
   z-index: 0;
   pointer-events: none;
+  transition: opacity 300ms var(--ease);
+}
+
+.passport:hover .passportGlow {
+  opacity: 1.15;
+}
+
+.passportStage {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  border-radius: 16px;
+  transform-style: preserve-3d;
+  transition: transform 280ms var(--ease), box-shadow 280ms var(--ease);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  will-change: transform;
+  outline: none;
+}
+
+.passportTilting {
+  transition: transform 40ms linear, box-shadow 200ms var(--ease);
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(0, 255, 217, 0.22),
+    0 0 0 1px rgba(20, 241, 149, 0.25);
+}
+
+.passportStage:focus-visible {
+  box-shadow: 0 0 0 2px #00ffd9, 0 18px 50px rgba(0, 0, 0, 0.35);
 }
 
 .passportImg {
-  position: relative;
-  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 1200 / 630;
   border-radius: 16px;
   border: 1px solid rgba(0, 255, 217, 0.28);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  transition: transform 450ms var(--ease), box-shadow 450ms var(--ease);
-  will-change: transform;
+  pointer-events: none;
+  user-select: none;
 }
 
-.passport:hover .passportImg {
-  transform: rotateX(3deg) rotateY(-3deg) scale(1.012);
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.4), 0 0 36px rgba(0, 255, 217, 0.22);
+.passportGlare {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  transition: opacity 200ms var(--ease);
+  z-index: 2;
 }
 
 .copiedOverlay {
@@ -497,6 +529,11 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hero, .node { animation: none; }
-  .passportImg, .passport:hover .passportImg { transition: none; transform: none; }
+  .passportStage,
+  .passportTilting {
+    transition: none !important;
+    transform: none !important;
+  }
+  .passportGlare { display: none; }
   .heroSkeleton, .timelineSkeleton span { animation: none; }
 }
