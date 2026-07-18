@@ -602,15 +602,13 @@ const AppsContent = () => {
                         </div>
                     </div>
 
-                    <p className={styles.maintainInModal}>
-                        <a
-                            href={`${catalogBase}/manage`}
-                            className={styles.maintainLink}
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            Own this app? Maintain listing
-                        </a>
-                    </p>
+                    <a
+                        href={`${catalogBase}/manage`}
+                        className={styles.maintainBtnModal}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        Maintain listing
+                    </a>
 
                     <div className={styles.shareSection}>
                         <h3 className={styles.modalSectionTitle}>Share</h3>
@@ -672,19 +670,7 @@ const AppsContent = () => {
         ? categories.filter(cat => cat.category.name === selectedCategory)
         : categories
 
-    if (loading) {
-        return (
-            <div className={styles.main}>
-                <Backbutton />
-                <div className={styles.loading}>
-                    <div className={styles.spinner}></div>
-                    <span>Loading dApp Store...</span>
-                </div>
-            </div>
-        )
-    }
-
-    if (error) {
+    if (error && !categories.length) {
         return (
             <div className={styles.main}>
                 <Backbutton />
@@ -703,18 +689,21 @@ const AppsContent = () => {
 
             <div className={styles.header}>
                 <h1 className={styles.title}>Seeker dApp Store</h1>
-                <p className={styles.description}>Discover apps optimized for Solana Seeker</p>
-                <p className={styles.maintainHint}>
-                    <a href="/apps/manage" className={styles.maintainLink}>
+                <p className={styles.description}>
+                    Apps for Solana Seeker — browse, favorite, and open deep links.
+                </p>
+                <div className={styles.headerActions}>
+                    <a href="/apps/manage" className={styles.maintainBtn}>
                         Maintain your listing
                     </a>
-                    {' — '}claim with your store support email to add X, Telegram, and a pitch.
-                    {' '}Also at{' '}
-                    <a href="/dapps" className={styles.maintainLink}>/dapps</a>
-                    {' '}(same catalog).
-                </p>
+                    <span className={styles.maintainSub}>
+                        Publishers: claim with your store support email
+                    </span>
+                </div>
                 <div className={styles.totalCount}>
-                    <span className={styles.totalNumber}>{totalApps}</span>
+                    <span className={styles.totalNumber}>
+                        {loading && !totalApps ? '—' : totalApps}
+                    </span>
                     <span className={styles.totalLabel}>
                         {statusFilter === 'removed'
                             ? 'Removed apps'
@@ -725,6 +714,20 @@ const AppsContent = () => {
                 </div>
             </div>
 
+            {loading && categories.length === 0 ? (
+                <div className={styles.skeletonGrid} aria-busy="true" aria-label="Loading apps">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                        <div key={i} className={styles.skeletonCard}>
+                            <div className={styles.skeletonIcon} />
+                            <div className={styles.skeletonLines}>
+                                <div className={styles.skeletonLine} />
+                                <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+            <>
             <div className={styles.searchAndSort}>
                 <div className={styles.searchBar}>
                     <input
@@ -875,6 +878,8 @@ const AppsContent = () => {
                 })}
             </div>
             )}
+            </>
+            )}
 
             {selectedApp && (
                 <AppModal app={selectedApp} onClose={() => selectApp(null)} />
@@ -888,9 +893,20 @@ const Apps = () => {
         <Suspense fallback={
             <div className={styles.main}>
                 <Backbutton />
-                <div className={styles.loading}>
-                    <div className={styles.spinner}></div>
-                    <span>Loading dApp Store...</span>
+                <div className={styles.header}>
+                    <h1 className={styles.title}>Seeker dApp Store</h1>
+                    <p className={styles.description}>Apps for Solana Seeker</p>
+                </div>
+                <div className={styles.skeletonGrid} aria-busy="true">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className={styles.skeletonCard}>
+                            <div className={styles.skeletonIcon} />
+                            <div className={styles.skeletonLines}>
+                                <div className={styles.skeletonLine} />
+                                <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         }>

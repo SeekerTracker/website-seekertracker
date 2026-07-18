@@ -59,6 +59,7 @@ const MainPage = () => {
     const [das, setDas] = useState<number | null>(null)
     const currSkrIdCount = useRef(0);
     const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([])
+    const [listLoading, setListLoading] = useState(true)
     const [todaySeekerIds, setTodaySeekerIds] = useState(0)
     const [regionDistribution, setRegionDistribution] = useState<{
         Americas: number;
@@ -132,7 +133,9 @@ const MainPage = () => {
         rank?: number;
         limit?: number;
         page?: number;
+        soft?: boolean;
     }) => {
+        if (!opts?.soft) setListLoading(true);
         try {
             const data = await fetchDomains({
                 sortBy: opts?.sortBy ?? sortBy,
@@ -144,6 +147,8 @@ const MainPage = () => {
             applyDomainsPayload(data);
         } catch (e) {
             console.error("loadDomains", e);
+        } finally {
+            setListLoading(false);
         }
     }, [sortBy, searchText, filterRank, pageLimit, currentPage, applyDomainsPayload]);
 
@@ -153,7 +158,7 @@ const MainPage = () => {
         const id = setInterval(() => {
             // Only auto-refresh when not searching/filtering
             if (!searchText && !filterRank) {
-                loadDomains({ sortBy: "newest", query: "", rank: undefined });
+                loadDomains({ sortBy: "newest", query: "", rank: undefined, soft: true });
             }
         }, 30_000);
         return () => clearInterval(id);
@@ -196,13 +201,24 @@ const MainPage = () => {
     }, []);
 
     useEffect(() => {
+        // Instant count from apps catalog cache when available
+        try {
+            const raw = sessionStorage.getItem('dappstore-catalog-v1');
+            if (raw) {
+                const p = JSON.parse(raw);
+                if (typeof p.activeCount === 'number') setDAppCount(p.activeCount);
+                else if (typeof p.totalApps === 'number') setDAppCount(p.totalApps);
+            }
+        } catch { /* ignore */ }
+
         fetch('/api/dappstore')
             .then(r => r.json())
             .then(data => {
-                if (data.totalApps) {
+                if (typeof data.activeCount === 'number') {
+                    setDAppCount(data.activeCount);
+                } else if (data.totalApps) {
                     setDAppCount(data.totalApps);
                 } else {
-                    // Fallback: count unique packages from explore data
                     const units = data.data?.explore?.units?.edges || [];
                     const seen = new Set<string>();
                     units.forEach((u: any) => {
@@ -235,19 +251,33 @@ const MainPage = () => {
     return (
         <div className={style.main}>
             <PixelSnake />
-            <div className={style.title}>
-                <Image src="/logo.png" alt="" width={100} height={100} />
-                <div className={style.titleText}>
-                    <span>Seeker tracker</span>
-                    <p className={style.slogan}>The unofficial Solana Mobile ecosystem explorer</p>
+            <header className={style.hero}>
+                <div className={style.title}>
+                    <Image src="/logo.png" alt="Seeker Tracker" width={100} height={100} priority />
+                    <div className={style.titleText}>
+                        <span>Seeker Tracker</span>
+                        <p className={style.slogan}>The unofficial Solana Mobile ecosystem explorer</p>
+                    </div>
                 </div>
-            </div>
+                <div className={style.heroCtas}>
+                    <Link href="/apps" className={style.heroCtaPrimary}>
+                        Browse apps
+                        {dAppCount != null ? ` · ${animatedDApps.toLocaleString()}` : ''}
+                    </Link>
+                    <Link href="/apps/manage" className={style.heroCtaSecondary}>
+                        Maintain listing
+                    </Link>
+                    <Link href="/explore" className={style.heroCtaSecondary}>
+                        Explore SeekerIDs
+                    </Link>
+                </div>
+            </header>
 
-            <div className={style.pageTabs}>
+            <div className={style.statsRow} aria-label="Ecosystem stats">
                 <div className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>{animatedTotal.toLocaleString()}</strong>
-                        <span>Total Seeker Ids</span>
+                        <span>SeekerIDs</span>
                     </div>
                 </div>
                 <div className={style.tabWrapper}>
@@ -256,55 +286,58 @@ const MainPage = () => {
                         <span>Today</span>
                     </div>
                 </div>
-                <Link href={'/usage'} className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <strong>{das !== null ? animatedDas.toLocaleString() : '—'}</strong>
-                        <span>DAS</span>
-                    </div>
-                </Link>
-<Link href={'/seeker-fund'} className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <strong>{seekerData.lifeTimeSolFees}&nbsp;SOL</strong>
-                        <span>💰 Seeker Fund</span>
-                    </div>
-                </Link>
-                <div className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <strong>15</strong>
-                        <span>
-                            <Image src="/icons/seeker.png" alt="" width={16} height={16} />
-                            Seekers Earned
-                        </span>
-                    </div>
-                </div>
-                <Link href={"https://store.solanamobile.com/"} target='_blank' rel="noopener noreferrer" className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <Image src="/icons/sol.png" alt="" width={32} height={32} />
-                        <span>💰 Order Seeker</span>
-                    </div>
-                </Link>
-                <Link href={"https://solyd.store/?ref=tracker"} target='_blank' rel="noopener noreferrer" className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <Image src="/icons/seeker.png" alt="" width={32} height={32} />
-                        <span>Order Case</span>
-                    </div>
-                </Link>
-                <Link href={"/export"} className={style.tabWrapper}>
-                    <div className={style.eachTab}>
-                        <strong>SKR List</strong>
-                        <span>Seeker Holders</span>
-                    </div>
-                </Link>
-                <Link href={"/apps"} className={style.tabWrapper}>
+                <Link href="/apps" className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>{dAppCount !== null ? animatedDApps.toLocaleString() : '—'}</strong>
                         <span>Apps</span>
                     </div>
                 </Link>
+                <Link href="/usage" className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>{das !== null ? animatedDas.toLocaleString() : '—'}</strong>
+                        <span>DAS</span>
+                    </div>
+                </Link>
+                <Link href="/seeker-fund" className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>{seekerData.lifeTimeSolFees}&nbsp;SOL</strong>
+                        <span>Seeker Fund</span>
+                    </div>
+                </Link>
+            </div>
+
+            <div className={style.pageTabs} aria-label="Quick links">
+                <div className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>15</strong>
+                        <span>
+                            <Image src="/icons/seeker.png" alt="" width={16} height={16} />
+                            Seekers earned
+                        </span>
+                    </div>
+                </div>
+                <Link href="https://store.solanamobile.com/" target="_blank" rel="noopener noreferrer" className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <Image src="/icons/sol.png" alt="" width={32} height={32} />
+                        <span>Order Seeker</span>
+                    </div>
+                </Link>
+                <Link href="https://solyd.store/?ref=tracker" target="_blank" rel="noopener noreferrer" className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <Image src="/icons/seeker.png" alt="" width={32} height={32} />
+                        <span>Order case</span>
+                    </div>
+                </Link>
+                <Link href="/export" className={style.tabWrapper}>
+                    <div className={style.eachTab}>
+                        <strong>SKR list</strong>
+                        <span>Seeker holders</span>
+                    </div>
+                </Link>
             </div>
 
             <div className={style.reginalCont}>
-                <span>Seeker Activation Reginal Activity:</span>
+                <span>Seeker activation regional activity</span>
                 <div className={style.reginalData}>
                     <div className={style.eachRegion}>
                         <strong>Americas:&nbsp;</strong>
@@ -383,9 +416,17 @@ const MainPage = () => {
 
                     </div>
                 </div>
+                {listLoading && uiSeekerData.length === 0 ? (
+                    <div className={style.listSkeleton} aria-busy="true" aria-label="Loading SeekerIDs">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className={style.listSkeletonCard} />
+                        ))}
+                    </div>
+                ) : null}
+
                 {uiSeekerData.length > 0 && (
                     <>
-                        <div className={style.seekerCardOuter}>
+                        <div className={`${style.seekerCardOuter} ${listLoading ? style.listRefreshing : ''}`}>
                             {uiSeekerData.map((domain) => (
                                 <SeekerCard key={domain.name_account} domainInfo={domain} showRank={filterRank! > 0} />
                             ))}
@@ -395,10 +436,12 @@ const MainPage = () => {
                         </Link>
                     </>
                 )}
-                {uiSeekerData.length === 0 && (
+                {!listLoading && uiSeekerData.length === 0 && (
                     <div className={style.noResult}>
-                        <span className={style.maginifyingGlass}>🔍</span>
-                        <Link href="https://store.solanamobile.com/" target='_blank' className={style.link}>Still available - order seeker to claim</Link>
+                        <span className={style.noResultLabel}>No SeekerIDs match</span>
+                        <Link href="https://store.solanamobile.com/" target="_blank" rel="noopener noreferrer" className={style.link}>
+                            Order a Seeker to claim a .skr ID
+                        </Link>
                     </div>
                 )}
             </div>
