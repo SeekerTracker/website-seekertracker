@@ -1,12 +1,36 @@
 .backButton {
-  display: flex;
-  background: linear-gradient(45deg, #00ff66, #00cc52);
-  color: black;
+  display: inline-flex;
   align-self: flex-start;
-  justify-self: flex-start;
-  padding: 0.5em 1em;
-  font-size: 0.9em;
-  border-radius: 1em;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.backButton a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #8eb5b5;
+  background: rgba(0, 20, 20, 0.55);
+  border: 1px solid rgba(0, 255, 217, 0.16);
+  border-radius: 999px;
+  text-decoration: none;
+  transition:
+    color 100ms ease,
+    border-color 100ms ease,
+    background 100ms ease;
+}
+
+.backButton a:hover {
+  color: #00ffd9;
+  border-color: rgba(0, 255, 217, 0.35);
+  background: rgba(0, 255, 217, 0.06);
+}
+
+.backButton a:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 255, 217, 0.22);
 }
