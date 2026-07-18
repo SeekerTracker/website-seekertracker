@@ -1,24 +1,30 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const DAPPSTORE_API = "https://dappstore.solanamobile.com/graphql";
-
 const SC = `{locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}`;
+const R2_KEY = "cache/dappstore-explore.json";
 
-// Success cache only (never cache empty/error)
-const CACHE_DURATION_MS = 30 * 60 * 1000; // 30 min
-const FETCH_BUDGET_MS = 25_000; // stay under Worker wall time
+// In-memory (per isolate) — only non-empty success
+const MEM_TTL_MS = 15 * 60 * 1000;
+// R2 durable cache — survives cold starts
+const R2_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const FETCH_BUDGET_MS = 22_000;
+const PAGE_SIZE = 20;
+const MAX_PAGES = 30;
+const PARALLEL = 5;
 
 interface CacheEntry {
   data: unknown;
   timestamp: number;
 }
 
-// Module-scope cache — fine on CF isolates; only stores non-empty success.
-const cache: Map<string, CacheEntry> = new Map();
+const memCache: Map<string, CacheEntry> = new Map();
 
+// List/catalog fields — skip long description (fetched per-app if needed)
 const APP_FIELDS = `
     androidPackage
     rating {
@@ -48,7 +54,7 @@ function getExploreQuery(after?: string): string {
                         __typename
                         ... on DAppsByCategoryUnit {
                             category { id name }
-                            dApps(systemContext: ${SC}, first: 20${afterArg}) {
+                            dApps(systemContext: ${SC}, first: ${PAGE_SIZE}${afterArg}) {
                                 edges {
                                     node { ${APP_FIELDS} }
                                 }
@@ -66,6 +72,15 @@ function getSearchQuery(searchText: string) {
   return `query { search { results(systemContext: ${SC}, searchText: "${sanitized}", first: 25) { __typename ... on DAppsUnit { dApps { edges { node { ${APP_FIELDS} } } } } } } }`;
 }
 
+function getPackageQuery(androidPackage: string) {
+  const pkg = androidPackage.replace(/"/g, '\\"');
+  return `query {
+    dAppByAndroidPackage(systemContext: ${SC}, androidPackage: "${pkg}") {
+      ${APP_FIELDS}
+    }
+  }`;
+}
+
 async function fetchFromDAppStore(query: string): Promise<{
   data?: unknown;
   errors?: Array<{ message?: string }>;
@@ -75,22 +90,18 @@ async function fetchFromDAppStore(query: string): Promise<{
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
-      // Some edges reject bare server clients
       "User-Agent":
         "SeekerTracker/1.0 (+https://seekertracker.com; dApp catalog mirror)",
       Origin: "https://seekertracker.com",
       Referer: "https://seekertracker.com/apps",
     },
     body: JSON.stringify({ query }),
-    // Avoid CF caching error responses as 200 empty
     cache: "no-store",
   });
 
   const text = await response.text();
   if (!response.ok) {
-    throw new Error(
-      `dApp Store HTTP ${response.status}: ${text.slice(0, 200)}`
-    );
+    throw new Error(`dApp Store HTTP ${response.status}: ${text.slice(0, 200)}`);
   }
   try {
     return JSON.parse(text) as {
@@ -112,6 +123,57 @@ interface CategoryUnit {
   dApps: { edges: Array<{ node: DAppNode }> };
 }
 
+type ExploreUnitEdge = {
+  node: { __typename: string } & Partial<CategoryUnit>;
+};
+
+function mergePage(
+  categoryMap: Map<
+    string,
+    {
+      category: { id: string; name: string };
+      dApps: { edges: Array<{ node: DAppNode }> };
+    }
+  >,
+  units: ExploreUnitEdge[]
+): { newApps: number; exhausted: string[] } {
+  const newlyExhausted: string[] = [];
+  let newApps = 0;
+
+  for (const edge of units) {
+    const node = edge.node;
+    if (node.__typename !== "DAppsByCategoryUnit") continue;
+    const catId = node.category!.id;
+    const apps = node.dApps!.edges;
+
+    if (!categoryMap.has(catId)) {
+      categoryMap.set(catId, {
+        category: node.category!,
+        dApps: { edges: [] },
+      });
+    }
+
+    const existing = categoryMap.get(catId)!;
+    const existingPackages = new Set(
+      existing.dApps.edges.map((e) => e.node.androidPackage)
+    );
+
+    for (const appEdge of apps) {
+      if (!existingPackages.has(appEdge.node.androidPackage)) {
+        existing.dApps.edges.push(appEdge);
+        existingPackages.add(appEdge.node.androidPackage);
+        newApps++;
+      }
+    }
+
+    if (apps.length < PAGE_SIZE) {
+      newlyExhausted.push(catId);
+    }
+  }
+
+  return { newApps, exhausted: newlyExhausted };
+}
+
 async function fetchAllDapps(deadline: number) {
   const categoryMap = new Map<
     string,
@@ -120,90 +182,98 @@ async function fetchAllDapps(deadline: number) {
       dApps: { edges: Array<{ node: DAppNode }> };
     }
   >();
-
   const exhausted = new Set<string>();
-  let offset = 0;
-  const MAX_PAGES = 40;
   let lastError: string | null = null;
   let pagesOk = 0;
 
-  for (let page = 0; page < MAX_PAGES; page++) {
+  // Page 0 first (discover categories)
+  try {
+    const first = await fetchFromDAppStore(getExploreQuery(undefined));
+    if (first.errors?.length) {
+      lastError = first.errors.map((e) => e.message).join("; ");
+      return { categories: [], pagesOk: 0, lastError };
+    }
+    const units =
+      (
+        first.data as {
+          explore?: { units?: { edges?: ExploreUnitEdge[] } };
+        } | null
+      )?.explore?.units?.edges || [];
+    if (!units.length) {
+      return {
+        categories: [],
+        pagesOk: 0,
+        lastError: "empty explore.units.edges",
+      };
+    }
+    const m = mergePage(categoryMap, units);
+    m.exhausted.forEach((id) => exhausted.add(id));
+    pagesOk = 1;
+  } catch (e) {
+    return {
+      categories: [],
+      pagesOk: 0,
+      lastError: e instanceof Error ? e.message : String(e),
+    };
+  }
+
+  // Remaining pages in parallel batches (API uses offset-style `after`)
+  for (let start = 1; start < MAX_PAGES; start += PARALLEL) {
     if (Date.now() > deadline) {
       lastError = lastError || "time budget exceeded";
       break;
     }
 
-    const after = page === 0 ? undefined : String(offset);
-    let payload: Awaited<ReturnType<typeof fetchFromDAppStore>>;
-    try {
-      payload = await fetchFromDAppStore(getExploreQuery(after));
-    } catch (e) {
-      lastError = e instanceof Error ? e.message : String(e);
-      console.error("dappstore page fetch failed", page, lastError);
-      // Keep partial data if we already have some pages
-      break;
-    }
+    const pageIndexes = Array.from(
+      { length: PARALLEL },
+      (_, i) => start + i
+    ).filter((p) => p < MAX_PAGES);
 
-    if (payload.errors?.length) {
-      lastError = payload.errors.map((x) => x.message).join("; ");
-      console.error("dappstore GraphQL errors", lastError);
-      break;
-    }
-
-    const root = payload.data as {
-      explore?: { units?: { edges?: Array<{ node: { __typename: string } & Partial<CategoryUnit> }> } };
-    } | null;
-
-    const units = root?.explore?.units?.edges;
-    if (!units?.length) {
-      lastError = lastError || "empty explore.units.edges";
-      break;
-    }
-
-    pagesOk++;
-    let newAppsThisRound = 0;
-
-    for (const edge of units) {
-      const node = edge.node;
-      if (node.__typename !== "DAppsByCategoryUnit") continue;
-      const catId = node.category!.id;
-      if (exhausted.has(catId)) continue;
-
-      const apps = node.dApps!.edges;
-
-      if (!categoryMap.has(catId)) {
-        categoryMap.set(catId, {
-          category: node.category!,
-          dApps: { edges: [] },
-        });
-      }
-
-      const existing = categoryMap.get(catId)!;
-      const existingPackages = new Set(
-        existing.dApps.edges.map((e) => e.node.androidPackage)
-      );
-
-      for (const appEdge of apps) {
-        if (!existingPackages.has(appEdge.node.androidPackage)) {
-          existing.dApps.edges.push(appEdge);
-          newAppsThisRound++;
+    const results = await Promise.all(
+      pageIndexes.map(async (page) => {
+        try {
+          const payload = await fetchFromDAppStore(
+            getExploreQuery(String(page * PAGE_SIZE))
+          );
+          if (payload.errors?.length) {
+            return {
+              page,
+              error: payload.errors.map((e) => e.message).join("; "),
+              units: [] as ExploreUnitEdge[],
+            };
+          }
+          const units =
+            (
+              payload.data as {
+                explore?: { units?: { edges?: ExploreUnitEdge[] } };
+              } | null
+            )?.explore?.units?.edges || [];
+          return { page, error: null as string | null, units };
+        } catch (e) {
+          return {
+            page,
+            error: e instanceof Error ? e.message : String(e),
+            units: [] as ExploreUnitEdge[],
+          };
         }
-      }
+      })
+    );
 
-      if (apps.length < 20) {
-        exhausted.add(catId);
+    let batchNew = 0;
+    for (const r of results.sort((a, b) => a.page - b.page)) {
+      if (r.error) {
+        lastError = r.error;
+        continue;
       }
+      if (!r.units.length) continue;
+      pagesOk++;
+      const m = mergePage(categoryMap, r.units);
+      batchNew += m.newApps;
+      m.exhausted.forEach((id) => exhausted.add(id));
     }
 
-    if (newAppsThisRound === 0) break;
-
-    const allCategoryIds = units
-      .filter((e) => e.node.__typename === "DAppsByCategoryUnit")
-      .map((e) => (e.node as Partial<CategoryUnit>).category!.id);
-
-    if (allCategoryIds.every((id) => exhausted.has(id))) break;
-
-    offset += 20;
+    // No new apps across the batch → catalog complete
+    if (batchNew === 0) break;
   }
 
   return {
@@ -238,6 +308,72 @@ function buildExploreResponse(
   };
 }
 
+type R2Bucket = {
+  get: (k: string) => Promise<{ text: () => Promise<string> } | null>;
+  put: (
+    k: string,
+    v: string,
+    opts?: { httpMetadata?: { contentType?: string } }
+  ) => Promise<unknown>;
+};
+
+async function getR2(): Promise<R2Bucket | null> {
+  try {
+    const { env } = await getCloudflareContext({ async: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return ((env as any).DOWNLOADS as R2Bucket) || null;
+  } catch {
+    return null;
+  }
+}
+
+async function readR2Catalog(): Promise<{
+  body: ReturnType<typeof buildExploreResponse>;
+  timestamp: number;
+} | null> {
+  try {
+    const bucket = await getR2();
+    if (!bucket) return null;
+    const obj = await bucket.get(R2_KEY);
+    if (!obj) return null;
+    const raw = await obj.text();
+    const parsed = JSON.parse(raw) as {
+      timestamp: number;
+      body: ReturnType<typeof buildExploreResponse>;
+    };
+    if (!parsed?.body?.totalApps || parsed.body.totalApps < 50) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+async function writeR2Catalog(
+  body: ReturnType<typeof buildExploreResponse>
+): Promise<void> {
+  try {
+    const bucket = await getR2();
+    if (!bucket) return;
+    await bucket.put(
+      R2_KEY,
+      JSON.stringify({ timestamp: Date.now(), body }),
+      { httpMetadata: { contentType: "application/json" } }
+    );
+  } catch (e) {
+    console.error("dappstore R2 write failed", e);
+  }
+}
+
+function jsonOk(data: object, opts?: { cacheSeconds?: number }) {
+  const s = opts?.cacheSeconds ?? 300;
+  return NextResponse.json(data, {
+    headers: {
+      // Browser + CF edge can reuse successful catalog
+      "Cache-Control": `public, s-maxage=${s}, stale-while-revalidate=${s * 6}`,
+    },
+  });
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -245,30 +381,15 @@ export async function GET(request: NextRequest) {
     const searchText = searchParams.get("q") || "";
     const packageName = searchParams.get("package") || "";
     const debug = searchParams.get("debug") === "1";
+    const force = searchParams.get("refresh") === "1";
 
-    const cacheKey =
-      action === "search"
-        ? `search:${searchText}`
-        : packageName
-          ? `package:${packageName}`
-          : "explore";
-
-    const cached = cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION_MS) {
-      const body = cached.data as { totalApps?: number };
-      // Never serve a poisoned empty explore cache
-      if (action === "explore" && !packageName && (body.totalApps ?? 0) === 0) {
-        cache.delete(cacheKey);
-      } else {
-        return NextResponse.json({
-          ...(cached.data as object),
-          cached: true,
-          cacheAge: Math.round((Date.now() - cached.timestamp) / 1000 / 60),
-        });
-      }
-    }
-
+    // ── Search ──
     if (action === "search" && searchText) {
+      const memKey = `search:${searchText}`;
+      const mem = memCache.get(memKey);
+      if (!force && mem && Date.now() - mem.timestamp < MEM_TTL_MS) {
+        return jsonOk({ ...(mem.data as object), cached: true, cache: "memory" });
+      }
       const data = await fetchFromDAppStore(getSearchQuery(searchText));
       if (data.errors?.length) {
         return NextResponse.json(
@@ -279,70 +400,110 @@ export async function GET(request: NextRequest) {
           { status: 502 }
         );
       }
-      cache.set(cacheKey, { data, timestamp: Date.now() });
-      return NextResponse.json({ ...data, cached: false });
+      memCache.set(memKey, { data, timestamp: Date.now() });
+      return jsonOk({ ...data, cached: false }, { cacheSeconds: 120 });
     }
 
-    // Single-package deep link: scan explore pages until found (or budget)
+    // ── Single package (deep link / modal) — one GraphQL call, not full catalog ──
     if (packageName) {
-      const deadline = Date.now() + Math.min(FETCH_BUDGET_MS, 20_000);
-      const { categories, lastError, pagesOk } = await fetchAllDapps(deadline);
-      let found: DAppNode | null = null;
-      for (const cat of categories) {
-        const hit = cat.dApps.edges.find(
-          (e) => e.node.androidPackage === packageName
-        );
-        if (hit) {
-          found = hit.node;
-          break;
-        }
+      const memKey = `package:${packageName}`;
+      const mem = memCache.get(memKey);
+      if (!force && mem && Date.now() - mem.timestamp < MEM_TTL_MS) {
+        return jsonOk({ ...(mem.data as object), cached: true, cache: "memory" });
       }
-      if (!found) {
-        // Fallback: search by package fragment
-        try {
-          const data = await fetchFromDAppStore(
-            getSearchQuery(packageName.replace(/^com\./, ""))
-          );
-          const results = (data.data as {
+
+      try {
+        const data = await fetchFromDAppStore(getPackageQuery(packageName));
+        const app = (
+          data.data as { dAppByAndroidPackage?: DAppNode } | null
+        )?.dAppByAndroidPackage;
+        if (app) {
+          const responseData = { app, package: packageName };
+          memCache.set(memKey, { data: responseData, timestamp: Date.now() });
+          return jsonOk({ ...responseData, cached: false }, { cacheSeconds: 600 });
+        }
+      } catch (e) {
+        console.error("package GraphQL failed", e);
+      }
+
+      // Fallback: search fragment
+      try {
+        const data = await fetchFromDAppStore(
+          getSearchQuery(packageName.replace(/^com\./, ""))
+        );
+        const results = (
+          data.data as {
             search?: {
-              results?: {
-                dApps?: { edges?: Array<{ node: DAppNode }> };
-              };
+              results?: { dApps?: { edges?: Array<{ node: DAppNode }> } };
             };
-          })?.search?.results;
-          const edges = results?.dApps?.edges || [];
-          found =
-            edges.find((e) => e.node.androidPackage === packageName)?.node ||
-            edges[0]?.node ||
-            null;
-        } catch {
-          /* ignore */
+          }
+        )?.search?.results;
+        const edges = results?.dApps?.edges || [];
+        const found =
+          edges.find((e) => e.node.androidPackage === packageName)?.node ||
+          edges[0]?.node ||
+          null;
+        if (found) {
+          const responseData = { app: found, package: packageName };
+          memCache.set(memKey, { data: responseData, timestamp: Date.now() });
+          return jsonOk({ ...responseData, cached: false }, { cacheSeconds: 300 });
         }
+      } catch {
+        /* ignore */
       }
 
-      if (!found) {
-        return NextResponse.json(
-          {
-            error: "App not found",
-            package: packageName,
-            pagesOk,
-            detail: lastError,
-          },
-          { status: 404 }
-        );
-      }
-
-      const responseData = { app: found, package: packageName };
-      cache.set(cacheKey, { data: responseData, timestamp: Date.now() });
-      return NextResponse.json({ ...responseData, cached: false });
+      return NextResponse.json(
+        { error: "App not found", package: packageName },
+        { status: 404 }
+      );
     }
 
-    // Full catalog explore
+    // ── Full catalog explore ──
+    const memKey = "explore";
+    if (!force) {
+      const mem = memCache.get(memKey);
+      if (mem && Date.now() - mem.timestamp < MEM_TTL_MS) {
+        const body = mem.data as { totalApps?: number };
+        if ((body.totalApps ?? 0) > 0) {
+          return jsonOk({
+            ...(mem.data as object),
+            cached: true,
+            cache: "memory",
+            cacheAge: Math.round((Date.now() - mem.timestamp) / 1000 / 60),
+          });
+        }
+      }
+
+      const r2 = await readR2Catalog();
+      if (r2 && Date.now() - r2.timestamp < R2_TTL_MS) {
+        memCache.set(memKey, { data: r2.body, timestamp: r2.timestamp });
+        // Stale-while-revalidate: kick off background refresh if older than 30m
+        if (Date.now() - r2.timestamp > 30 * 60 * 1000) {
+          void refreshCatalogInBackground();
+        }
+        return jsonOk({
+          ...r2.body,
+          cached: true,
+          cache: "r2",
+          cacheAge: Math.round((Date.now() - r2.timestamp) / 1000 / 60),
+        });
+      }
+      // Serve stale R2 rather than empty while refreshing
+      if (r2 && r2.body.totalApps > 0) {
+        void refreshCatalogInBackground();
+        return jsonOk({
+          ...r2.body,
+          cached: true,
+          cache: "r2-stale",
+          cacheAge: Math.round((Date.now() - r2.timestamp) / 1000 / 60),
+        });
+      }
+    }
+
     const deadline = Date.now() + FETCH_BUDGET_MS;
     const { categories, pagesOk, lastError } = await fetchAllDapps(deadline);
     const responseData = buildExploreResponse(categories);
 
-    // Never cache empty catalog — that poisoned CF for 6h previously
     if (responseData.totalApps === 0) {
       return NextResponse.json(
         {
@@ -357,8 +518,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    cache.set(cacheKey, { data: responseData, timestamp: Date.now() });
-    return NextResponse.json({
+    memCache.set(memKey, { data: responseData, timestamp: Date.now() });
+    void writeR2Catalog(responseData);
+
+    return jsonOk({
       ...responseData,
       cached: false,
       pagesOk,
@@ -366,6 +529,16 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("dApp Store API error:", error);
+    // Last resort: any R2 catalog
+    const r2 = await readR2Catalog();
+    if (r2?.body?.totalApps) {
+      return jsonOk({
+        ...r2.body,
+        cached: true,
+        cache: "r2-fallback",
+        detail: error instanceof Error ? error.message : String(error),
+      });
+    }
     return NextResponse.json(
       {
         error: "Failed to fetch from dApp Store",
@@ -374,4 +547,29 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+let refreshInFlight: Promise<void> | null = null;
+
+function refreshCatalogInBackground() {
+  if (refreshInFlight) return refreshInFlight;
+  refreshInFlight = (async () => {
+    try {
+      const { categories, lastError } = await fetchAllDapps(
+        Date.now() + FETCH_BUDGET_MS
+      );
+      const body = buildExploreResponse(categories);
+      if (body.totalApps > 0) {
+        memCache.set("explore", { data: body, timestamp: Date.now() });
+        await writeR2Catalog(body);
+      } else {
+        console.error("background refresh empty", lastError);
+      }
+    } catch (e) {
+      console.error("background refresh failed", e);
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+  return refreshInFlight;
 }

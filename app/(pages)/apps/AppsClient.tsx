@@ -73,37 +73,82 @@ const AppsContent = () => {
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(searchParams.get('view') === 'favorites')
     const [sortBy, setSortBy] = useState<SortOption>('updated-desc')
 
-    const fetchCatalog = useCallback(async () => {
+    const applyCatalog = useCallback((data: any) => {
+        const units = data.data?.explore?.units?.edges || []
+        const categoryUnits = units
+            .filter((edge: any) => edge.node.__typename === 'DAppsByCategoryUnit')
+            .map((edge: any) => edge.node)
+
+        if (categoryUnits.length === 0 || (data.totalApps ?? 0) === 0) {
+            throw new Error('dApp catalog returned empty — try again in a moment')
+        }
+
+        setCategories(categoryUnits)
+        setError(null)
         try {
-            setLoading(true)
-            setError(null)
-            const response = await fetch('/api/dappstore', { cache: 'no-store' })
+            sessionStorage.setItem(
+                'dappstore-catalog-v1',
+                JSON.stringify({
+                    ts: Date.now(),
+                    totalApps: data.totalApps,
+                    data: data.data,
+                })
+            )
+        } catch {
+            /* quota / private mode */
+        }
+    }, [])
+
+    const fetchCatalog = useCallback(async (opts?: { soft?: boolean }) => {
+        try {
+            if (!opts?.soft) {
+                setLoading(true)
+                setError(null)
+            }
+            // Prefer CDN/browser cache when server sends Cache-Control
+            const response = await fetch('/api/dappstore', {
+                cache: opts?.soft ? 'no-cache' : 'default',
+            })
             const data = await response.json()
 
             if (!response.ok || data.error) {
                 throw new Error(data.detail || data.error || `Catalog failed (${response.status})`)
             }
 
-            const units = data.data?.explore?.units?.edges || []
-            const categoryUnits = units
-                .filter((edge: any) => edge.node.__typename === 'DAppsByCategoryUnit')
-                .map((edge: any) => edge.node)
-
-            if (categoryUnits.length === 0 || (data.totalApps ?? 0) === 0) {
-                throw new Error('dApp catalog returned empty — try again in a moment')
-            }
-
-            setCategories(categoryUnits)
+            applyCatalog(data)
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to fetch apps')
+            // Soft revalidate failures keep any session-cached UI
+            if (!opts?.soft) {
+                setError(err instanceof Error ? err.message : 'Failed to fetch apps')
+            }
         } finally {
             setLoading(false)
         }
-    }, [])
+    }, [applyCatalog])
 
+    // Instant paint from sessionStorage, then revalidate
     useEffect(() => {
-        fetchCatalog()
-    }, [fetchCatalog])
+        let cancelled = false
+        try {
+            const raw = sessionStorage.getItem('dappstore-catalog-v1')
+            if (raw) {
+                const parsed = JSON.parse(raw)
+                // Use cache up to 6 hours for instant paint
+                if (parsed?.ts && Date.now() - parsed.ts < 6 * 60 * 60 * 1000 && parsed.data) {
+                    applyCatalog(parsed)
+                    setLoading(false)
+                    // Soft revalidate in background
+                    void fetchCatalog({ soft: true })
+                    return
+                }
+            }
+        } catch {
+            /* ignore bad cache */
+        }
+        if (!cancelled) void fetchCatalog()
+        return () => { cancelled = true }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     // Load favorites from localStorage
     useEffect(() => {
@@ -378,8 +423,9 @@ const AppsContent = () => {
 
         return (
             <div className={styles.modalOverlay} onClick={onClose}>
-                <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                    <button className={styles.modalClose} onClick={onClose}>&times;</button>
+                <div className={styles.modal} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
+                    <div className={styles.sheetHandle} aria-hidden="true" />
+                    <button className={styles.modalClose} onClick={onClose} aria-label="Close">&times;</button>
                     <div className={styles.modalHeader}>
                         <div className={styles.modalIcon}>
                             {release.icon?.uri ? (
@@ -542,7 +588,7 @@ const AppsContent = () => {
                 <div className={styles.error}>
                     <span className={styles.errorIcon}>!</span>
                     <span>{error}</span>
-                    <button onClick={fetchCatalog} className={styles.retryBtn}>Retry</button>
+                    <button onClick={() => void fetchCatalog()} className={styles.retryBtn}>Retry</button>
                 </div>
             </div>
         )

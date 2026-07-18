@@ -682,53 +682,78 @@
     cursor: pointer;
 }
 
-/* ── Mobile-first polish ── */
+/* Sheet handle (shown on mobile) */
+.sheetHandle {
+    display: none;
+}
+
+/* ── Mobile polish ── */
 @media (max-width: 768px) {
     .main {
-        padding: 0 0.75em 5em;
-        gap: 1em;
+        padding: 0 0.65em calc(4.5em + env(safe-area-inset-bottom, 0px));
+        gap: 0.75em;
         align-items: stretch;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+        box-sizing: border-box;
     }
 
     .header {
         margin-bottom: 0;
-        padding: 0 0.25em;
+        padding: 0.15em 0.15em 0;
+        text-align: left;
     }
 
     .title {
-        font-size: 1.55em;
+        font-size: 1.4em;
         line-height: 1.15;
+        letter-spacing: -0.02em;
     }
 
     .description {
-        font-size: 0.92em;
-        line-height: 1.4;
+        font-size: 0.85em;
+        line-height: 1.35;
+        margin-top: 0.35em;
+        color: #8a9a97;
     }
 
     .totalCount {
-        margin-top: 0.5em;
-        padding: 0.75em 1.25em;
-        border-radius: 0.85em;
+        margin-top: 0.35em;
+        padding: 0.55em 0.9em;
+        border-radius: 0.75em;
         width: 100%;
         box-sizing: border-box;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 0.75em;
     }
 
     .totalNumber {
-        font-size: 2em;
+        font-size: 1.55em;
+        line-height: 1;
+    }
+
+    .totalLabel {
+        font-size: 0.72em;
+        margin: 0;
     }
 
     .searchAndSort {
         flex-direction: column;
         align-items: stretch;
-        gap: 0.65em;
+        gap: 0.5em;
         max-width: 100%;
         position: sticky;
         top: 0;
-        z-index: 20;
-        padding: 0.65em 0 0.5em;
-        background: linear-gradient(180deg, rgba(0, 10, 8, 0.96) 70%, transparent);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        z-index: 30;
+        padding: 0.5em 0 0.4em;
+        margin: 0 -0.15em;
+        background: rgba(2, 10, 8, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(0, 255, 217, 0.08);
     }
 
     .searchBar {
@@ -739,20 +764,28 @@
 
     .searchInput {
         font-size: 16px; /* prevent iOS zoom */
-        padding: 0.9em 1em;
-        border-radius: 0.85em;
-        min-height: 48px;
+        padding: 0.8em 0.95em;
+        border-radius: 0.8em;
+        min-height: 46px;
+        box-sizing: border-box;
     }
 
     .sortControl {
         width: 100%;
         justify-content: space-between;
+        gap: 0.5em;
+    }
+
+    .sortLabel {
+        flex-shrink: 0;
+        font-size: 0.78em;
     }
 
     .sortSelect {
         flex: 1;
         min-height: 44px;
         font-size: 16px;
+        box-sizing: border-box;
     }
 
     .categoryFilter {
@@ -760,10 +793,14 @@
         flex-wrap: nowrap;
         overflow-x: auto;
         justify-content: flex-start;
-        gap: 0.45em;
-        padding: 0.15em 0 0.5em;
+        gap: 0.4em;
+        padding: 0.1em 0 0.45em;
+        margin: 0 -0.15em;
+        padding-left: 0.15em;
+        padding-right: 0.15em;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        overscroll-behavior-x: contain;
     }
 
     .categoryFilter::-webkit-scrollbar {
@@ -771,45 +808,57 @@
     }
 
     .categoryBtn {
-        font-size: 0.8em;
-        padding: 0.55em 0.95em;
-        min-height: 40px;
+        font-size: 0.78em;
+        padding: 0.5em 0.9em;
+        min-height: 38px;
         white-space: nowrap;
         flex-shrink: 0;
         touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .catalog,
+    .searchResults {
+        max-width: 100%;
     }
 
     .appGrid {
         grid-template-columns: 1fr;
-        gap: 0.65em;
+        gap: 0.55em;
     }
 
     .appCard {
-        padding: 0.85em;
-        gap: 0.75em;
-        border-radius: 0.9em;
-        /* kill hover lift jank on touch */
+        padding: 0.75em 0.7em;
+        gap: 0.7em;
+        border-radius: 0.85em;
         transform: none;
-        min-height: 72px;
+        min-height: 68px;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .appCard:hover {
         transform: none;
+        box-shadow: none;
     }
 
     .appCard:active {
-        background: rgba(0, 255, 217, 0.08);
-        border-color: rgba(0, 255, 217, 0.35);
+        background: rgba(0, 255, 217, 0.09);
+        border-color: rgba(0, 255, 217, 0.38);
     }
 
     .appIcon {
-        width: 56px;
-        height: 56px;
-        border-radius: 0.7em;
+        width: 52px;
+        height: 52px;
+        border-radius: 0.65em;
     }
 
     .appName {
-        font-size: 0.95em;
+        font-size: 0.92em;
+        padding-right: 1.75em; /* room for favorite */
+    }
+
+    .publisher {
+        font-size: 0.75em;
     }
 
     .subtitle {
@@ -818,55 +867,76 @@
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        line-height: 1.35;
+        line-height: 1.3;
+        font-size: 0.76em;
+    }
+
+    .appMeta {
+        gap: 0.5em;
+        flex-wrap: wrap;
     }
 
     .favoriteBtn {
-        top: 0.4em;
-        right: 0.35em;
+        top: 0.25em;
+        right: 0.2em;
         min-width: 40px;
         min-height: 40px;
-        font-size: 1.15em;
+        font-size: 1.1em;
         display: flex;
         align-items: center;
         justify-content: center;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .sectionTitle {
-        font-size: 1.15em;
-        margin-bottom: 0.75em;
+        font-size: 1.05em;
+        margin-bottom: 0.6em;
+        padding: 0.15em 0;
     }
 
     .showMoreBtn {
         width: 100%;
-        min-height: 48px;
-        margin: 0.75em 0 0;
+        min-height: 46px;
+        margin: 0.6em 0 1.25em;
         touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
 
-    /* Bottom-sheet style modal on phone */
+    /* Bottom sheet */
     .modalOverlay {
         align-items: flex-end;
         padding: 0;
-        background: rgba(0, 0, 0, 0.72);
+        background: rgba(0, 0, 0, 0.78);
+        overscroll-behavior: contain;
+    }
+
+    .sheetHandle {
+        display: block;
+        width: 40px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        margin: 0.15em auto 0.85em;
+        flex-shrink: 0;
     }
 
     .modal {
         max-width: 100%;
         width: 100%;
-        max-height: 92vh;
-        border-radius: 1.15em 1.15em 0 0;
-        padding: 1.1em 1em calc(1.25em + env(safe-area-inset-bottom, 0px));
+        max-height: min(92vh, 100dvh);
+        border-radius: 1.2em 1.2em 0 0;
+        padding: 0.65em 1em calc(1.1em + env(safe-area-inset-bottom, 0px));
         border-left: none;
         border-right: none;
         border-bottom: none;
         animation: sheetUp 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        box-sizing: border-box;
     }
 
     @keyframes sheetUp {
         from {
-            transform: translateY(18%);
-            opacity: 0.6;
+            transform: translateY(20%);
+            opacity: 0.55;
         }
         to {
             transform: translateY(0);
@@ -875,54 +945,96 @@
     }
 
     .modalClose {
-        top: 0.35em;
-        right: 0.5em;
+        top: 0.55em;
+        right: 0.4em;
         min-width: 44px;
         min-height: 44px;
-        font-size: 1.75em;
+        font-size: 1.65em;
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 2;
+        color: #a0a0a0;
+        -webkit-tap-highlight-color: transparent;
     }
 
     .modalHeader {
-        gap: 0.85em;
-        padding-right: 2em;
+        gap: 0.75em;
+        padding-right: 2.25em;
+        margin-bottom: 0.75em;
     }
 
     .modalIcon {
-        width: 72px;
-        height: 72px;
-        border-radius: 0.9em;
+        width: 68px;
+        height: 68px;
+        border-radius: 0.85em;
     }
 
     .modalTitle {
-        font-size: 1.25em;
+        font-size: 1.15em;
         line-height: 1.2;
+        word-break: break-word;
+    }
+
+    .modalPublisher {
+        font-size: 0.82em;
     }
 
     .modalSubtitle {
-        font-size: 0.9em;
+        font-size: 0.86em;
+        margin-bottom: 0.75em;
+    }
+
+    .modalSectionTitle {
+        font-size: 0.78em;
+        margin-bottom: 0.55em;
     }
 
     .descriptionText {
-        max-height: 160px;
-        font-size: 0.88em;
+        max-height: 28vh;
+        font-size: 0.86em;
+        line-height: 1.5;
+    }
+
+    .modalDetails {
+        gap: 0.6em;
+        padding-top: 0.75em;
+    }
+
+    .detailLabel {
+        font-size: 0.7em;
+    }
+
+    .detailValue {
+        font-size: 0.85em;
+    }
+
+    .shareSection {
+        padding-top: 0.85em;
+        position: sticky;
+        bottom: 0;
+        background: linear-gradient(180deg, transparent, #1a1a2e 28%);
+        padding-bottom: 0.25em;
+        margin: 0 -0.15em;
+        padding-left: 0.15em;
+        padding-right: 0.15em;
     }
 
     .shareButtons {
         flex-direction: column;
-        gap: 0.55em;
+        gap: 0.5em;
     }
 
     .shareBtn {
         width: 100%;
         justify-content: center;
         min-height: 48px;
-        padding: 0.85em 1em;
-        font-size: 0.9em;
+        padding: 0.8em 1em;
+        font-size: 0.88em;
+        border-radius: 0.7em;
         touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        box-sizing: border-box;
     }
 
     .retryBtn {
@@ -933,13 +1045,19 @@
 
     .loading,
     .error {
-        padding: 3em 1.25em;
+        padding: 2.5em 1em;
+        margin: 1em 0;
+    }
+
+    .spinner {
+        width: 36px;
+        height: 36px;
     }
 }
 
 @media (max-width: 380px) {
     .title {
-        font-size: 1.35em;
+        font-size: 1.25em;
     }
 
     .appIcon {
@@ -948,8 +1066,12 @@
     }
 
     .modalIcon {
-        width: 60px;
-        height: 60px;
+        width: 58px;
+        height: 58px;
+    }
+
+    .totalNumber {
+        font-size: 1.35em;
     }
 }
 
