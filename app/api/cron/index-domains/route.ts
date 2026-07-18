@@ -8,6 +8,11 @@ import {
   hasTurso,
 } from "app/(utils)/lib/turso";
 import { invalidateDomainCache } from "app/(utils)/lib/domainStore";
+import {
+  notifyNewDomains,
+  telegramConfigured,
+  type NewDomainAlert,
+} from "app/(utils)/lib/telegram";
 import { CONN_RPC_URL } from "app/(utils)/constant";
 
 export const runtime = "nodejs";
@@ -159,6 +164,7 @@ export async function GET(request: NextRequest) {
   let updated = 0;
   let skipped = 0;
   const seen = new Set<string>();
+  const newDomains: NewDomainAlert[] = [];
   let newestSig: string | null = null;
 
   for (const s of batch) {
@@ -234,24 +240,34 @@ export async function GET(request: NextRequest) {
           });
           updated++;
         } else {
+          const rank = nextRank++;
+          const txSig = s.signature;
           await db.execute({
             sql: `INSERT INTO seeker_domains
               (rank, domain, subdomain, owner, created_at, name_account, tld_account,
                subdomain_tx, subdomain_tx_blocktime, non_transferable)
               VALUES (?, '.skr', ?, ?, ?, ?, ?, ?, ?, ?)`,
             args: [
-              nextRank++,
+              rank,
               sub,
               parsed.owner,
               created_at,
               subDomain_NA.toBase58(),
               subDomain_TLD.toBase58(),
-              s.signature,
+              txSig,
               new Date((tx.blockTime || parsed.createdAt) * 1000).toISOString(),
               parsed.nonTransferable ? 1 : 0,
             ],
           });
           inserted++;
+          newDomains.push({
+            subdomain: sub,
+            domain: ".skr",
+            owner: parsed.owner,
+            rank,
+            created_at,
+            subdomain_tx: txSig,
+          });
         }
       }
     } catch (e) {
@@ -281,6 +297,21 @@ export async function GET(request: NextRequest) {
 
   invalidateDomainCache();
 
+  // Ping @Seeker_Tracker for each newly inserted domain
+  let telegram: { sent: number; failed: number; errors: string[] } | null =
+    null;
+  if (newDomains.length && telegramConfigured()) {
+    try {
+      telegram = await notifyNewDomains(newDomains);
+    } catch (e) {
+      telegram = {
+        sent: 0,
+        failed: newDomains.length,
+        errors: [e instanceof Error ? e.message : String(e)],
+      };
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     scanned: batch.length,
@@ -289,5 +320,7 @@ export async function GET(request: NextRequest) {
     skipped,
     total: Number(count.rows[0]?.c ?? 0),
     newestSig,
+    telegram,
+    telegramConfigured: telegramConfigured(),
   });
 }
