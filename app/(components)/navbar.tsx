@@ -10,32 +10,16 @@ import { SEEKER_TOKEN_ADDRESS } from "app/(utils)/constant";
 
 export const socialMediaLinks = [
   {
-    name: "GetApp",
-    title: "Download Mobile App",
-    url: "/getdapp",
-    icon: "/sds-badge.svg",
-    clickToCopy: false,
-    internal: true,
+    name: "Telegram",
+    title: "Telegram",
+    url: "https://t.me/seeker_tracker",
+    icon: "/icons/tg.png",
   },
   {
-    name: "Bags",
-    title: "Bags Token Analytics",
-    url: `https://bags.fm/${SEEKER_TOKEN_ADDRESS}`,
-    icon: "/icons/bags-icon.png",
-    clickToCopy: false,
-  },
-  {
-    name: "Token",
-    title: "Copy Token Address",
-    url: SEEKER_TOKEN_ADDRESS,
-    icon: "/icons/token.png",
-    clickToCopy: true,
-  },
-  {
-    name: "RugCheck",
-    title: "RugCheck",
-    url: `https://rugcheck.xyz/tokens/${SEEKER_TOKEN_ADDRESS}`,
-    icon: "/icons/rugcheck.png",
+    name: "Twitter",
+    title: "X",
+    url: "https://x.com/Seeker_Tracker",
+    icon: "/icons/x.png",
   },
   {
     name: "DexScreener",
@@ -44,45 +28,47 @@ export const socialMediaLinks = [
     icon: "/icons/dexscreener.png",
   },
   {
-    name: "Telegram",
-    title: "Telegram",
-    url: "https://t.me/seeker_tracker",
-    icon: "/icons/tg.png",
-  },
-  {
-    name: "Twitter",
-    title: "X / Twitter",
-    url: "https://x.com/Seeker_Tracker",
-    icon: "/icons/x.png",
+    name: "Bags",
+    title: "Bags",
+    url: `https://bags.fm/${SEEKER_TOKEN_ADDRESS}`,
+    icon: "/icons/bags-icon.png",
   },
 ];
 
-const NAV = [
-  { href: "/skr", label: "SKR" },
-  { href: "/das", label: "DAS" },
-  { href: "/activations", label: "Activations" },
-  { href: "/sweep", label: "Sweep" },
+/** Primary — always visible */
+const PRIMARY = [
   { href: "/apps", label: "Apps" },
+  { href: "/activations", label: "Activations" },
+  { href: "/das", label: "DAS" },
+  { href: "/skr", label: "SKR" },
+] as const;
+
+/** Secondary — under More */
+const MORE = [
+  { href: "/sweep", label: "Sweep" },
   { href: "/winners", label: "Winners" },
   { href: "/competitors", label: "Competitors" },
   { href: "/snake", label: "Snake" },
+  { href: "/export", label: "Export" },
+  { href: "/explore", label: "Explore" },
 ] as const;
 
-function navClass(pathname: string, href: string) {
-  const active =
+function isActive(pathname: string, href: string) {
+  return (
     pathname === href ||
     pathname.startsWith(href + "/") ||
-    (href === "/apps" && pathname.startsWith("/dapps"));
-  return `${styles.navLink}${active ? ` ${styles.navLinkActive}` : ""}`;
+    (href === "/apps" && pathname.startsWith("/dapps"))
+  );
 }
 
 const Navbar = () => {
-  const { solPrice, backendHealth, live, seekerData } = useDataContext();
+  const { solPrice, live, seekerData } = useDataContext();
   const { openJupiter, isJupiterReady } = useJupiter();
-  const [copiedName, setCopiedName] = useState<string | null>(null);
   const [skrPrice, setSkrPrice] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const menuRef = useRef<HTMLElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -93,8 +79,8 @@ const Navbar = () => {
           const data = await response.json();
           setSkrPrice(data.skrPrice);
         }
-      } catch (err) {
-        console.error("Failed to fetch SKR price:", err);
+      } catch {
+        /* ignore */
       }
     };
     fetchSkrPrice();
@@ -104,6 +90,7 @@ const Navbar = () => {
 
   useEffect(() => {
     setMenuOpen(false);
+    setMoreOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -111,63 +98,34 @@ const Navbar = () => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOpen(false);
       }
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
     };
-    if (menuOpen) document.addEventListener("mousedown", handler);
+    document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [menuOpen]);
+  }, []);
 
-  const handleCopy = async (name: string, value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopiedName(name);
-      setTimeout(() => setCopiedName(null), 1500);
-    } catch (err) {
-      console.error("Copy failed:", err);
-    }
-  };
+  const moreActive = MORE.some((i) => isActive(pathname, i.href));
 
-  const renderNav = (keyPrefix: string) => (
-    <>
-      {NAV.map((item) => (
-        <Link
-          key={`${keyPrefix}-${item.href}`}
-          href={item.href}
-          className={navClass(pathname, item.href)}
-          onClick={() => setMenuOpen(false)}
-        >
-          {item.label}
-        </Link>
-      ))}
-      <button
-        type="button"
-        key={`${keyPrefix}-buy`}
-        className={styles.buyButton}
-        onClick={() => {
-          openJupiter();
-          setMenuOpen(false);
-        }}
-        disabled={!isJupiterReady}
-        title="Buy $TRACKER"
-      >
-        Buy $TRACKER
-      </button>
-    </>
-  );
+  const linkClass = (href: string) =>
+    `${styles.link}${isActive(pathname, href) ? ` ${styles.linkActive}` : ""}`;
 
   return (
-    <header className={styles.main} ref={menuRef}>
-      <div className={styles.mobileBar}>
-        <Link href="/" className={styles.mobileBrand}>
-          <Image src="/logo.png" alt="" width={28} height={28} />
+    <header className={styles.bar} ref={menuRef}>
+      {/* Mobile */}
+      <div className={styles.mobileRow}>
+        <Link href="/" className={styles.brand}>
+          <Image src="/logo.png" alt="" width={26} height={26} />
           <span>Seeker Tracker</span>
         </Link>
         <div className={styles.mobileRight}>
-          <div
-            className={`${styles.liveButton} ${live ? styles.live : styles.offline}`}
+          <span
+            className={`${styles.status} ${live ? styles.statusLive : styles.statusOff}`}
+            title={live ? "Live" : "Offline"}
           >
-            <div className={styles.dot} />
-            <span>{live ? "Live" : "Offline"}</span>
-          </div>
+            <span className={styles.statusDot} />
+          </span>
           <button
             type="button"
             className={`${styles.hamburger} ${menuOpen ? styles.hamburgerOpen : ""}`}
@@ -182,127 +140,149 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div
-        className={`${styles.mobileMenu} ${menuOpen ? styles.mobileMenuOpen : ""}`}
-      >
-        <div className={styles.mobileMenuPrices}>
-          <Link
-            href="https://jup.ag/tokens/So11111111111111111111111111111111111111112?ref=yfgv2ibxy07v"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.priceLink}
-          >
-            SOL <strong>${solPrice.toFixed(2)}</strong>
-          </Link>
-          {skrPrice !== null && (
-            <Link
-              href="https://jup.ag/tokens/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3?ref=yfgv2ibxy07v"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.priceLink}
-            >
-              SKR <strong>${skrPrice.toFixed(6)}</strong>
-            </Link>
-          )}
-        </div>
-        <nav className={styles.mobileNavLinks} aria-label="Primary">
-          {renderNav("m")}
-        </nav>
-      </div>
-
-      <div className={styles.priceInfo}>
-        <Link
-          href="https://jup.ag/tokens/So11111111111111111111111111111111111111112?ref=yfgv2ibxy07v"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.priceLink}
-        >
+      <div className={`${styles.drawer} ${menuOpen ? styles.drawerOpen : ""}`}>
+        <div className={styles.drawerPrices}>
           <span>
             SOL <strong>${solPrice.toFixed(2)}</strong>
           </span>
-        </Link>
-        {skrPrice !== null && (
-          <Link
-            href="https://jup.ag/tokens/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3?ref=yfgv2ibxy07v"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.priceLink}
-          >
+          {skrPrice != null && (
             <span>
               SKR <strong>${skrPrice.toFixed(6)}</strong>
             </span>
-          </Link>
-        )}
-        <Link
-          href={`https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=yfgv2ibxy07v`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.priceLink}
-        >
-          <span>
-            $TRACKER 24h <strong>${seekerData.token24hVol}</strong>
-          </span>
-        </Link>
+          )}
+        </div>
+        <nav className={styles.drawerNav} aria-label="Primary">
+          {[...PRIMARY, ...MORE].map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={linkClass(item.href)}
+              onClick={() => setMenuOpen(false)}
+            >
+              {item.label}
+            </Link>
+          ))}
+          <button
+            type="button"
+            className={styles.buy}
+            disabled={!isJupiterReady}
+            onClick={() => {
+              openJupiter();
+              setMenuOpen(false);
+            }}
+          >
+            Buy $TRACKER
+          </button>
+        </nav>
       </div>
 
-      <nav className={styles.navButtons} aria-label="Primary">
-        {renderNav("d")}
-      </nav>
-
-      <div className={styles.socialMediaTab}>
-        <div
-          className={`${styles.liveButton} ${live ? styles.live : styles.offline}`}
-          title={backendHealth ? "Systems healthy" : "Systems degraded"}
-        >
-          <div className={styles.dot} />
-          <span>{live ? "Live" : "Offline"}</span>
+      {/* Desktop */}
+      <div className={styles.desktop}>
+        <div className={styles.left}>
+          <Link href="/" className={styles.brand}>
+            <Image src="/logo.png" alt="" width={24} height={24} />
+            <span>Seeker Tracker</span>
+          </Link>
+          <div className={styles.prices} aria-label="Prices">
+            <a
+              href="https://jup.ag/tokens/So11111111111111111111111111111111111111112?ref=yfgv2ibxy07v"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.price}
+            >
+              SOL <em>${solPrice.toFixed(2)}</em>
+            </a>
+            {skrPrice != null && (
+              <a
+                href="https://jup.ag/tokens/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3?ref=yfgv2ibxy07v"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.price}
+              >
+                SKR <em>${skrPrice.toFixed(6)}</em>
+              </a>
+            )}
+            <a
+              href={`https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=yfgv2ibxy07v`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.price}
+            >
+              24h <em>${seekerData.token24hVol}</em>
+            </a>
+          </div>
         </div>
 
-        <div className={styles.socialLinks}>
-          {socialMediaLinks.map((link) => {
-            const isCopied = copiedName === link.name;
+        <nav className={styles.nav} aria-label="Primary">
+          {PRIMARY.map((item) => (
+            <Link key={item.href} href={item.href} className={linkClass(item.href)}>
+              {item.label}
+            </Link>
+          ))}
 
-            if (link.clickToCopy) {
-              return (
-                <button
-                  type="button"
-                  key={link.name}
-                  className={styles.socialLink}
-                  onClick={() => handleCopy(link.name, link.url)}
-                  title={isCopied ? "Copied" : link.title}
-                >
-                  {isCopied ? (
-                    <span className={styles.checkIcon} aria-hidden>
-                      ✓
-                    </span>
-                  ) : (
-                    <Image
-                      src={link.icon}
-                      alt=""
-                      width={24}
-                      height={24}
-                    />
-                  )}
-                  <span className={styles.hoverName}>{link.title}</span>
-                </button>
-              );
-            }
-
-            return (
-              <div key={link.name} className={styles.socialLink}>
-                <Link
-                  href={link.url}
-                  {...(link.internal
-                    ? {}
-                    : { target: "_blank", rel: "noopener noreferrer" })}
-                  title={link.title}
-                >
-                  <Image src={link.icon} alt="" width={24} height={24} />
-                  <span className={styles.hoverName}>{link.title}</span>
-                </Link>
+          <div className={styles.moreWrap} ref={moreRef}>
+            <button
+              type="button"
+              className={`${styles.link} ${styles.moreBtn}${moreActive || moreOpen ? ` ${styles.linkActive}` : ""}`}
+              onClick={() => setMoreOpen((o) => !o)}
+              aria-expanded={moreOpen}
+              aria-haspopup="menu"
+            >
+              More
+              <span className={styles.chev} aria-hidden>
+                ▾
+              </span>
+            </button>
+            {moreOpen ? (
+              <div className={styles.moreMenu} role="menu">
+                {MORE.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    role="menuitem"
+                    className={linkClass(item.href)}
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
               </div>
-            );
-          })}
+            ) : null}
+          </div>
+        </nav>
+
+        <div className={styles.right}>
+          <span
+            className={`${styles.status} ${live ? styles.statusLive : styles.statusOff}`}
+            title={live ? "Live" : "Offline"}
+          >
+            <span className={styles.statusDot} />
+            <span className={styles.statusText}>{live ? "Live" : "Off"}</span>
+          </span>
+
+          <div className={styles.socials}>
+            {socialMediaLinks.slice(0, 2).map((s) => (
+              <a
+                key={s.name}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.social}
+                title={s.title}
+              >
+                <Image src={s.icon} alt="" width={16} height={16} />
+              </a>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className={styles.buy}
+            onClick={openJupiter}
+            disabled={!isJupiterReady}
+          >
+            Buy $TRACKER
+          </button>
         </div>
       </div>
     </header>

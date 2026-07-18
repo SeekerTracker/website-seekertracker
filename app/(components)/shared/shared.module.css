@@ -8,26 +8,23 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  min-height: 36px;
-  padding: 0.4rem 0.85rem;
+  min-height: 32px;
+  padding: 0.3rem 0;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 500;
   font-family: inherit;
-  color: #8eb5b5;
-  background: rgba(0, 20, 20, 0.55);
-  border: 1px solid rgba(0, 255, 217, 0.16);
-  border-radius: 999px;
+  color: #6a9090;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   text-decoration: none;
-  transition:
-    color 100ms ease,
-    border-color 100ms ease,
-    background 100ms ease;
+  transition: color 100ms ease;
 }
 
 .backButton a:hover {
   color: #00ffd9;
-  border-color: rgba(0, 255, 217, 0.35);
-  background: rgba(0, 255, 217, 0.06);
+  background: transparent;
+  border: none;
 }
 
 .backButton a:focus-visible {
