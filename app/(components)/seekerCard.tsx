@@ -19,12 +19,23 @@ const SeekerCard = ({ domainInfo, showRank }: { domainInfo: DomainInfo, showRank
         router.push(`/id/${domainInfo.subdomain}${domainInfo.domain}`)
     }
     return (
-        <div className={styles.seekerCard} key={`${domainInfo.name_account} ${domainInfo.created_at}`} onClick={handleCardClick}>
-            <div className={styles.seekerAnimation} />
+        <div
+            className={styles.seekerCard}
+            key={`${domainInfo.name_account} ${domainInfo.created_at}`}
+            onClick={handleCardClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    handleCardClick(e as unknown as React.MouseEvent)
+                }
+            }}
+            role="link"
+            tabIndex={0}
+            aria-label={`${domainInfo.subdomain}${domainInfo.domain}`}
+        >
             <div className={styles.tagCont}>
-
                 {isNew(domainInfo.created_at) && <span className={styles.nameTag}>New</span>}
-                {showRank && <span className={styles.rankTag}>Rank #{domainInfo.rank}</span>}
+                {showRank && <span className={styles.rankTag}>#{domainInfo.rank}</span>}
             </div>
             <span className={styles.domainName}>{domainInfo.subdomain}{domainInfo.domain}</span>
             <div className={styles.domainInfo}>

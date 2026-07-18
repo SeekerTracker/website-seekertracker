@@ -393,27 +393,26 @@ const MainPage = () => {
                                 : `Showing ${uiSeekerData.length.toLocaleString()} most recent · ${totalSeekerIds.toLocaleString()} total`}
                         </span>
                     </div>
-                    <div className={style.filterTabs}>
-                        <span onClick={() => handleSort("newest")} className={`${style.filterTab} ${sortBy === "newest" ? style.active : ""}`} >Newest</span>
-                        <span onClick={() => handleSort("oldest")} className={`${style.filterTab} ${sortBy === "oldest" ? style.active : ""}`} >Oldest</span>
-                        <span onClick={() => handleSort("name")} className={`${style.filterTab} ${sortBy === "name" ? style.active : ""}`} >Name</span>
-                        <span onClick={() => handleSort("length")} className={`${style.filterTab} ${sortBy === "length" ? style.active : ""}`} >Length</span>
-                        <hr />
+                    <div className={style.filterTabs} role="group" aria-label="Sort SeekerIDs">
+                        <button type="button" onClick={() => handleSort("newest")} className={`${style.filterTab} ${sortBy === "newest" ? style.active : ""}`}>Newest</button>
+                        <button type="button" onClick={() => handleSort("oldest")} className={`${style.filterTab} ${sortBy === "oldest" ? style.active : ""}`}>Oldest</button>
+                        <button type="button" onClick={() => handleSort("name")} className={`${style.filterTab} ${sortBy === "name" ? style.active : ""}`}>Name</button>
+                        <button type="button" onClick={() => handleSort("length")} className={`${style.filterTab} ${sortBy === "length" ? style.active : ""}`}>Length</button>
                         <div className={style.pageLimitCont}>
-                            <span className={style.pageLimitLabel}>Show:</span>
+                            <label className={style.pageLimitLabel} htmlFor="pageLimit">Show</label>
                             <select
+                                id="pageLimit"
                                 name="pageLimit"
-                                className={style.pageLimit} value={pageLimit}
+                                className={style.pageLimit}
+                                value={pageLimit}
                                 onChange={(e) => handlePageLimitChange(Number(e.target.value))}
                             >
-                                <option value="10">10 results</option>
-                                <option value="20">20 results</option>
-                                <option value="50">50 results</option>
-                                <option value="100">100 results</option>
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
                             </select>
                         </div>
-
-
                     </div>
                 </div>
                 {listLoading && uiSeekerData.length === 0 ? (

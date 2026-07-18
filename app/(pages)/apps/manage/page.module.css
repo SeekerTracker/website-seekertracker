@@ -1,55 +1,59 @@
 .main {
   position: relative;
   width: 100%;
-  max-width: 560px;
+  max-width: 520px;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 4rem;
+  padding: 1.75rem 1.25rem 4rem;
   font-family: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
   color: #ededed;
   z-index: 1;
 }
 
 .hero {
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
 }
 
 .eyebrow {
   display: inline-block;
-  margin-bottom: 0.65rem;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.65rem;
+  margin-bottom: 0.7rem;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #001414;
   background: linear-gradient(135deg, #00ffd9, #00e6c0);
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .title {
-  margin: 0 0 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(45deg, #00ffd9, #00ff66);
+  margin: 0 0 0.55rem;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(120deg, #00ffd9, #00ff66);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1.15;
 }
 
 .lead {
   margin: 0;
-  font-size: 0.85rem;
-  line-height: 1.55;
-  color: #7aa8a8;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #8eb5b5;
 }
 
 .card {
-  border: 1px solid rgba(0, 255, 217, 0.28);
-  border-radius: 12px;
-  background: rgba(0, 26, 26, 0.92);
-  padding: 1.25rem 1.2rem;
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  border-radius: 16px;
+  background: rgba(0, 18, 18, 0.92);
+  padding: 1.35rem 1.25rem;
   margin-bottom: 1rem;
-  box-shadow: 0 0 40px rgba(0, 255, 217, 0.05);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 16px 40px rgba(0, 0, 0, 0.35);
 }
 
 .field {
@@ -79,30 +83,38 @@
 .input,
 .textarea {
   width: 100%;
-  padding: 0.7rem 0.85rem;
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
   font: inherit;
-  font-size: 0.88rem;
-  color: #ededed;
-  background: #001414;
-  border: 1px solid rgba(0, 255, 217, 0.28);
-  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #e8fffa;
+  background: rgba(0, 10, 10, 0.9);
+  border: 1px solid rgba(0, 255, 217, 0.22);
+  border-radius: 10px;
   outline: none;
+  transition: border-color 100ms ease, box-shadow 100ms ease;
 }
 
 .textarea {
-  min-height: 88px;
+  min-height: 96px;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .input:focus,
 .textarea:focus {
-  border-color: #00ffd9;
+  border-color: rgba(0, 255, 217, 0.55);
   box-shadow: 0 0 0 3px rgba(0, 255, 217, 0.12);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #4a7070;
 }
 
 .primary {
   width: 100%;
+  min-height: 46px;
   padding: 0.85rem 1rem;
   font: inherit;
   font-size: 0.85rem;
@@ -110,8 +122,20 @@
   color: #001414;
   background: linear-gradient(135deg, #00ffd9, #00e6c0);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  transition: transform 100ms ease, box-shadow 120ms ease, opacity 100ms ease;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+
+.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 10px 24px rgba(0, 255, 217, 0.2);
+}
+
+.primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 255, 217, 0.28);
 }
 
 .primary:disabled {
@@ -121,6 +145,7 @@
 
 .secondary {
   width: 100%;
+  min-height: 44px;
   margin-top: 0.5rem;
   padding: 0.75rem 1rem;
   font: inherit;
@@ -128,9 +153,20 @@
   font-weight: 600;
   color: #c5e0e0;
   background: transparent;
-  border: 1px solid rgba(0, 255, 217, 0.25);
-  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 217, 0.22);
+  border-radius: 10px;
   cursor: pointer;
+  transition: border-color 100ms ease, background 100ms ease;
+}
+
+.secondary:hover {
+  border-color: rgba(0, 255, 217, 0.4);
+  background: rgba(0, 255, 217, 0.05);
+}
+
+.secondary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 255, 217, 0.22);
 }
 
 .status {
