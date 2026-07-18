@@ -16,7 +16,7 @@ export function getSeekerMetadata(userDomain: string, webDomain: string, showAge
     return {
         title: `${userDomain} - SeekerID Profile`,
         description: `Complete SeekerID profile with activation details and analytics.`,
-        ogDescription: `🔥 SeekerID Profile for ${userDomain} - View rank, analytics, token holdings and activation details on Seeker Tracker`,
+        ogDescription: `SeekerID Profile for ${userDomain} — rank, activation date, and analytics on Seeker Tracker`,
         imageUrl: imgUrlObj.toString(),
         profileUrl,
         siteName: "Seeker Tracker",

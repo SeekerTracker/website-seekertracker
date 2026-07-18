@@ -58,10 +58,11 @@ function formatDomainAlert(d: NewDomainAlert): string {
     `Rank #${d.rank}`,
     `Owner: ${ownerShort}`,
     `Activated: ${when} UTC`,
+    // Profile URL — Telegram will unfurl the OG card image
     `https://seekertracker.com/id/${d.subdomain}.skr`,
   ];
   if (d.subdomain_tx) {
-    lines.push(`https://solscan.io/tx/${d.subdomain_tx}`);
+    lines.push(`Tx: https://solscan.io/tx/${d.subdomain_tx}`);
   }
   return lines.join("\n");
 }
@@ -82,14 +83,15 @@ export async function notifyNewDomains(
 
   for (const d of domains.slice(0, max)) {
     try {
+      // Enable link preview so Telegram shows the new OG profile card
       await tgApi("sendMessage", {
         chat_id,
         text: formatDomainAlert(d),
-        disable_web_page_preview: true,
+        disable_web_page_preview: false,
       });
       sent++;
       // light rate limit (~1 msg / 50ms under TG limits)
-      await new Promise((r) => setTimeout(r, 50));
+      await new Promise((r) => setTimeout(r, 80));
     } catch (e) {
       failed++;
       errors.push(`${d.subdomain}: ${e instanceof Error ? e.message : String(e)}`);
