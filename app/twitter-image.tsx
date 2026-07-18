@@ -18,7 +18,7 @@ async function getTotalActivations(): Promise<number> {
             next: { revalidate: 60 },
         });
         const data = await response.json();
-        return data.pagination?.total || 0;
+        return Number(data.totalDomains ?? data.pagination?.total ?? 0);
     } catch {
         return 0;
     }

@@ -329,7 +329,14 @@ async function listDomainsFromTurso(params: ListParams) {
   const sum = (a: number, b: number) =>
     hourCounts.slice(a, b).reduce((s, n) => s + n, 0);
 
-  const totalAll = await db.execute("SELECT COUNT(*) AS c FROM seeker_domains");
+  // COUNT = rows we have; MAX(rank) = activation sequence users see on cards.
+  // Prefer the higher as "Total Seeker IDs" so homepage stats match rank badges.
+  const totalAll = await db.execute(
+    "SELECT COUNT(*) AS c, COALESCE(MAX(rank), 0) AS max_rank FROM seeker_domains"
+  );
+  const indexedCount = Number(totalAll.rows[0]?.c ?? 0);
+  const maxRank = Number(totalAll.rows[0]?.max_rank ?? 0);
+  const totalDomains = Math.max(indexedCount, maxRank);
 
   return {
     success: true as const,
@@ -340,7 +347,10 @@ async function listDomainsFromTurso(params: ListParams) {
       pageSize,
       totalPages: Math.max(1, Math.ceil(total / pageSize)),
     },
-    totalDomains: Number(totalAll.rows[0]?.c ?? 0),
+    totalDomains,
+    indexedCount,
+    maxRank,
+    matchCount: total,
     domainsByDate,
     domainsByTimeRange: {
       "0-6": sum(0, 6),
@@ -399,6 +409,9 @@ function listFromIndex(idx: Index, params: ListParams) {
 
   const total = sorted.length;
   const offset = (page - 1) * pageSize;
+  const indexedCount = idx.rows.length;
+  const maxRank = idx.rows.reduce((m, r) => (r.rank > m ? r.rank : m), 0);
+  const totalDomains = Math.max(indexedCount, maxRank);
   return {
     success: true as const,
     message: "Fetched domains successfully",
@@ -408,7 +421,10 @@ function listFromIndex(idx: Index, params: ListParams) {
       pageSize,
       totalPages: Math.max(1, Math.ceil(total / pageSize)),
     },
-    totalDomains: idx.rows.length,
+    totalDomains,
+    indexedCount,
+    maxRank,
+    matchCount: total,
     domainsByDate: idx.domainsByDate,
     domainsByTimeRange: idx.domainsByTimeRange,
     data: sorted.slice(offset, offset + pageSize).map(recordToDomainInfo),
@@ -504,8 +520,12 @@ export async function domainStats() {
   if (hasTurso()) {
     try {
       const db = getTurso();
-      const totalRes = await db.execute("SELECT COUNT(*) AS c FROM seeker_domains");
-      const total = Number(totalRes.rows[0]?.c ?? 0);
+      const totalRes = await db.execute(
+        "SELECT COUNT(*) AS c, COALESCE(MAX(rank), 0) AS max_rank FROM seeker_domains"
+      );
+      const indexed = Number(totalRes.rows[0]?.c ?? 0);
+      const maxRank = Number(totalRes.rows[0]?.max_rank ?? 0);
+      const total = Math.max(indexed, maxRank);
       if (total > 0) {
         const byDateRes = await db.execute(
           `SELECT substr(created_at, 1, 10) AS day, COUNT(*) AS c
@@ -544,8 +564,9 @@ export async function domainStats() {
     }
   }
   const idx = await ensureIndex();
+  const maxRank = idx.rows.reduce((m, r) => (r.rank > m ? r.rank : m), 0);
   return {
-    total: idx.rows.length,
+    total: Math.max(idx.rows.length, maxRank),
     domainsByDate: idx.domainsByDate,
     domainsByTimeRange: idx.domainsByTimeRange,
     loadedAt: idx.loadedAt,

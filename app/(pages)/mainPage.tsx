@@ -53,16 +53,13 @@ const MainPage = () => {
     const { seekerData } = useDataContext()
 
     const [totalSeekerIds, setTotalSeekerIds] = useState(0)
+    /** Matches for current search/rank filter (not global total) */
+    const [matchCount, setMatchCount] = useState(0)
     const [dAppCount, setDAppCount] = useState<number | null>(null)
     const [das, setDas] = useState<number | null>(null)
     const currSkrIdCount = useRef(0);
     const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([])
     const [todaySeekerIds, setTodaySeekerIds] = useState(0)
-    const animatedTotal = useCountUp(totalSeekerIds)
-    const animatedToday = useCountUp(todaySeekerIds)
-    const animatedDApps = useCountUp(dAppCount ?? 0)
-    const animatedDas = useCountUp(das ?? 0)
-
     const [regionDistribution, setRegionDistribution] = useState<{
         Americas: number;
         Europe: number;
@@ -81,11 +78,19 @@ const MainPage = () => {
     const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name" | "name-reverse" | "length">("newest")
     const [pageLimit, setPageLimit] = useState<number>(10);
 
+    const animatedTotal = useCountUp(totalSeekerIds)
+    const animatedToday = useCountUp(todaySeekerIds)
+    const animatedDApps = useCountUp(dAppCount ?? 0)
+    const animatedDas = useCountUp(das ?? 0)
+    const isFiltered = Boolean(searchText.trim() || (filterRank && filterRank > 0))
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentPage, setCurrentPage] = useState<number>(1);
 
     const applyDomainsPayload = useCallback((data: {
         totalDomains: number,
+        matchCount?: number,
+        pagination?: { total: number },
         domainsByDate: Record<string, number>,
         domainsByTimeRange: Record<string, number>,
         data: DomainInfo[]
@@ -96,8 +101,16 @@ const MainPage = () => {
             domainsByDate,
             domainsByTimeRange
         } = data;
-        setTotalSeekerIds(totalDomains)
-        currSkrIdCount.current = totalDomains;
+        // Global activation total for hero stats (never use filtered match count)
+        if (totalDomains > 0) {
+            setTotalSeekerIds(totalDomains)
+            currSkrIdCount.current = totalDomains;
+        }
+        const matches =
+            data.matchCount ??
+            data.pagination?.total ??
+            domains.length;
+        setMatchCount(matches);
         setUiSeekerData(domains)
 
         const todayDate = new Date().toISOString().split('T')[0];
@@ -341,7 +354,11 @@ const MainPage = () => {
                 <div className={style.showTop}>
                     <div className={style.resultInfo}>
                         <strong>SeekerID Results</strong>
-                        <span>Showing {uiSeekerData.length} of {totalSeekerIds} most recent</span>
+                        <span>
+                            {isFiltered
+                                ? `Showing ${uiSeekerData.length.toLocaleString()} of ${matchCount.toLocaleString()} matches · ${totalSeekerIds.toLocaleString()} total`
+                                : `Showing ${uiSeekerData.length.toLocaleString()} of ${totalSeekerIds.toLocaleString()} most recent`}
+                        </span>
                     </div>
                     <div className={style.filterTabs}>
                         <span onClick={() => handleSort("newest")} className={`${style.filterTab} ${sortBy === "newest" ? style.active : ""}`} >Newest</span>

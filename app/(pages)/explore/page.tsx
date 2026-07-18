@@ -27,7 +27,10 @@ function mapSort(sortBy: SortOptions): "newest" | "oldest" | "name" | "name-reve
 
 export default function Page() {
   // --- State ---
+  /** Global total for the "Total IDs" label */
   const [totalDomains, setTotalDomains] = useState(0);
+  /** Filtered match count — drives pagination when searching */
+  const [matchCount, setMatchCount] = useState(0);
   const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([]);
 
   // Filter States
@@ -55,7 +58,9 @@ export default function Page() {
           rank: rank && rank > 0 ? rank : undefined,
         });
         if (cancelled) return;
-        setTotalDomains(data.totalDomains);
+        if (data.totalDomains > 0) setTotalDomains(data.totalDomains);
+        const apiMatches =
+          data.matchCount ?? data.pagination?.total ?? data.data.length;
         // Client-side category band filter (ranks 1–100 / 1–1k / 1–10k)
         let domains = data.data;
         if (category === "100") domains = domains.filter((d) => (d.rank ?? 0) <= 100);
@@ -65,6 +70,10 @@ export default function Page() {
           const q = searchQuery.toLowerCase();
           domains = domains.filter((d) => d.subdomain.toLowerCase() === q);
         }
+        // Pagination must follow the result set size (matches), not global total
+        setMatchCount(
+          category || exactMatch ? domains.length : apiMatches
+        );
         setUiSeekerData(domains);
       } catch (e) {
         console.error(e);
@@ -74,7 +83,9 @@ export default function Page() {
   }, [sortBy, pageLimit, currentPage, category, searchQuery, rankQuery, exactMatch]);
 
   // --- Derived State ---
-  const maxPage = Math.ceil(totalDomains / pageLimit) || 1;
+  // Page through filtered matches; fall back to global total when unfiltered
+  const pageableTotal = matchCount > 0 ? matchCount : totalDomains;
+  const maxPage = Math.ceil(pageableTotal / pageLimit) || 1;
 
 
   const handlePageChange = (newPage: number) => {
@@ -161,7 +172,11 @@ export default function Page() {
 
       {!category && (
         <div className={styles.seekerShowcase}>
-          <span className={styles.totalDomains}>Total IDs: {totalDomains}</span>
+          <span className={styles.totalDomains}>
+            {searchQuery || rankQuery
+              ? `${matchCount.toLocaleString()} matches · ${totalDomains.toLocaleString()} total IDs`
+              : `Total IDs: ${totalDomains.toLocaleString()}`}
+          </span>
 
           {uiSeekerData.length > 0 && (
             <div className={styles.seekerCardOuter}>

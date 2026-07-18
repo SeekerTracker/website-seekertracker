@@ -20,10 +20,11 @@ async function getLiveStats(): Promise<{ activations: number; dApps: number }> {
             }),
         ]);
 
-        const activations =
-            domainRes.status === 'fulfilled'
-                ? ((await domainRes.value.json()).pagination?.total ?? 0)
-                : 0;
+        let activations = 0;
+        if (domainRes.status === 'fulfilled') {
+            const body = await domainRes.value.json();
+            activations = Number(body.totalDomains ?? body.pagination?.total ?? 0);
+        }
 
         const dApps =
             dappRes.status === 'fulfilled'

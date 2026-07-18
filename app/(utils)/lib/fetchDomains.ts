@@ -2,7 +2,14 @@ import { DomainInfo } from "../constantTypes";
 
 export type DomainsResponse = {
   success: boolean;
+  /** Global activation total (max of row count and max rank) — hero stats */
   totalDomains: number;
+  /** Rows actually in the index (for pagination / pageable data) */
+  indexedCount?: number;
+  /** Highest Seeker rank in the index */
+  maxRank?: number;
+  /** Matches for the current filter (alias of pagination.total) */
+  matchCount?: number;
   domainsByDate: Record<string, number>;
   domainsByTimeRange: Record<string, number>;
   data: DomainInfo[];
@@ -12,6 +19,7 @@ export type DomainsResponse = {
     pageSize: number;
     totalPages: number;
   };
+  source?: string;
 };
 
 export type DomainsQuery = {
