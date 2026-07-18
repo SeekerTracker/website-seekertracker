@@ -21,15 +21,32 @@ async function fetchAppData(androidPackage: string) {
         }`
         const res = await fetch(DAPPSTORE_API, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'SeekerTracker/1.0',
+            },
             body: JSON.stringify({ query }),
-            next: { revalidate: 3600 },
+            next: { revalidate: 1800 },
         })
         const data = await res.json()
-        return data.data?.dAppByAndroidPackage
+        if (data.data?.dAppByAndroidPackage) return data.data.dAppByAndroidPackage
     } catch {
-        return null
+        /* fall through */
     }
+    // CF-safe fallback via our catalog package endpoint
+    try {
+        const res = await fetch(
+            `${BASE_URL}/api/dappstore?package=${encodeURIComponent(androidPackage)}`,
+            { next: { revalidate: 600 } }
+        )
+        if (res.ok) {
+            const j = await res.json()
+            return j.app || null
+        }
+    } catch {
+        /* ignore */
+    }
+    return null
 }
 
 type Props = {

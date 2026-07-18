@@ -1,4 +1,11 @@
 {
+  "git": {
+    "deploymentEnabled": false
+  },
+  "github": {
+    "enabled": false,
+    "autoJobCancelation": true
+  },
   "crons": [
     {
       "path": "/api/cron/usage",
