@@ -350,17 +350,22 @@ async function readR2Catalog(): Promise<{
 
 async function writeR2Catalog(
   body: ReturnType<typeof buildExploreResponse>
-): Promise<void> {
+): Promise<boolean> {
   try {
     const bucket = await getR2();
-    if (!bucket) return;
+    if (!bucket) {
+      console.error("dappstore R2: no DOWNLOADS binding");
+      return false;
+    }
     await bucket.put(
       R2_KEY,
       JSON.stringify({ timestamp: Date.now(), body }),
       { httpMetadata: { contentType: "application/json" } }
     );
+    return true;
   } catch (e) {
     console.error("dappstore R2 write failed", e);
+    return false;
   }
 }
 
@@ -519,12 +524,14 @@ export async function GET(request: NextRequest) {
     }
 
     memCache.set(memKey, { data: responseData, timestamp: Date.now() });
-    void writeR2Catalog(responseData);
+    // Must await R2 put — voided writes die when the Worker freezes after response
+    const r2Ok = await writeR2Catalog(responseData);
 
     return jsonOk({
       ...responseData,
       cached: false,
       pagesOk,
+      r2: r2Ok,
       ...(debug ? { detail: lastError } : {}),
     });
   } catch (error) {
