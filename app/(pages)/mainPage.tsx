@@ -357,7 +357,7 @@ const MainPage = () => {
                         <span>
                             {isFiltered
                                 ? `Showing ${uiSeekerData.length.toLocaleString()} of ${matchCount.toLocaleString()} matches · ${totalSeekerIds.toLocaleString()} total`
-                                : `Showing ${uiSeekerData.length.toLocaleString()} of ${totalSeekerIds.toLocaleString()} most recent`}
+                                : `Showing ${uiSeekerData.length.toLocaleString()} most recent · ${totalSeekerIds.toLocaleString()} total`}
                         </span>
                     </div>
                     <div className={style.filterTabs}>
