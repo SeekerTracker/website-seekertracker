@@ -86,12 +86,14 @@ export async function POST(request: NextRequest) {
       row.display_name != null ? String(row.display_name) : pkg;
     const link = `${SITE_URL.replace(/\/$/, "")}/apps/manage?token=${encodeURIComponent(token)}`;
 
+    // Resend tags: only [A-Za-z0-9_-] in name and value (no dots in package ids)
+    const tagPkg = pkg.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 48);
     await sendEmail({
       to: email,
       subject: `Maintain ${name} on Seeker Tracker`,
       tags: [
         { name: "category", value: "dapp_claim" },
-        { name: "package", value: pkg.slice(0, 48) },
+        ...(tagPkg ? [{ name: "android_package", value: tagPkg }] : []),
       ],
       html: claimEmailHtml({ name, pkg, link }),
       text: `Maintain ${name} (${pkg}) on Seeker Tracker.\n\nOpen this link within 30 minutes:\n${link}\n\nIf you did not request this, ignore this email.`,
