@@ -1,6 +1,19 @@
 :root {
-  --background: linear-gradient(135deg, #003333 0%, #001a1a 50%, #000000 100%);
-  --foreground: #ededed;
+  /* Seeker Cyan — see brand.md + /brand */
+  --brand-bg: #001a1a;
+  --brand-bg-elevated: #0a2a2a;
+  --brand-primary: #00ffd9;
+  --brand-primary-soft: #66ffe8;
+  --brand-secondary: #00ff66;
+  --brand-fg: #ededed;
+  --brand-muted: #7aa8a8;
+  --brand-border: rgba(0, 255, 217, 0.28);
+  --brand-danger: #ff8a8a;
+  --gradient-bg: linear-gradient(135deg, #003333 0%, #001a1a 50%, #000000 100%);
+  --gradient-accent: linear-gradient(135deg, #00ffd9 0%, #00ff66 50%, #00e6c0 100%);
+
+  --background: var(--gradient-bg);
+  --foreground: var(--brand-fg);
 }
 
 @media (prefers-color-scheme: dark) {

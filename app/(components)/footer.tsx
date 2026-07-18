@@ -81,6 +81,8 @@ const Footer = () => {
                     <div className={styles.legalLinks}>
                         <Link href="/whitepaper">Whitepaper</Link>
                         <span>•</span>
+                        <Link href="/brand">Brand</Link>
+                        <span>•</span>
                         <Link href="/privacy">Privacy</Link>
                         <span>•</span>
                         <Link href="/license">License</Link>
