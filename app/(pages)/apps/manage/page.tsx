@@ -47,13 +47,11 @@ function ManageInner() {
   const [status, setStatus] = useState<Status>(null);
   const [busy, setBusy] = useState(false);
 
-  // claim form
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<SearchHit[]>([]);
   const [pkg, setPkg] = useState("");
   const [email, setEmail] = useState("");
 
-  // edit form
   const [twitter, setTwitter] = useState("");
   const [telegram, setTelegram] = useState("");
   const [blurb, setBlurb] = useState("");
@@ -70,14 +68,13 @@ function ManageInner() {
     setPhase("edit");
   }, []);
 
-  // Exchange magic link token
   useEffect(() => {
     const token = params.get("token");
     if (!token) return;
     let cancelled = false;
     (async () => {
       setBusy(true);
-      setStatus({ kind: "info", text: "Verifying magic link…" });
+      setStatus({ kind: "info", text: "Verifying your link…" });
       try {
         const res = await fetch("/api/dapps/manage", {
           method: "POST",
@@ -86,15 +83,12 @@ function ManageInner() {
         });
         const data = await res.json();
         if (cancelled) return;
-        if (!res.ok) {
-          throw new Error(data.error || "Invalid link");
-        }
+        if (!res.ok) throw new Error(data.error || "Invalid link");
         fillForm(data.listing as Listing);
         setStatus({
           kind: "ok",
-          text: "You’re in. Update fields below and save.",
+          text: "Signed in. Update your Seeker Tracker extras below.",
         });
-        // strip token from URL without reload
         const base = window.location.pathname.startsWith("/dapps")
           ? "/dapps/manage"
           : "/apps/manage";
@@ -116,7 +110,6 @@ function ManageInner() {
     };
   }, [params, fillForm]);
 
-  // Existing session?
   useEffect(() => {
     if (params.get("token")) return;
     let cancelled = false;
@@ -139,7 +132,6 @@ function ManageInner() {
     };
   }, [params, fillForm]);
 
-  // Search packages
   useEffect(() => {
     if (q.trim().length < 2) {
       setHits([]);
@@ -155,13 +147,16 @@ function ManageInner() {
       } catch {
         setHits([]);
       }
-    }, 280);
+    }, 260);
     return () => clearTimeout(t);
   }, [q]);
 
   const requestLink = async () => {
     if (!pkg || !email) {
-      setStatus({ kind: "err", text: "Pick an app and enter your support email." });
+      setStatus({
+        kind: "err",
+        text: "Select an app and enter the support email from the store listing.",
+      });
       return;
     }
     setBusy(true);
@@ -208,7 +203,7 @@ function ManageInner() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Save failed");
       if (data.listing) fillForm(data.listing as Listing);
-      setStatus({ kind: "ok", text: "Saved. Catalog will show updates shortly." });
+      setStatus({ kind: "ok", text: "Saved. Changes show on the catalog shortly." });
     } catch (e) {
       setStatus({
         kind: "err",
@@ -223,272 +218,308 @@ function ManageInner() {
     await fetch("/api/dapps/manage", { method: "DELETE" });
     setListing(null);
     setPhase("claim");
-    setStatus({ kind: "info", text: "Signed out of manage session." });
+    setStatus({ kind: "info", text: "Signed out." });
   };
 
   if (phase === "boot") {
     return (
-      <main className={styles.main}>
-        <Backbutton />
-        <p className={styles.lead}>Loading…</p>
-      </main>
+      <div className={styles.shell}>
+        <main className={styles.main}>
+          <Backbutton />
+          <div className={styles.loadingBox}>
+            <div className={styles.spinner} aria-hidden />
+            <span>Loading…</span>
+          </div>
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className={styles.main}>
-      <Backbutton />
+    <div className={styles.shell}>
+      <main className={styles.main}>
+        <Backbutton />
 
-      <header className={styles.hero}>
-        <span className={styles.eyebrow}>Publishers</span>
-        <h1 className={styles.title}>Maintain your listing</h1>
-        <p className={styles.lead}>
-          Claim with the support email on your Solana Mobile dApp Store listing.
-          Store name, description, and ratings still sync from the official
-          store — you control Seeker Tracker extras (X, Telegram, pitch, links).
-        </p>
-      </header>
+        <header className={styles.hero}>
+          <p className={styles.eyebrow}>
+            <span className={styles.eyebrowDot} aria-hidden />
+            Publisher tools
+          </p>
+          <h1 className={styles.title}>
+            Maintain your{" "}
+            <span className={styles.titleAccent}>listing</span>
+          </h1>
+          <p className={styles.lead}>
+            Verify ownership with the support email on your Solana Mobile store
+            listing. Official store metadata keeps syncing — you control X,
+            Telegram, pitch, and links on Seeker Tracker.
+          </p>
+        </header>
 
-      {status ? (
-        <p
-          className={`${styles.status} ${
-            status.kind === "ok"
-              ? styles.statusOk
-              : status.kind === "err"
-                ? styles.statusErr
-                : styles.statusInfo
-          }`}
-          role="status"
-        >
-          {status.text}
-        </p>
-      ) : null}
-
-      {phase === "claim" ? (
-        <div className={styles.card}>
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="q">
-              Find your app
-            </label>
-            <input
-              id="q"
-              className={styles.input}
-              placeholder="Name or package (e.g. seekertracker)"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              autoComplete="off"
-            />
-            {hits.length > 0 && (
-              <ul className={styles.results}>
-                {hits.map((h) => (
-                  <li key={h.androidPackage}>
-                    <button
-                      type="button"
-                      className={`${styles.resultBtn} ${
-                        pkg === h.androidPackage ? styles.resultBtnActive : ""
-                      }`}
-                      onClick={() => {
-                        setPkg(h.androidPackage);
-                        setQ(h.displayName);
-                      }}
-                    >
-                      {h.iconUri ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          className={styles.resultIcon}
-                          src={h.iconUri}
-                          alt=""
-                        />
-                      ) : (
-                        <div className={styles.resultIcon} />
-                      )}
-                      <div>
-                        <div className={styles.resultName}>{h.displayName}</div>
-                        <div className={styles.resultPkg}>
-                          {h.androidPackage}
-                          {h.supportEmailDomain
-                            ? ` · @${h.supportEmailDomain}`
-                            : ""}
-                        </div>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+        {phase === "claim" ? (
+          <div className={styles.steps} aria-hidden>
+            <div className={`${styles.step} ${styles.stepOn}`} />
+            <div className={styles.step} />
           </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="pkg">
-              Android package
-            </label>
-            <input
-              id="pkg"
-              className={styles.input}
-              value={pkg}
-              onChange={(e) => setPkg(e.target.value)}
-              placeholder="com.example.app"
-            />
+        ) : (
+          <div className={styles.steps} aria-hidden>
+            <div className={`${styles.step} ${styles.stepOn}`} />
+            <div className={`${styles.step} ${styles.stepOn}`} />
           </div>
+        )}
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="email">
-              Support email on store listing
-            </label>
-            <input
-              id="email"
-              className={styles.input}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@studio.dev"
-            />
-            <span className={styles.hint}>
-              Must match the support email published on the Solana Mobile dApp
-              Store (or a contact email you already set here).
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className={styles.primary}
-            disabled={busy}
-            onClick={() => void requestLink()}
+        {status ? (
+          <p
+            className={`${styles.status} ${
+              status.kind === "ok"
+                ? styles.statusOk
+                : status.kind === "err"
+                  ? styles.statusErr
+                  : styles.statusInfo
+            }`}
+            role="status"
           >
-            {busy ? "Sending…" : "Email magic link"}
-          </button>
-        </div>
-      ) : null}
+            {status.text}
+          </p>
+        ) : null}
 
-      {phase === "edit" && listing ? (
-        <div className={styles.card}>
-          <div className={styles.appRow}>
-            {listing.iconUri ? (
-              <Image
-                className={styles.appIcon}
-                src={listing.iconUri}
-                alt=""
-                width={52}
-                height={52}
-                unoptimized
+        {phase === "claim" ? (
+          <div className={styles.card}>
+            <div className={styles.cardHead}>
+              <h2>Claim your app</h2>
+              <p>Search the catalog, then we email a one-time sign-in link.</p>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="q">
+                Find your app
+              </label>
+              <input
+                id="q"
+                className={styles.input}
+                placeholder="Search by name or package"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                autoComplete="off"
+                autoFocus
               />
-            ) : (
-              <div className={styles.appIcon} />
-            )}
-            <div>
-              <p className={styles.appName}>{listing.displayName}</p>
-              <p className={styles.appMeta}>
-                {listing.androidPackage}
-                <br />
-                Signed in as {listing.sessionEmail}
-              </p>
+              {hits.length > 0 && (
+                <ul className={styles.results} role="listbox" aria-label="Matching apps">
+                  {hits.map((h) => {
+                    const active = pkg === h.androidPackage;
+                    return (
+                      <li key={h.androidPackage}>
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={active}
+                          className={`${styles.resultBtn} ${
+                            active ? styles.resultBtnActive : ""
+                          }`}
+                          onClick={() => {
+                            setPkg(h.androidPackage);
+                            setQ(h.displayName);
+                          }}
+                        >
+                          {h.iconUri ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              className={styles.resultIcon}
+                              src={h.iconUri}
+                              alt=""
+                            />
+                          ) : (
+                            <div className={styles.resultIcon} />
+                          )}
+                          <div className={styles.resultText}>
+                            <div className={styles.resultName}>
+                              {h.displayName}
+                            </div>
+                            <div className={styles.resultPkg}>
+                              {h.androidPackage}
+                              {h.supportEmailDomain
+                                ? ` · @${h.supportEmailDomain}`
+                                : ""}
+                            </div>
+                          </div>
+                          <span className={styles.check} aria-hidden />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {pkg ? (
+                <div className={styles.pkgChip}>
+                  Selected <strong>{pkg}</strong>
+                </div>
+              ) : null}
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="email">
+                Store support email
+              </label>
+              <input
+                id="email"
+                className={styles.input}
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@studio.dev"
+              />
+              <span className={styles.hint}>
+                Must match the support email on the Solana Mobile dApp Store
+                listing (or a contact email already saved here).
+              </span>
+            </div>
+
+            <button
+              type="button"
+              className={styles.primary}
+              disabled={busy || !pkg || !email}
+              onClick={() => void requestLink()}
+            >
+              {busy ? "Sending…" : "Send magic link"}
+            </button>
+          </div>
+        ) : null}
+
+        {phase === "edit" && listing ? (
+          <div className={styles.card}>
+            <div className={styles.appRow}>
+              {listing.iconUri ? (
+                <Image
+                  className={styles.appIcon}
+                  src={listing.iconUri}
+                  alt=""
+                  width={52}
+                  height={52}
+                  unoptimized
+                />
+              ) : (
+                <div className={styles.appIcon} />
+              )}
+              <div>
+                <p className={styles.appName}>{listing.displayName}</p>
+                <p className={styles.appMeta}>
+                  {listing.androidPackage}
+                  <br />
+                  {listing.sessionEmail}
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="blurb">
+                Short pitch
+              </label>
+              <textarea
+                id="blurb"
+                className={styles.textarea}
+                maxLength={280}
+                value={blurb}
+                onChange={(e) => setBlurb(e.target.value)}
+                placeholder="One or two lines builders see on Seeker Tracker"
+              />
+              <span className={styles.charCount}>{blurb.length}/280</span>
+            </div>
+
+            <div className={styles.fieldRow}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="twitter">
+                  X handle
+                </label>
+                <input
+                  id="twitter"
+                  className={styles.input}
+                  value={twitter}
+                  onChange={(e) => setTwitter(e.target.value)}
+                  placeholder="@project"
+                  autoComplete="off"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="telegram">
+                  Telegram
+                </label>
+                <input
+                  id="telegram"
+                  className={styles.input}
+                  value={telegram}
+                  onChange={(e) => setTelegram(e.target.value)}
+                  placeholder="@project"
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="website">
+                Website
+              </label>
+              <input
+                id="website"
+                className={styles.input}
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://"
+                inputMode="url"
+              />
+              <span className={styles.hint}>
+                Optional override. Store default:{" "}
+                {listing.storeWebsite || "none"}
+              </span>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="contact">
+                Backup claim email
+              </label>
+              <input
+                id="contact"
+                className={styles.input}
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="team@…"
+                autoComplete="email"
+              />
+              <span className={styles.hint}>
+                Private. Not shown on the catalog. Store support:{" "}
+                {listing.supportEmail || "—"}
+              </span>
+            </div>
+
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.primary}
+                disabled={busy}
+                onClick={() => void save()}
+              >
+                {busy ? "Saving…" : "Save changes"}
+              </button>
+              <button
+                type="button"
+                className={styles.secondary}
+                disabled={busy}
+                onClick={() => void signOut()}
+              >
+                Sign out
+              </button>
             </div>
           </div>
+        ) : null}
 
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="blurb">
-              Short pitch (Seeker Tracker)
-            </label>
-            <textarea
-              id="blurb"
-              className={styles.textarea}
-              maxLength={280}
-              value={blurb}
-              onChange={(e) => setBlurb(e.target.value)}
-              placeholder="One or two lines builders see on seekertracker.com"
-            />
-            <span className={styles.hint}>{blurb.length}/280</span>
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="twitter">
-              X / Twitter handle
-            </label>
-            <input
-              id="twitter"
-              className={styles.input}
-              value={twitter}
-              onChange={(e) => setTwitter(e.target.value)}
-              placeholder="@project"
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="telegram">
-              Telegram
-            </label>
-            <input
-              id="telegram"
-              className={styles.input}
-              value={telegram}
-              onChange={(e) => setTelegram(e.target.value)}
-              placeholder="t.me/project or @project"
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="website">
-              Website (override)
-            </label>
-            <input
-              id="website"
-              className={styles.input}
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://…"
-            />
-            <span className={styles.hint}>
-              Optional. Shown instead of store website when set. Store value:{" "}
-              {listing.storeWebsite || "—"}
-            </span>
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label} htmlFor="contact">
-              Contact email (optional)
-            </label>
-            <input
-              id="contact"
-              className={styles.input}
-              type="email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              placeholder="team@…"
-            />
-            <span className={styles.hint}>
-              Not shown publicly. Lets you claim with this address later. Store
-              support: {listing.supportEmail || "—"}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className={styles.primary}
-            disabled={busy}
-            onClick={() => void save()}
-          >
-            {busy ? "Saving…" : "Save listing"}
-          </button>
-          <button
-            type="button"
-            className={styles.secondary}
-            disabled={busy}
-            onClick={() => void signOut()}
-          >
-            Sign out
-          </button>
-        </div>
-      ) : null}
-
-      <p className={styles.footerNote}>
-        <Link href="/apps">/apps</Link>
-        {" · "}
-        <Link href="/dapps">/dapps</Link>
-        {" catalog"}
-        {" · "}
-        Official store listings still managed via Solana Mobile publisher tools.
-      </p>
-    </main>
+        <p className={styles.footerNote}>
+          <Link href="/apps">Back to catalog</Link>
+          {" · "}
+          Official store listings stay on Solana Mobile publisher tools.
+        </p>
+      </main>
+    </div>
   );
 }
 
@@ -496,9 +527,14 @@ export default function ManageListingPage() {
   return (
     <Suspense
       fallback={
-        <main className={styles.main}>
-          <p className={styles.lead}>Loading…</p>
-        </main>
+        <div className={styles.shell}>
+          <main className={styles.main}>
+            <div className={styles.loadingBox}>
+              <div className={styles.spinner} aria-hidden />
+              <span>Loading…</span>
+            </div>
+          </main>
+        </div>
       }
     >
       <ManageInner />
