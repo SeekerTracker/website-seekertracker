@@ -1,14 +1,12 @@
 /**
  * SeekerID Open Graph / Telegram share card (1200×630).
- * Flat PNG for scrapers — designed to look like a physical 3D card
- * (layered depth, foil sheen, soft light). Satori-compatible only.
+ * Holographic digital passport — flat PNG, Satori-safe styles only.
  */
 
 export type DomainOgProps = {
   displayName: string;
   rank?: number | null;
   activatedAt?: string | null;
-  /** data: URL or absolute URL for logo mark */
   logoSrc?: string;
 };
 
@@ -30,12 +28,20 @@ function formatActivated(iso?: string | null): string {
 
 function domainFontSize(name: string): number {
   const len = name.length;
-  if (len <= 10) return 86;
-  if (len <= 14) return 72;
-  if (len <= 18) return 60;
-  if (len <= 24) return 50;
-  if (len <= 30) return 42;
-  return 36;
+  if (len <= 8) return 92;
+  if (len <= 12) return 76;
+  if (len <= 16) return 62;
+  if (len <= 20) return 50;
+  if (len <= 26) return 42;
+  return 34;
+}
+
+function rankFontSize(label: string): number {
+  const len = label.length;
+  if (len <= 4) return 68;
+  if (len <= 6) return 56;
+  if (len <= 8) return 48;
+  return 40;
 }
 
 /** React element tree for ImageResponse */
@@ -51,6 +57,11 @@ export function DomainOgCard({
       : "—";
   const dateLabel = formatActivated(activatedAt);
   const titleSize = domainFontSize(displayName);
+  const rankSize = rankFontSize(rankLabel);
+  const base = displayName.replace(/\.skr$/i, "");
+  const chars = base.length;
+  const watermark =
+    rank != null && Number.isFinite(rank) ? String(rank) : "SKR";
 
   return (
     <div
@@ -58,10 +69,8 @@ export function DomainOgCard({
         width: "100%",
         height: "100%",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#020808",
         position: "relative",
+        background: "#030a08",
         fontFamily:
           "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
       }}
@@ -76,85 +85,114 @@ export function DomainOgCard({
           bottom: 0,
           display: "flex",
           background:
-            "radial-gradient(ellipse 90% 70% at 50% 40%, #0a2a22 0%, #041412 42%, #010706 100%)",
+            "radial-gradient(ellipse 80% 70% at 30% 35%, #0c3228 0%, #041510 48%, #010605 100%)",
         }}
       />
 
-      {/* Soft floor light under card */}
+      {/* Bloom TR */}
       <div
         style={{
           position: "absolute",
-          bottom: 40,
-          left: "16%",
-          right: "16%",
-          height: 90,
+          top: 0,
+          right: 0,
+          width: 520,
+          height: 420,
           display: "flex",
           background:
-            "radial-gradient(ellipse at center, rgba(20,241,149,0.2) 0%, transparent 72%)",
+            "radial-gradient(circle at 70% 30%, rgba(20,241,149,0.16) 0%, transparent 65%)",
         }}
       />
 
-      {/* Depth stack — rear plate (offset = fake 3D, no rotate — Satori-safe) */}
+      {/* Floor glow */}
       <div
         style={{
           position: "absolute",
-          width: 1040,
+          bottom: 36,
+          left: 140,
+          right: 140,
+          height: 48,
+          display: "flex",
+          background:
+            "radial-gradient(ellipse at center, rgba(20,241,149,0.2) 0%, transparent 75%)",
+        }}
+      />
+
+      {/* Depth far */}
+      <div
+        style={{
+          position: "absolute",
+          top: 92,
+          left: 92,
+          width: 1020,
+          height: 480,
+          borderRadius: 32,
+          display: "flex",
+          background: "rgba(0, 28, 22, 0.55)",
+        }}
+      />
+
+      {/* Depth mid */}
+      <div
+        style={{
+          position: "absolute",
+          top: 74,
+          left: 72,
+          width: 1050,
           height: 500,
-          borderRadius: 28,
-          background: "rgba(0, 36, 30, 0.65)",
-          top: 88,
-          left: 100,
+          borderRadius: 32,
           display: "flex",
+          background: "rgba(4, 42, 34, 0.72)",
+          border: "1px solid rgba(20,241,149,0.1)",
         }}
       />
 
-      {/* Depth stack — mid plate */}
-      <div
-        style={{
-          position: "absolute",
-          width: 1060,
-          height: 510,
-          borderRadius: 28,
-          background: "rgba(6, 48, 40, 0.75)",
-          border: "1px solid rgba(20,241,149,0.14)",
-          top: 72,
-          left: 82,
-          display: "flex",
-        }}
-      />
-
-      {/* Main card body */}
+      {/* Main card */}
       <div
         style={{
           position: "relative",
-          width: 1080,
+          marginTop: 55,
+          marginLeft: 52,
+          width: 1096,
           height: 520,
-          borderRadius: 28,
+          borderRadius: 32,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
           background:
-            "linear-gradient(145deg, #0d2f28 0%, #06201a 38%, #031411 72%, #02100e 100%)",
-          border: "2px solid rgba(20, 241, 149, 0.38)",
-          boxShadow:
-            "0 40px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(20,241,149,0.08), 0 0 60px rgba(20,241,149,0.12)",
+            "linear-gradient(155deg, #12382e 0%, #0a241e 28%, #061814 62%, #03100d 100%)",
+          border: "2px solid rgba(20, 241, 149, 0.42)",
         }}
       >
-        {/* Top specular highlight (3D edge light) */}
+        {/* Left neon bar */}
+        <div
+          style={{
+            position: "absolute",
+            top: 24,
+            bottom: 24,
+            left: 0,
+            width: 5,
+            display: "flex",
+            borderRadius: 4,
+            background:
+              "linear-gradient(180deg, #00ffa3 0%, #14f195 40%, #00c98a 100%)",
+          }}
+        />
+
+        {/* Top specular */}
         <div
           style={{
             position: "absolute",
             top: 0,
             left: 0,
             right: 0,
-            height: 4,
+            height: 3,
             display: "flex",
             background:
-              "linear-gradient(90deg, transparent 0%, rgba(20,241,149,0.85) 30%, rgba(180,255,230,0.95) 50%, rgba(20,241,149,0.85) 70%, transparent 100%)",
+              "linear-gradient(90deg, transparent 5%, rgba(180,255,230,0.95) 35%, rgba(20,241,149,0.9) 55%, transparent 92%)",
           }}
         />
 
-        {/* Diagonal foil sheen (gradient only — Satori-safe) */}
+        {/* Holo band */}
         <div
           style={{
             position: "absolute",
@@ -164,11 +202,11 @@ export function DomainOgCard({
             bottom: 0,
             display: "flex",
             background:
-              "linear-gradient(125deg, transparent 0%, transparent 38%, rgba(255,255,255,0.05) 46%, rgba(20,241,149,0.1) 50%, rgba(255,255,255,0.04) 54%, transparent 62%, transparent 100%)",
+              "linear-gradient(118deg, transparent 0%, transparent 42%, rgba(255,255,255,0.035) 48%, rgba(20,241,149,0.09) 52%, rgba(255,255,255,0.03) 56%, transparent 64%)",
           }}
         />
 
-        {/* Inner grid texture */}
+        {/* Grid */}
         <div
           style={{
             position: "absolute",
@@ -177,12 +215,29 @@ export function DomainOgCard({
             right: 0,
             bottom: 0,
             display: "flex",
-            opacity: 0.45,
+            opacity: 0.35,
             backgroundImage:
-              "linear-gradient(rgba(20,241,149,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(20,241,149,0.04) 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
+              "linear-gradient(rgba(20,241,149,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(20,241,149,0.035) 1px, transparent 1px)",
+            backgroundSize: "36px 36px",
           }}
         />
+
+        {/* Watermark rank */}
+        <div
+          style={{
+            position: "absolute",
+            right: 28,
+            bottom: 20,
+            display: "flex",
+            fontSize: 160,
+            fontWeight: 800,
+            color: "rgba(20,241,149,0.06)",
+            letterSpacing: -6,
+            lineHeight: 1,
+          }}
+        >
+          {watermark}
+        </div>
 
         {/* Content */}
         <div
@@ -192,7 +247,7 @@ export function DomainOgCard({
             flexDirection: "column",
             width: "100%",
             height: "100%",
-            padding: "36px 44px 32px 44px",
+            padding: "32px 44px 28px 48px",
           }}
         >
           {/* Header */}
@@ -210,124 +265,104 @@ export function DomainOgCard({
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 14,
+                gap: 16,
               }}
             >
-              {/* Logo */}
               {logoSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={logoSrc}
-                  width={64}
-                  height={64}
+                  width={58}
+                  height={58}
                   alt=""
                   style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 16,
-                    border: "2px solid rgba(20,241,149,0.55)",
+                    width: 58,
+                    height: 58,
+                    borderRadius: 29,
+                    border: "2px solid rgba(20,241,149,0.65)",
                     background: "#000000",
-                    boxShadow: "0 0 20px rgba(20,241,149,0.35)",
                   }}
                 />
               ) : (
                 <div
                   style={{
                     display: "flex",
-                    width: 56,
-                    height: 56,
-                    borderRadius: 14,
+                    width: 58,
+                    height: 58,
+                    borderRadius: 29,
                     border: "2px solid #14f195",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "rgba(0, 30, 24, 0.8)",
+                    background: "#000000",
                   }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      width: 28,
-                      height: 28,
-                      borderRadius: 999,
-                      border: "3px solid #14f195",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        width: 10,
-                        height: 10,
-                        borderRadius: 999,
-                        background: "#14f195",
-                      }}
-                    />
-                  </div>
-                </div>
+                />
               )}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
+              <div style={{ display: "flex", flexDirection: "column" }}>
                 <div
                   style={{
                     display: "flex",
-                    color: "#14f195",
-                    fontSize: 22,
-                    fontWeight: 800,
-                    letterSpacing: 0.4,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    letterSpacing: 3.2,
+                    color: "rgba(20,241,149,0.7)",
                   }}
                 >
-                  Seeker Tracker
+                  DIGITAL PASSPORT
                 </div>
                 <div
                   style={{
                     display: "flex",
-                    color: "rgba(160, 190, 180, 0.7)",
-                    fontSize: 16,
-                    fontWeight: 500,
                     marginTop: 2,
+                    fontSize: 24,
+                    fontWeight: 800,
+                    color: "#edfdf6",
+                    letterSpacing: -0.3,
                   }}
                 >
-                  SeekerID Profile
+                  SeekerID
                 </div>
               </div>
             </div>
 
-            {/* Activated pill */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 10,
-                padding: "12px 22px",
+                padding: "11px 20px 11px 14px",
                 borderRadius: 999,
                 background:
-                  "linear-gradient(90deg, #00e68a 0%, #14f195 55%, #00d4aa 100%)",
-                boxShadow: "0 0 28px rgba(20, 241, 149, 0.4)",
+                  "linear-gradient(100deg, #00e887 0%, #14f195 50%, #00d4a8 100%)",
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 14 14">
-                <path
-                  d="M2.5 7.2 L5.5 10.2 L11.5 3.8"
-                  fill="none"
-                  stroke="#04140e"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <div
+                style={{
+                  display: "flex",
+                  width: 26,
+                  height: 26,
+                  borderRadius: 13,
+                  background: "rgba(4,20,14,0.2)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14">
+                  <path
+                    d="M2.5 7.2 L5.5 10.2 L11.5 3.8"
+                    fill="none"
+                    stroke="#04140e"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
               <div
                 style={{
                   display: "flex",
                   color: "#04140e",
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: 800,
-                  letterSpacing: 0.3,
+                  letterSpacing: 0.4,
                 }}
               >
                 Activated
@@ -335,139 +370,276 @@ export function DomainOgCard({
             </div>
           </div>
 
-          {/* Domain title with glow plate */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              marginTop: 28,
-              width: "100%",
-              padding: "20px 24px",
-              borderRadius: 18,
-              background:
-                "linear-gradient(135deg, rgba(20,241,149,0.1) 0%, rgba(0,40,32,0.35) 100%)",
-              border: "1px solid rgba(20,241,149,0.22)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 15,
-                fontWeight: 600,
-                color: "rgba(20,241,149,0.65)",
-                letterSpacing: 2.5,
-                textTransform: "uppercase",
-                marginBottom: 8,
-              }}
-            >
-              Domain
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: titleSize,
-                fontWeight: 800,
-                color: "#14f195",
-                letterSpacing: -1.5,
-                lineHeight: 1.05,
-              }}
-            >
-              {displayName}
-            </div>
-          </div>
-
-          {/* Stat row */}
+          {/* Hero: domain + rank */}
           <div
             style={{
               display: "flex",
               flexDirection: "row",
-              gap: 18,
-              marginTop: 22,
-              width: "100%",
-            }}
-          >
-            <StatChip label="Seeker Rank" value={rankLabel} />
-            <StatChip label="Activated" value={dateLabel} />
-          </div>
-
-          {/* Footer */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
+              alignItems: "flex-end",
               justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: "auto",
-              paddingTop: 18,
-              borderTop: "1px solid rgba(20,241,149,0.15)",
+              width: "100%",
+              marginTop: 36,
             }}
           >
             <div
               style={{
                 display: "flex",
-                fontSize: 20,
-                fontWeight: 600,
-                color: "rgba(180, 210, 200, 0.75)",
+                flexDirection: "column",
+                width: 720,
               }}
             >
-              Check yours @ seekertracker.com
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: 2.8,
+                  color: "rgba(20,241,149,0.55)",
+                  marginBottom: 10,
+                }}
+              >
+                DOMAIN NAME
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: titleSize,
+                  fontWeight: 800,
+                  color: "#14f195",
+                  letterSpacing: -2,
+                  lineHeight: 1,
+                }}
+              >
+                {displayName}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  marginTop: 14,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    background: "rgba(20,241,149,0.08)",
+                    border: "1px solid rgba(20,241,149,0.22)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "rgba(180, 220, 205, 0.85)",
+                    marginRight: 10,
+                  }}
+                >
+                  .skr · Solana
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    background: "rgba(20,241,149,0.08)",
+                    border: "1px solid rgba(20,241,149,0.22)",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "rgba(180, 220, 205, 0.85)",
+                  }}
+                >
+                  {`${chars} chars`}
+                </div>
+              </div>
             </div>
+
+            {/* Rank seal */}
             <div
               style={{
                 display: "flex",
-                fontSize: 18,
-                fontWeight: 700,
-                color: "#14f195",
-                letterSpacing: 0.3,
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 220,
+                height: 176,
+                borderRadius: 24,
+                background:
+                  "linear-gradient(160deg, rgba(20,241,149,0.14) 0%, rgba(0,40,32,0.55) 55%, rgba(0,20,16,0.8) 100%)",
+                border: "2px solid rgba(20,241,149,0.4)",
               }}
             >
-              .skr on Solana
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: 2.4,
+                  color: "rgba(20,241,149,0.65)",
+                  marginBottom: 6,
+                }}
+              >
+                SEEKER RANK
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: rankSize,
+                  fontWeight: 800,
+                  color: "#edfdf6",
+                  letterSpacing: -1.5,
+                  lineHeight: 1,
+                }}
+              >
+                {rankLabel}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  marginTop: 10,
+                  width: 48,
+                  height: 3,
+                  borderRadius: 2,
+                  background:
+                    "linear-gradient(90deg, transparent, #14f195, transparent)",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Footer meta */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: "auto",
+              paddingTop: 22,
+              borderTop: "1px solid rgba(20,241,149,0.14)",
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  marginRight: 40,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 1.8,
+                    color: "rgba(20,241,149,0.5)",
+                    marginBottom: 4,
+                  }}
+                >
+                  ACTIVATED
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#edfdf6",
+                  }}
+                >
+                  {dateLabel}
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  marginRight: 40,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 1.8,
+                    color: "rgba(20,241,149,0.5)",
+                    marginBottom: 4,
+                  }}
+                >
+                  NETWORK
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#edfdf6",
+                  }}
+                >
+                  Solana
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 1.8,
+                    color: "rgba(20,241,149,0.5)",
+                    marginBottom: 4,
+                  }}
+                >
+                  TYPE
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: 22,
+                    fontWeight: 700,
+                    color: "#edfdf6",
+                  }}
+                >
+                  SeekerID
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#14f195",
+                }}
+              >
+                seekertracker.com
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  marginTop: 2,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "rgba(160, 190, 180, 0.55)",
+                }}
+              >
+                Check yours · share this card
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function StatChip({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        flex: 1,
-        flexDirection: "column",
-        padding: "18px 22px",
-        borderRadius: 16,
-        background:
-          "linear-gradient(180deg, rgba(0, 60, 48, 0.65) 0%, rgba(0, 28, 24, 0.9) 100%)",
-        border: "1.5px solid rgba(20, 241, 149, 0.32)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.25)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          fontSize: 14,
-          fontWeight: 600,
-          color: "rgba(150, 185, 175, 0.75)",
-          letterSpacing: 1.2,
-          textTransform: "uppercase",
-          marginBottom: 6,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          display: "flex",
-          fontSize: 36,
-          fontWeight: 800,
-          color: "#14f195",
-          letterSpacing: -0.5,
-        }}
-      >
-        {value}
       </div>
     </div>
   );
