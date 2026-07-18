@@ -8,6 +8,8 @@ import Backbutton from 'app/(components)/shared/Backbutton'
 
 interface DApp {
     androidPackage: string
+    status?: 'active' | 'removed' | string
+    removedAt?: string | null
     rating?: {
         rating: number
         reviewsByRating?: number[]
@@ -72,6 +74,13 @@ const AppsContent = () => {
     const [favorites, setFavorites] = useState<Set<string>>(new Set())
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(searchParams.get('view') === 'favorites')
     const [sortBy, setSortBy] = useState<SortOption>('updated-desc')
+    type StatusFilter = 'active' | 'removed' | 'all'
+    const initialStatus = (searchParams.get('status') as StatusFilter) || 'active'
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+        initialStatus === 'removed' || initialStatus === 'all' ? initialStatus : 'active'
+    )
+    const [activeCount, setActiveCount] = useState<number | null>(null)
+    const [removedCount, setRemovedCount] = useState<number | null>(null)
 
     const applyCatalog = useCallback((data: any) => {
         const units = data.data?.explore?.units?.edges || []
@@ -85,28 +94,38 @@ const AppsContent = () => {
 
         setCategories(categoryUnits)
         setError(null)
+        if (typeof data.activeCount === 'number') setActiveCount(data.activeCount)
+        if (typeof data.removedCount === 'number') setRemovedCount(data.removedCount)
         try {
-            sessionStorage.setItem(
-                'dappstore-catalog-v1',
-                JSON.stringify({
-                    ts: Date.now(),
-                    totalApps: data.totalApps,
-                    data: data.data,
-                })
-            )
+            // Only cache active catalog for instant paint
+            if ((data.statusFilter || 'active') === 'active') {
+                sessionStorage.setItem(
+                    'dappstore-catalog-v1',
+                    JSON.stringify({
+                        ts: Date.now(),
+                        totalApps: data.totalApps,
+                        activeCount: data.activeCount,
+                        removedCount: data.removedCount,
+                        data: data.data,
+                    })
+                )
+            }
         } catch {
             /* quota / private mode */
         }
     }, [])
 
-    const fetchCatalog = useCallback(async (opts?: { soft?: boolean }) => {
+    const fetchCatalog = useCallback(async (opts?: { soft?: boolean; status?: StatusFilter }) => {
+        const st = opts?.status ?? statusFilter
         try {
             if (!opts?.soft) {
                 setLoading(true)
                 setError(null)
             }
-            // Prefer CDN/browser cache when server sends Cache-Control
-            const response = await fetch('/api/dappstore', {
+            const qs = new URLSearchParams()
+            if (st && st !== 'active') qs.set('status', st)
+            const url = `/api/dappstore${qs.toString() ? `?${qs}` : ''}`
+            const response = await fetch(url, {
                 cache: opts?.soft ? 'no-cache' : 'default',
             })
             const data = await response.json()
@@ -115,40 +134,48 @@ const AppsContent = () => {
                 throw new Error(data.detail || data.error || `Catalog failed (${response.status})`)
             }
 
-            applyCatalog(data)
+            applyCatalog({ ...data, statusFilter: st })
         } catch (err) {
-            // Soft revalidate failures keep any session-cached UI
             if (!opts?.soft) {
                 setError(err instanceof Error ? err.message : 'Failed to fetch apps')
             }
         } finally {
             setLoading(false)
         }
-    }, [applyCatalog])
+    }, [applyCatalog, statusFilter])
 
-    // Instant paint from sessionStorage, then revalidate
+    // Instant paint from sessionStorage (active only), then revalidate
     useEffect(() => {
-        let cancelled = false
+        if (statusFilter !== 'active') {
+            void fetchCatalog({ status: statusFilter })
+            return
+        }
         try {
             const raw = sessionStorage.getItem('dappstore-catalog-v1')
             if (raw) {
                 const parsed = JSON.parse(raw)
-                // Use cache up to 6 hours for instant paint
                 if (parsed?.ts && Date.now() - parsed.ts < 6 * 60 * 60 * 1000 && parsed.data) {
-                    applyCatalog(parsed)
+                    applyCatalog({ ...parsed, statusFilter: 'active' })
                     setLoading(false)
-                    // Soft revalidate in background
-                    void fetchCatalog({ soft: true })
+                    void fetchCatalog({ soft: true, status: 'active' })
                     return
                 }
             }
         } catch {
-            /* ignore bad cache */
+            /* ignore */
         }
-        if (!cancelled) void fetchCatalog()
-        return () => { cancelled = true }
+        void fetchCatalog({ status: 'active' })
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [statusFilter])
+
+    const onStatusChange = (next: StatusFilter) => {
+        setStatusFilter(next)
+        setShowFavoritesOnly(false)
+        setSelectedCategory(null)
+        const params = new URLSearchParams()
+        if (next !== 'active') params.set('status', next)
+        router.push(params.toString() ? `/apps?${params}` : '/apps', { scroll: false })
+    }
 
     // Load favorites from localStorage
     useEffect(() => {
@@ -348,9 +375,13 @@ const AppsContent = () => {
         const release = app.lastRelease
         if (!release) return null
         const isFavorite = favorites.has(app.androidPackage)
+        const isRemoved = app.status === 'removed'
 
         return (
-            <div className={styles.appCard} onClick={() => selectApp(app)}>
+            <div
+                className={`${styles.appCard} ${isRemoved ? styles.appCardRemoved : ''}`}
+                onClick={() => selectApp(app)}
+            >
                 <button
                     className={`${styles.favoriteBtn} ${isFavorite ? styles.favorited : ''}`}
                     onClick={(e) => toggleFavorite(app.androidPackage, e)}
@@ -374,7 +405,10 @@ const AppsContent = () => {
                     )}
                 </div>
                 <div className={styles.appInfo}>
-                    <h3 className={styles.appName}>{release.displayName}</h3>
+                    <h3 className={styles.appName}>
+                        {release.displayName}
+                        {isRemoved && <span className={styles.removedBadge}>Removed</span>}
+                    </h3>
                     {release.subtitle && (
                         <span className={styles.subtitle}>{release.subtitle}</span>
                     )}
@@ -603,7 +637,13 @@ const AppsContent = () => {
                 <p className={styles.description}>Discover apps optimized for Solana Seeker</p>
                 <div className={styles.totalCount}>
                     <span className={styles.totalNumber}>{totalApps}</span>
-                    <span className={styles.totalLabel}>Total Apps</span>
+                    <span className={styles.totalLabel}>
+                        {statusFilter === 'removed'
+                            ? 'Removed apps'
+                            : statusFilter === 'all'
+                              ? 'All apps'
+                              : 'Active apps'}
+                    </span>
                 </div>
             </div>
 
@@ -616,6 +656,23 @@ const AppsContent = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className={styles.searchInput}
                     />
+                </div>
+                <div className={styles.sortControl}>
+                    <label className={styles.sortLabel}>Status:</label>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
+                        className={styles.sortSelect}
+                        aria-label="App status filter"
+                    >
+                        <option value="active">
+                            Active{activeCount != null ? ` (${activeCount})` : ''}
+                        </option>
+                        <option value="removed">
+                            Removed{removedCount != null ? ` (${removedCount})` : ''}
+                        </option>
+                        <option value="all">All</option>
+                    </select>
                 </div>
                 <div className={styles.sortControl}>
                     <label className={styles.sortLabel}>Sort:</label>

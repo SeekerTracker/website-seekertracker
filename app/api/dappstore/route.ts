@@ -1,4 +1,13 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import {
+  getDappByPackage,
+  getLastDappSync,
+  listDappsAsExplore,
+  syncDappsFromCategories,
+  type DappStatus,
+  type UpstreamCategory,
+} from "app/(utils)/lib/dappStore";
+import { getTurso, hasTurso } from "app/(utils)/lib/turso";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -12,6 +21,8 @@ const R2_KEY = "cache/dappstore-explore.json";
 const MEM_TTL_MS = 15 * 60 * 1000;
 // R2 durable cache — survives cold starts
 const R2_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+// Re-sync Turso from upstream if last sync older than this
+const TURSO_STALE_MS = 60 * 60 * 1000; // 1 hour
 const FETCH_BUDGET_MS = 22_000;
 const PAGE_SIZE = 20;
 const MAX_PAGES = 30;
@@ -379,6 +390,11 @@ function jsonOk(data: object, opts?: { cacheSeconds?: number }) {
   });
 }
 
+function parseStatus(raw: string | null): DappStatus | "all" {
+  if (raw === "removed" || raw === "all" || raw === "active") return raw;
+  return "active";
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -387,8 +403,9 @@ export async function GET(request: NextRequest) {
     const packageName = searchParams.get("package") || "";
     const debug = searchParams.get("debug") === "1";
     const force = searchParams.get("refresh") === "1";
+    const status = parseStatus(searchParams.get("status"));
 
-    // ── Search ──
+    // ── Search (upstream; optional later Turso FTS) ──
     if (action === "search" && searchText) {
       const memKey = `search:${searchText}`;
       const mem = memCache.get(memKey);
@@ -409,8 +426,22 @@ export async function GET(request: NextRequest) {
       return jsonOk({ ...data, cached: false }, { cacheSeconds: 120 });
     }
 
-    // ── Single package (deep link / modal) — one GraphQL call, not full catalog ──
+    // ── Single package — Turso first, then GraphQL ──
     if (packageName) {
+      if (hasTurso()) {
+        try {
+          const app = await getDappByPackage(packageName);
+          if (app) {
+            return jsonOk(
+              { app, package: packageName, source: "turso" },
+              { cacheSeconds: 120 }
+            );
+          }
+        } catch (e) {
+          console.error("turso package lookup", e);
+        }
+      }
+
       const memKey = `package:${packageName}`;
       const mem = memCache.get(memKey);
       if (!force && mem && Date.now() - mem.timestamp < MEM_TTL_MS) {
@@ -423,38 +454,12 @@ export async function GET(request: NextRequest) {
           data.data as { dAppByAndroidPackage?: DAppNode } | null
         )?.dAppByAndroidPackage;
         if (app) {
-          const responseData = { app, package: packageName };
+          const responseData = { app, package: packageName, source: "upstream" };
           memCache.set(memKey, { data: responseData, timestamp: Date.now() });
           return jsonOk({ ...responseData, cached: false }, { cacheSeconds: 600 });
         }
       } catch (e) {
         console.error("package GraphQL failed", e);
-      }
-
-      // Fallback: search fragment
-      try {
-        const data = await fetchFromDAppStore(
-          getSearchQuery(packageName.replace(/^com\./, ""))
-        );
-        const results = (
-          data.data as {
-            search?: {
-              results?: { dApps?: { edges?: Array<{ node: DAppNode }> } };
-            };
-          }
-        )?.search?.results;
-        const edges = results?.dApps?.edges || [];
-        const found =
-          edges.find((e) => e.node.androidPackage === packageName)?.node ||
-          edges[0]?.node ||
-          null;
-        if (found) {
-          const responseData = { app: found, package: packageName };
-          memCache.set(memKey, { data: responseData, timestamp: Date.now() });
-          return jsonOk({ ...responseData, cached: false }, { cacheSeconds: 300 });
-        }
-      } catch {
-        /* ignore */
       }
 
       return NextResponse.json(
@@ -463,8 +468,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // ── Full catalog explore ──
-    const memKey = "explore";
+    // ── Full catalog — prefer Turso (active/removed/all) ──
+    if (hasTurso() && !force) {
+      try {
+        const last = await getLastDappSync();
+        const lastMs = last ? Date.parse(last) : 0;
+        const stale =
+          !lastMs || Date.now() - lastMs > TURSO_STALE_MS;
+
+        const fromDb = await listDappsAsExplore(status);
+        if (fromDb.totalApps > 0) {
+          if (stale) void refreshCatalogInBackground();
+          return jsonOk(
+            {
+              ...fromDb,
+              cached: true,
+              cache: "turso",
+              statusFilter: status,
+            },
+            { cacheSeconds: status === "active" ? 120 : 60 }
+          );
+        }
+        // Empty DB — fall through to upstream sync
+      } catch (e) {
+        console.error("turso list dapps", e);
+      }
+    }
+
+    // ── Upstream explore (cold / force) + write Turso + R2 ──
+    const memKey = `explore:${status}`;
     if (!force) {
       const mem = memCache.get(memKey);
       if (mem && Date.now() - mem.timestamp < MEM_TTL_MS) {
@@ -479,29 +511,31 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const r2 = await readR2Catalog();
-      if (r2 && Date.now() - r2.timestamp < R2_TTL_MS) {
-        memCache.set(memKey, { data: r2.body, timestamp: r2.timestamp });
-        // Stale-while-revalidate: kick off background refresh if older than 30m
-        if (Date.now() - r2.timestamp > 30 * 60 * 1000) {
-          void refreshCatalogInBackground();
+      if (status === "active") {
+        const r2 = await readR2Catalog();
+        if (r2 && Date.now() - r2.timestamp < R2_TTL_MS) {
+          memCache.set(memKey, { data: r2.body, timestamp: r2.timestamp });
+          if (Date.now() - r2.timestamp > 30 * 60 * 1000) {
+            void refreshCatalogInBackground();
+          }
+          return jsonOk({
+            ...r2.body,
+            cached: true,
+            cache: "r2",
+            cacheAge: Math.round((Date.now() - r2.timestamp) / 1000 / 60),
+            statusFilter: status,
+          });
         }
-        return jsonOk({
-          ...r2.body,
-          cached: true,
-          cache: "r2",
-          cacheAge: Math.round((Date.now() - r2.timestamp) / 1000 / 60),
-        });
-      }
-      // Serve stale R2 rather than empty while refreshing
-      if (r2 && r2.body.totalApps > 0) {
-        void refreshCatalogInBackground();
-        return jsonOk({
-          ...r2.body,
-          cached: true,
-          cache: "r2-stale",
-          cacheAge: Math.round((Date.now() - r2.timestamp) / 1000 / 60),
-        });
+        if (r2 && r2.body.totalApps > 0) {
+          void refreshCatalogInBackground();
+          return jsonOk({
+            ...r2.body,
+            cached: true,
+            cache: "r2-stale",
+            cacheAge: Math.round((Date.now() - r2.timestamp) / 1000 / 60),
+            statusFilter: status,
+          });
+        }
       }
     }
 
@@ -510,6 +544,17 @@ export async function GET(request: NextRequest) {
     const responseData = buildExploreResponse(categories);
 
     if (responseData.totalApps === 0) {
+      // Still try Turso (maybe removed-only request)
+      if (hasTurso()) {
+        try {
+          const fromDb = await listDappsAsExplore(status);
+          if (fromDb.totalApps > 0) {
+            return jsonOk({ ...fromDb, cached: true, cache: "turso-fallback" });
+          }
+        } catch {
+          /* ignore */
+        }
+      }
       return NextResponse.json(
         {
           ...responseData,
@@ -523,8 +568,31 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Persist to Turso so future loads are instant + removed tracking works
+    if (hasTurso()) {
+      try {
+        await syncDappsFromCategories(categories as UpstreamCategory[], getTurso());
+      } catch (e) {
+        console.error("syncDappsFromCategories failed", e);
+      }
+    }
+
+    // If client asked for removed/all, re-list from Turso after sync
+    if (hasTurso() && status !== "active") {
+      try {
+        const fromDb = await listDappsAsExplore(status);
+        return jsonOk({
+          ...fromDb,
+          cached: false,
+          pagesOk,
+          statusFilter: status,
+        });
+      } catch {
+        /* fall through with live response */
+      }
+    }
+
     memCache.set(memKey, { data: responseData, timestamp: Date.now() });
-    // Must await R2 put — voided writes die when the Worker freezes after response
     const r2Ok = await writeR2Catalog(responseData);
 
     return jsonOk({
@@ -532,11 +600,30 @@ export async function GET(request: NextRequest) {
       cached: false,
       pagesOk,
       r2: r2Ok,
+      source: "upstream",
+      statusFilter: status,
       ...(debug ? { detail: lastError } : {}),
     });
   } catch (error) {
     console.error("dApp Store API error:", error);
-    // Last resort: any R2 catalog
+    if (hasTurso()) {
+      try {
+        const status = parseStatus(
+          new URL(request.url).searchParams.get("status")
+        );
+        const fromDb = await listDappsAsExplore(status);
+        if (fromDb.totalApps > 0) {
+          return jsonOk({
+            ...fromDb,
+            cached: true,
+            cache: "turso-error-fallback",
+            detail: error instanceof Error ? error.message : String(error),
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    }
     const r2 = await readR2Catalog();
     if (r2?.body?.totalApps) {
       return jsonOk({
@@ -567,8 +654,14 @@ function refreshCatalogInBackground() {
       );
       const body = buildExploreResponse(categories);
       if (body.totalApps > 0) {
-        memCache.set("explore", { data: body, timestamp: Date.now() });
+        memCache.set("explore:active", { data: body, timestamp: Date.now() });
         await writeR2Catalog(body);
+        if (hasTurso()) {
+          await syncDappsFromCategories(
+            categories as UpstreamCategory[],
+            getTurso()
+          );
+        }
       } else {
         console.error("background refresh empty", lastError);
       }

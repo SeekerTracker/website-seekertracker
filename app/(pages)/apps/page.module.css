@@ -229,6 +229,26 @@
     position: relative;
 }
 
+.removedBadge {
+    display: inline-block;
+    margin-left: 0.4em;
+    padding: 0.1em 0.45em;
+    border-radius: 999px;
+    font-size: 0.65em;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #ffb4a8;
+    background: rgba(255, 80, 80, 0.15);
+    border: 1px solid rgba(255, 100, 100, 0.35);
+    vertical-align: middle;
+}
+
+.appCardRemoved {
+    opacity: 0.72;
+    border-color: rgba(255, 100, 100, 0.2);
+}
+
 .favoriteBtn {
     position: absolute;
     top: 0.5em;
