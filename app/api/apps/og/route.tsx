@@ -1,7 +1,8 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
-export const runtime = "edge";
+// nodejs: more reliable ImageResponse + outbound GraphQL on CF Workers
+export const runtime = "nodejs";
 
 const DAPPSTORE_API = "https://dappstore.solanamobile.com/graphql";
 const SC = `{locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}`;
@@ -88,26 +89,6 @@ async function fetchAppData(androidPackage: string) {
   return null;
 }
 
-function StarRow({ rating }: { rating: number }) {
-  const stars = [1, 2, 3, 4, 5].map((n) => (
-    <svg
-      key={n}
-      width="28"
-      height="28"
-      viewBox="0 0 24 24"
-      style={{ marginRight: 4 }}
-    >
-      <path
-        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-        fill={rating >= n ? "#14f195" : "rgba(20,241,149,0.22)"}
-      />
-    </svg>
-  ));
-  return (
-    <div style={{ display: "flex", alignItems: "center" }}>{stars}</div>
-  );
-}
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const appPackage = searchParams.get("app");
@@ -156,43 +137,47 @@ export async function GET(request: NextRequest) {
             }}
           />
 
-          {/* Icon scatter */}
-          {icons.slice(0, 8).map((uri, i) => {
-            const left = i < 4;
-            const positions = left
-              ? [
-                  { top: 48, left: 48, s: 72 },
-                  { top: 160, left: 140, s: 64 },
-                  { top: 300, left: 56, s: 56 },
-                  { top: 440, left: 130, s: 60 },
-                ]
-              : [
-                  { top: 48, right: 48, s: 68 },
-                  { top: 160, right: 130, s: 58 },
-                  { top: 300, right: 56, s: 62 },
-                  { top: 440, right: 120, s: 54 },
-                ];
-            const p = positions[i % 4];
-            return (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={pngIcon(uri, 140)}
-                width={p.s}
-                height={p.s}
-                alt=""
-                style={{
-                  position: "absolute",
-                  top: p.top,
-                  left: (p as { left?: number }).left,
-                  right: (p as { right?: number }).right,
-                  borderRadius: 16,
-                  border: "2px solid rgba(20,241,149,0.35)",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
-                }}
-              />
-            );
-          })}
+          {/* Icon scatter — fixed positions (Satori-safe) */}
+          {icons[0] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pngIcon(icons[0], 140)} width={72} height={72} alt=""
+              style={{ position: "absolute", top: 48, left: 48, borderRadius: 16, border: "2px solid rgba(20,241,149,0.35)" }} />
+          ) : null}
+          {icons[1] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pngIcon(icons[1], 140)} width={64} height={64} alt=""
+              style={{ position: "absolute", top: 160, left: 140, borderRadius: 14, border: "2px solid rgba(20,241,149,0.35)" }} />
+          ) : null}
+          {icons[2] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pngIcon(icons[2], 140)} width={56} height={56} alt=""
+              style={{ position: "absolute", top: 300, left: 56, borderRadius: 12, border: "2px solid rgba(20,241,149,0.35)" }} />
+          ) : null}
+          {icons[3] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pngIcon(icons[3], 140)} width={60} height={60} alt=""
+              style={{ position: "absolute", top: 440, left: 130, borderRadius: 14, border: "2px solid rgba(20,241,149,0.35)" }} />
+          ) : null}
+          {icons[4] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pngIcon(icons[4], 140)} width={68} height={68} alt=""
+              style={{ position: "absolute", top: 48, right: 48, borderRadius: 16, border: "2px solid rgba(20,241,149,0.35)" }} />
+          ) : null}
+          {icons[5] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pngIcon(icons[5], 140)} width={58} height={58} alt=""
+              style={{ position: "absolute", top: 160, right: 130, borderRadius: 14, border: "2px solid rgba(20,241,149,0.35)" }} />
+          ) : null}
+          {icons[6] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pngIcon(icons[6], 140)} width={62} height={62} alt=""
+              style={{ position: "absolute", top: 300, right: 56, borderRadius: 14, border: "2px solid rgba(20,241,149,0.35)" }} />
+          ) : null}
+          {icons[7] ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pngIcon(icons[7], 140)} width={54} height={54} alt=""
+              style={{ position: "absolute", top: 440, right: 120, borderRadius: 12, border: "2px solid rgba(20,241,149,0.35)" }} />
+          ) : null}
 
           <div
             style={{
@@ -213,7 +198,7 @@ export async function GET(request: NextRequest) {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`${SITE_URL}/logo-og.png`}
+                src={`${SITE_URL}/logo.png`}
                 width={64}
                 height={64}
                 alt=""
@@ -600,28 +585,30 @@ export async function GET(request: NextRequest) {
                   marginBottom: 12,
                 }}
               >
-                <StarRow rating={rating} />
                 <div
                   style={{
                     display: "flex",
-                    marginLeft: 12,
-                    fontSize: 28,
+                    padding: "8px 16px",
+                    borderRadius: 999,
+                    background: "rgba(20,241,149,0.12)",
+                    border: "1px solid rgba(20,241,149,0.35)",
+                    fontSize: 22,
                     fontWeight: 800,
-                    color: "#edfdf6",
+                    color: "#14f195",
                   }}
                 >
-                  {rating.toFixed(1)}
+                  {`${rating.toFixed(1)} / 5`}
                 </div>
                 {totalReviews > 0 ? (
                   <div
                     style={{
                       display: "flex",
-                      marginLeft: 12,
+                      marginLeft: 14,
                       fontSize: 20,
                       color: "rgba(160,190,180,0.65)",
                     }}
                   >
-                    {totalReviews.toLocaleString()} reviews
+                    {`${totalReviews.toLocaleString()} reviews`}
                   </div>
                 ) : null}
               </div>
@@ -648,7 +635,7 @@ export async function GET(request: NextRequest) {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`${SITE_URL}/logo-og.png`}
+                  src={`${SITE_URL}/logo.png`}
                   width={40}
                   height={40}
                   alt=""
