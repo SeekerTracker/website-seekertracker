@@ -68,9 +68,10 @@ export default function PrivacyPage() {
                         <h2>Third-Party Services</h2>
                         <p>We may use third-party services that collect, monitor, and analyze data:</p>
                         <ul>
-                            <li>Vercel Analytics for website performance monitoring</li>
+                            <li>Cloudflare (hosting, edge compute, and related platform services)</li>
                             <li>Helius RPC for blockchain data</li>
                             <li>Jupiter API for pricing information</li>
+                            <li>Resend for transactional email when you use email features</li>
                             <li>Solana blockchain network</li>
                         </ul>
                         <p>

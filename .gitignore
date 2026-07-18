@@ -63,3 +63,5 @@ _cf_exclude/
 public/**/*.apk
 public/snake/snake.apk
 public/seekertracker.apk
+
+.brand-preview/

@@ -16,7 +16,7 @@ export async function generateMetadata(
     const headersList = await headers();
     const host = headersList.get('host');
     const protocol =
-        headersList.get('x-forwarded-proto') || 'https'; // handles Vercel or proxies
+        headersList.get('x-forwarded-proto') || 'https'; // Cloudflare / reverse proxies
     const webDomain = `${protocol}://${host}`;
 
     const meta = getSeekerMetadata(userDomain, webDomain);

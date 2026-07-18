@@ -5,7 +5,7 @@ import { DomainInfo } from "app/(utils)/constantTypes";
 import { listDomains } from "app/(utils)/lib/domainStore";
 
 const HELIUS_CONCURRENCY = 20;
-const MAX_DURATION_MS = 250_000; // stop gracefully before Vercel's 300s limit
+const MAX_DURATION_MS = 250_000; // stop gracefully before Worker/cron wall clock
 
 function getTurso() {
     return createClient({
@@ -108,7 +108,7 @@ async function upsertBatch(
 }
 
 export async function GET(req: NextRequest) {
-    // Auth: Vercel cron sends Authorization: Bearer <CRON_SECRET>
+    // Auth: cron workers send Authorization: Bearer <CRON_SECRET>
     const authHeader = req.headers.get("authorization");
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
