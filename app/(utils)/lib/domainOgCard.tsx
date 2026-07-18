@@ -117,21 +117,28 @@ export function DomainOgCard({ displayName, rank, activatedAt }: DomainOgProps) 
               boxShadow: "0 0 24px rgba(20, 241, 149, 0.35)",
             }}
           >
+            {/* Check mark — pure shapes (Satori has weak unicode glyph coverage) */}
             <div
               style={{
                 display: "flex",
-                width: 22,
-                height: 22,
+                width: 24,
+                height: 24,
                 borderRadius: 999,
-                background: "rgba(0,0,0,0.18)",
-                color: "#04140e",
-                fontSize: 16,
-                fontWeight: 700,
+                background: "rgba(4, 20, 14, 0.22)",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              ✓
+              <svg width="14" height="14" viewBox="0 0 14 14">
+                <path
+                  d="M2.5 7.2 L5.5 10.2 L11.5 3.8"
+                  fill="none"
+                  stroke="#04140e"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </div>
             <div
               style={{
