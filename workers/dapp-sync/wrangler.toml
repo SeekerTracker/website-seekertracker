@@ -1,0 +1,12 @@
+name = "seekertracker-dapp-sync"
+main = "index.js"
+compatibility_date = "2025-05-01"
+workers_dev = false
+
+# Hourly — refresh Turso dApp catalog + mark removed apps
+[triggers]
+crons = ["0 * * * *"]
+
+[vars]
+SYNC_URL = "https://seekertracker.com/api/cron/sync-dapps"
+REFRESH_URL = "https://seekertracker.com/api/dappstore?refresh=1"
