@@ -1,0 +1,25 @@
+{
+  "product": "Seeker Tracker",
+  "domain": "seekertracker.com",
+  "from": "Seeker Tracker <noreply@seekertracker.com>",
+  "logo_url": "https://www.seekertracker.com/logo.png",
+  "unsubscribe_page_dashboard": {
+    "title": "Email preferences",
+    "description": "Manage Seeker Tracker mail about SeekerIDs, apps, and Solana Mobile updates.",
+    "logo": "https://www.seekertracker.com/logo.png",
+    "background_color": "#001a1a",
+    "text_color": "#ededed",
+    "accent_color": "#00ffd9"
+  },
+  "hosted_preferences": "https://www.seekertracker.com/unsubscribe",
+  "templates": {
+    "dapp_publisher": "emails/dapp-publisher.html",
+    "broadcast": "emails/broadcast.html"
+  },
+  "segment": "Solana Seeker dApp publishers",
+  "notes": [
+    "Paste HTML into Resend Broadcasts; keep {{{RESEND_UNSUBSCRIBE_URL}}}.",
+    "Dashboard Unsubscribe Page: Settings → Unsubscribe Page → apply colors above.",
+    "Transactional sends can use List-Unsubscribe via app/(utils)/lib/resend.ts sendEmail({ listUnsubscribe: true })."
+  ]
+}
