@@ -449,7 +449,12 @@ const AppsContent = () => {
 
         const totalReviews = getTotalReviews(app.rating?.reviewsByRating)
         const [copied, setCopied] = useState(false)
-        const appShareUrl = `https://seekertracker.com/apps/${encodeURIComponent(app.androidPackage)}`
+        // Prefer path the user is on (/apps or /dapps) so shares stay on that alias
+        const catalogBase =
+            typeof window !== 'undefined' && window.location.pathname.startsWith('/dapps')
+                ? '/dapps'
+                : '/apps'
+        const appShareUrl = `https://www.seekertracker.com${catalogBase}/${encodeURIComponent(app.androidPackage)}`
 
         const handleCopy = async (e: React.MouseEvent) => {
             e.stopPropagation()
@@ -599,7 +604,7 @@ const AppsContent = () => {
 
                     <p className={styles.maintainInModal}>
                         <a
-                            href={`/apps/manage`}
+                            href={`${catalogBase}/manage`}
                             className={styles.maintainLink}
                             onClick={(e) => e.stopPropagation()}
                         >
@@ -704,6 +709,9 @@ const AppsContent = () => {
                         Maintain your listing
                     </a>
                     {' — '}claim with your store support email to add X, Telegram, and a pitch.
+                    {' '}Also at{' '}
+                    <a href="/dapps" className={styles.maintainLink}>/dapps</a>
+                    {' '}(same catalog).
                 </p>
                 <div className={styles.totalCount}>
                     <span className={styles.totalNumber}>{totalApps}</span>

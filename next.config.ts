@@ -17,11 +17,15 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
-      // Rewrite all /id/... to /domain/...
+      // /domain/* → /id/* (legacy profile paths)
       {
-        source: '/domain/:path*',
-        destination: '/id/:path*',
+        source: "/domain/:path*",
+        destination: "/id/:path*",
       },
+      // /dapps and /apps are both first-class catalog URLs (same UI)
+      { source: "/dapps", destination: "/apps" },
+      { source: "/dapps/manage", destination: "/apps/manage" },
+      { source: "/dapps/:path*", destination: "/apps/:path*" },
     ];
   },
 };

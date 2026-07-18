@@ -95,7 +95,10 @@ function ManageInner() {
           text: "You’re in. Update fields below and save.",
         });
         // strip token from URL without reload
-        window.history.replaceState({}, "", "/apps/manage");
+        const base = window.location.pathname.startsWith("/dapps")
+          ? "/dapps/manage"
+          : "/apps/manage";
+        window.history.replaceState({}, "", base);
       } catch (e) {
         if (!cancelled) {
           setStatus({
@@ -478,7 +481,10 @@ function ManageInner() {
       ) : null}
 
       <p className={styles.footerNote}>
-        <Link href="/apps">Back to dApp catalog</Link>
+        <Link href="/apps">/apps</Link>
+        {" · "}
+        <Link href="/dapps">/dapps</Link>
+        {" catalog"}
         {" · "}
         Official store listings still managed via Solana Mobile publisher tools.
       </p>

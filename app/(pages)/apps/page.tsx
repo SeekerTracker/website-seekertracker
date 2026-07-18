@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import AppsClient from './AppsClient'
 
-const BASE_URL = 'https://seekertracker.com'
+const BASE_URL = 'https://www.seekertracker.com'
 const DAPPSTORE_API = 'https://dappstore.solanamobile.com/graphql'
 // This API ignores GraphQL variables — system context must be inlined.
 const SC = `{locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}`
@@ -73,13 +73,17 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
         `Discover ${name} on the Seeker dApp Store — apps optimized for Solana Seeker.`
     const ogImageUrl = `${BASE_URL}/api/apps/og?app=${encodeURIComponent(decoded)}`
 
+    const pathApps = `${BASE_URL}/apps?app=${encodeURIComponent(decoded)}`
     return {
         title,
         description,
+        alternates: {
+            canonical: pathApps,
+        },
         openGraph: {
             title: name,
             description,
-            url: `${BASE_URL}/apps?app=${encodeURIComponent(decoded)}`,
+            url: pathApps,
             images: [{ url: ogImageUrl, width: 1200, height: 630, alt: name }],
             type: 'website',
             siteName: 'SeekerTracker',

@@ -71,14 +71,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const release = app.lastRelease
     const title = `${release?.displayName || decodedPackage} | Seeker dApp Store`
     const description = release?.subtitle || release?.description?.slice(0, 160) || 'Discover this app on Seeker dApp Store'
-    const ogImageUrl = `https://seekertracker.com/api/apps/og?app=${encodeURIComponent(decodedPackage)}`
+    const ogImageUrl = `https://www.seekertracker.com/api/apps/og?app=${encodeURIComponent(decodedPackage)}`
+    const pathApps = `https://www.seekertracker.com/apps/${encodeURIComponent(decodedPackage)}`
 
     return {
         title,
         description,
+        alternates: {
+            canonical: pathApps,
+        },
         openGraph: {
             title: release?.displayName || decodedPackage,
             description,
+            url: pathApps,
             images: [
                 {
                     url: ogImageUrl,
