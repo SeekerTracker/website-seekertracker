@@ -267,6 +267,7 @@ export async function GET(request: NextRequest) {
             rank,
             created_at,
             subdomain_tx: txSig,
+            name_account: subDomain_NA.toBase58(),
           });
         }
       }
@@ -288,11 +289,17 @@ export async function GET(request: NextRequest) {
           ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
     args: [new Date().toISOString()],
   });
-  const count = await db.execute("SELECT COUNT(*) AS c FROM seeker_domains");
+  const countRes = await db.execute(
+    "SELECT COUNT(*) AS c, COALESCE(MAX(rank), 0) AS max_rank FROM seeker_domains"
+  );
+  const indexed = Number(countRes.rows[0]?.c ?? 0);
+  const maxRank = Number(countRes.rows[0]?.max_rank ?? 0);
+  // Align with homepage: total = max(row count, max rank)
+  const totalSeekerIds = Math.max(indexed, maxRank);
   await db.execute({
     sql: `INSERT INTO seeker_domain_meta (key, value) VALUES ('total_domains', ?)
           ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
-    args: [String(count.rows[0]?.c ?? 0)],
+    args: [String(totalSeekerIds)],
   });
 
   invalidateDomainCache();
@@ -302,7 +309,9 @@ export async function GET(request: NextRequest) {
     null;
   if (newDomains.length && telegramConfigured()) {
     try {
-      telegram = await notifyNewDomains(newDomains);
+      telegram = await notifyNewDomains(newDomains, {
+        total: totalSeekerIds,
+      });
     } catch (e) {
       telegram = {
         sent: 0,
@@ -318,7 +327,9 @@ export async function GET(request: NextRequest) {
     inserted,
     updated,
     skipped,
-    total: Number(count.rows[0]?.c ?? 0),
+    total: totalSeekerIds,
+    indexed,
+    maxRank,
     newestSig,
     telegram,
     telegramConfigured: telegramConfigured(),

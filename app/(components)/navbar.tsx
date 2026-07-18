@@ -153,7 +153,6 @@ const Navbar = () => {
                     <Link href="/winners" className={styles.winnersButton} onClick={() => setMenuOpen(false)}>Winners</Link>
                     <Link href="/competitors" className={styles.competitorsButton} onClick={() => setMenuOpen(false)}>Competitors</Link>
                     <Link href="/snake" className={styles.snakeButton} onClick={() => setMenuOpen(false)}>Snake</Link>
-                    <a href="https://stake.seekertracker.com" target="_blank" rel="noopener noreferrer" className={styles.stakeButton} onClick={() => setMenuOpen(false)}>Stake</a>
                     <button className={styles.buyButton} onClick={() => { openJupiter(); setMenuOpen(false); }} disabled={!isJupiterReady}>Buy $TRACKER</button>
                 </div>
             </div>
@@ -202,7 +201,6 @@ const Navbar = () => {
                 <Link href="/winners" className={styles.winnersButton}>Winners</Link>
                 <Link href="/competitors" className={styles.competitorsButton}>Competitors</Link>
                 <Link href="/snake" className={styles.snakeButton}>Snake</Link>
-                <a href="https://stake.seekertracker.com" target="_blank" rel="noopener noreferrer" className={styles.stakeButton}>Stake</a>
                 <button className={styles.buyButton} onClick={openJupiter} disabled={!isJupiterReady} title="Buy $TRACKER">Buy $TRACKER</button>
             </div>
 

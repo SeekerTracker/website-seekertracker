@@ -16,6 +16,9 @@ export type DappRow = {
   publisher_name: string | null;
   publisher_website: string | null;
   support_email: string | null;
+  // Curated contact fields (not synced from upstream; for project outreach)
+  twitter: string | null;
+  contact_email: string | null;
   rating: number | null;
   reviews_json: string | null;
   category_id: string | null;
@@ -44,6 +47,8 @@ export async function ensureDappSchema(db: Client = getTurso()) {
         publisher_name TEXT,
         publisher_website TEXT,
         support_email TEXT,
+        twitter TEXT,
+        contact_email TEXT,
         rating REAL,
         reviews_json TEXT,
         category_id TEXT,
@@ -69,6 +74,24 @@ export async function ensureDappSchema(db: Client = getTurso()) {
     ],
     "write"
   );
+
+  // Migrate pre-existing tables: add curated contact columns if absent.
+  // (CREATE TABLE IF NOT EXISTS above won't add columns to a table that
+  // already exists, so back-fill via ALTER for the live DB.)
+  const info = await db.execute(`PRAGMA table_info(seeker_dapps)`);
+  const cols = new Set(
+    info.rows.map((r) => String((r as Record<string, unknown>).name))
+  );
+  const migrations: string[] = [];
+  if (!cols.has("twitter")) {
+    migrations.push(`ALTER TABLE seeker_dapps ADD COLUMN twitter TEXT`);
+  }
+  if (!cols.has("contact_email")) {
+    migrations.push(`ALTER TABLE seeker_dapps ADD COLUMN contact_email TEXT`);
+  }
+  if (migrations.length) {
+    await db.batch(migrations, "write");
+  }
 }
 
 export type UpstreamApp = {
@@ -275,6 +298,8 @@ function rowToApiApp(row: Record<string, unknown>) {
           row.publisher_website != null ? String(row.publisher_website) : "",
         supportEmail:
           row.support_email != null ? String(row.support_email) : "",
+        // Curated project X/Twitter (public); contact_email intentionally omitted
+        twitter: row.twitter != null ? String(row.twitter) : "",
       },
       androidDetails: {
         version: row.version != null ? String(row.version) : "",

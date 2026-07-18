@@ -12,6 +12,8 @@ export type NewDomainAlert = {
   rank: number;
   created_at: string;
   subdomain_tx?: string;
+  /** On-chain name account (domain PDA) — shown as copyable mint/account */
+  name_account?: string;
 };
 
 function botToken(): string | undefined {
@@ -49,28 +51,59 @@ async function tgApi(method: string, body: Record<string, unknown>) {
   return json.result;
 }
 
-function formatDomainAlert(d: NewDomainAlert): string {
+/** Escape for Telegram HTML parse_mode */
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+/**
+ * Format matches the channel style:
+ *
+ * 🔥 New SeekerID Activated!
+ * 🌐 name.skr
+ * 🏆 Rank: #N
+ * 📊 Total: N SeekerIDs
+ * ⏰ timestamp UTC
+ * 💼 Mint: <code>full address</code>  ← tap to copy on Telegram
+ * 👆 View … Profile
+ * https://…
+ */
+function formatDomainAlert(d: NewDomainAlert, total?: number): string {
   const name = `${d.subdomain}${d.domain || ".skr"}`;
-  const ownerShort = `${d.owner.slice(0, 4)}…${d.owner.slice(-4)}`;
-  const when = new Date(d.created_at).toISOString().replace("T", " ").slice(0, 19);
+  const when = new Date(d.created_at)
+    .toISOString()
+    .replace("T", " ")
+    .replace("Z", "");
+  const totalCount = total ?? d.rank;
+  // Prefer name account (domain PDA) as "mint"; fall back to owner wallet
+  const mint = d.name_account || d.owner;
+
   const lines = [
-    `New SeekerID: ${name}`,
-    `Rank #${d.rank}`,
-    `Owner: ${ownerShort}`,
-    `Activated: ${when} UTC`,
-    // Profile URL — Telegram will unfurl the OG card image
-    `https://seekertracker.com/id/${d.subdomain}.skr`,
+    `🔥 <b>New SeekerID Activated!</b>`,
+    ``,
+    `🌐 <b>${esc(name)}</b>`,
+    `🏆 Rank: #${d.rank.toLocaleString("en-US")}`,
+    `📊 Total: ${totalCount.toLocaleString("en-US")} SeekerIDs`,
+    `⏰ ${when} UTC`,
+    ``,
+    // <code> = tap-to-copy on iOS/Android Telegram
+    `💼 Mint: <code>${esc(mint)}</code>`,
+    ``,
+    `👆 View ${esc(name)} Profile &amp; Analytics`,
+    ``,
+    // Working profile path (OG unfurl)
+    `https://www.seekertracker.com/id/${encodeURIComponent(name)}`,
   ];
-  if (d.subdomain_tx) {
-    lines.push(`Tx: https://solscan.io/tx/${d.subdomain_tx}`);
-  }
   return lines.join("\n");
 }
 
 /** Send one message per domain. Returns counts. */
 export async function notifyNewDomains(
   domains: NewDomainAlert[],
-  opts: { max?: number } = {}
+  opts: { max?: number; total?: number } = {}
 ): Promise<{ sent: number; failed: number; errors: string[] }> {
   if (!telegramConfigured() || !domains.length) {
     return { sent: 0, failed: 0, errors: [] };
@@ -83,18 +116,24 @@ export async function notifyNewDomains(
 
   for (const d of domains.slice(0, max)) {
     try {
-      // Enable link preview so Telegram shows the new OG profile card
       await tgApi("sendMessage", {
         chat_id,
-        text: formatDomainAlert(d),
+        text: formatDomainAlert(d, opts.total),
+        parse_mode: "HTML",
+        // Link preview shows SeekerID OG passport card
         disable_web_page_preview: false,
+        link_preview_options: {
+          is_disabled: false,
+          prefer_large_media: true,
+        },
       });
       sent++;
-      // light rate limit (~1 msg / 50ms under TG limits)
       await new Promise((r) => setTimeout(r, 80));
     } catch (e) {
       failed++;
-      errors.push(`${d.subdomain}: ${e instanceof Error ? e.message : String(e)}`);
+      errors.push(
+        `${d.subdomain}: ${e instanceof Error ? e.message : String(e)}`
+      );
     }
   }
 
