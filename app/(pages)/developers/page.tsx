@@ -11,6 +11,8 @@ const TITLE = "Seeker Tracker API for agents";
 const DESCRIPTION =
   "Public JSON APIs for .skr domains, Seeker dApps, SKR stats, and prices. llms.txt, OpenAPI, open CORS. No auth for reads.";
 const URL = `${SITE_ORIGIN}/developers`;
+// Absolute /api OG URL — never collides with /image/{domain} or dynamic routes
+const OG_IMAGE = `${SITE_ORIGIN}/api/og/developers`;
 
 export const metadata: Metadata = {
   // absolute: avoid layout template lengthening the share title
@@ -24,11 +26,9 @@ export const metadata: Metadata = {
     siteName: "SeekerTracker",
     type: "website",
     locale: "en_US",
-    // File-based opengraph-image.tsx is picked up automatically; explicit
-    // dimensions help crawlers that only read meta tags.
     images: [
       {
-        url: "/developers/opengraph-image",
+        url: OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "Seeker Tracker Public API for agents",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     creator: "@seeker_tracker",
     site: "@Seeker_Tracker",
-    images: ["/developers/twitter-image"],
+    images: [OG_IMAGE],
   },
 };
 

@@ -11,10 +11,17 @@ export const runtime = "nodejs";
 /**
  * SeekerID Open Graph / Telegram share image (1200×630).
  * Path: /image/{name}.skr?raw=true
+ *
+ * Lives only under /image/* — never as a root catch-all
+ * (that swallowed /developers/opengraph-image as a fake domain).
  */
-export async function GET(request: Request) {
+export async function GET(
+  request: Request,
+  context: { params: Promise<{ userDomain: string }> }
+) {
   const url = new URL(request.url);
-  let userDomain = decodeURIComponent(url.pathname.replace(/^\/image\//, ""));
+  const { userDomain: paramDomain } = await context.params;
+  let userDomain = decodeURIComponent(paramDomain || "");
   const showAge = url.searchParams.get("age") === "true";
   const isRawRequest = url.searchParams.get("raw") === "true";
   const userAgent = request.headers.get("user-agent") || "";
@@ -52,7 +59,6 @@ export async function GET(request: Request) {
     console.error("OG domain lookup failed", e);
   }
 
-  // Snapshot/Turso miss (e.g. rare names) — still show activation from chain
   if (!activatedAt) {
     try {
       const onchain = await getOnchainDomainData(".skr", baseName);
@@ -75,7 +81,6 @@ export async function GET(request: Request) {
       width: 1200,
       height: 630,
       headers: {
-        // Bust path when design changes: bump v query or wait max-age
         "Cache-Control": "public, max-age=120, s-maxage=300",
       },
     }
