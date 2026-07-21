@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import styles from './page.module.css'
 import Image from 'next/image'
 import Backbutton from 'app/(components)/shared/Backbutton'
@@ -75,7 +76,6 @@ const AppsContent = () => {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'))
     const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
     const [searchQuery, setSearchQuery] = useState('')
-    const [selectedApp, setSelectedApp] = useState<DApp | null>(null)
     const [favorites, setFavorites] = useState<Set<string>>(new Set())
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(searchParams.get('view') === 'favorites')
     const [sortBy, setSortBy] = useState<SortOption>('updated-desc')
@@ -200,53 +200,10 @@ const AppsContent = () => {
         }
     }, [router])
 
-    // Handle app selection with URL update
-    const selectApp = useCallback((app: DApp | null) => {
-        setSelectedApp(app)
-        if (app) {
-            router.push(`/apps?app=${encodeURIComponent(app.androidPackage)}`, { scroll: false })
-        } else {
-            router.push('/apps', { scroll: false })
-        }
-    }, [router])
 
-    // Open app from URL param after data loads (deep link /apps?app=com.foo)
-    useEffect(() => {
-        const appParam = searchParams.get('app')
-        if (!appParam || selectedApp) return
-
-        // Prefer catalog hit
-        if (categories.length > 0) {
-            for (const cat of categories) {
-                const found = cat.dApps.edges.find(edge => edge.node.androidPackage === appParam)
-                if (found) {
-                    setSelectedApp(found.node)
-                    return
-                }
-            }
-        }
-
-        // Fallback: package lookup if catalog missed it (partial fetch / CF budget)
-        let cancelled = false
-        ;(async () => {
-            try {
-                const res = await fetch(
-                    `/api/dappstore?package=${encodeURIComponent(appParam)}`,
-                    { cache: 'no-store' }
-                )
-                if (!res.ok || cancelled) return
-                const data = await res.json()
-                if (data.app && !cancelled) {
-                    setSelectedApp(data.app as DApp)
-                }
-            } catch {
-                /* ignore — user still sees catalog when it loads */
-            }
-        })()
-        return () => { cancelled = true }
-    }, [searchParams, categories, selectedApp])
 
     const toggleFavorite = (packageName: string, e: React.MouseEvent) => {
+        e.preventDefault()
         e.stopPropagation()
         setFavorites(prev => {
             const next = new Set(prev)
@@ -381,13 +338,15 @@ const AppsContent = () => {
         if (!release) return null
         const isFavorite = favorites.has(app.androidPackage)
         const isRemoved = app.status === 'removed'
+        const href = `/apps/${encodeURIComponent(app.androidPackage)}`
 
         return (
-            <div
+            <Link
+                href={href}
                 className={`${styles.appCard} ${isRemoved ? styles.appCardRemoved : ''}`}
-                onClick={() => selectApp(app)}
             >
                 <button
+                    type="button"
                     className={`${styles.favoriteBtn} ${isFavorite ? styles.favorited : ''}`}
                     onClick={(e) => toggleFavorite(app.androidPackage, e)}
                     title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -429,234 +388,7 @@ const AppsContent = () => {
                         )}
                     </div>
                 </div>
-            </div>
-        )
-    }
-
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString)
-        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-    }
-
-    const getTotalReviews = (reviewsByRating?: number[]) => {
-        if (!reviewsByRating) return 0
-        return reviewsByRating.reduce((sum, count) => sum + count, 0)
-    }
-
-    const AppModal = ({ app, onClose }: { app: DApp; onClose: () => void }) => {
-        const release = app.lastRelease
-        if (!release) return null
-
-        const totalReviews = getTotalReviews(app.rating?.reviewsByRating)
-        const [copied, setCopied] = useState(false)
-        // Prefer path the user is on (/apps or /dapps) so shares stay on that alias
-        const catalogBase =
-            typeof window !== 'undefined' && window.location.pathname.startsWith('/dapps')
-                ? '/dapps'
-                : '/apps'
-        const appShareUrl = `https://www.seekertracker.com${catalogBase}/${encodeURIComponent(app.androidPackage)}`
-
-        const handleCopy = async (e: React.MouseEvent) => {
-            e.stopPropagation()
-            try {
-                await navigator.clipboard.writeText(appShareUrl)
-                setCopied(true)
-                setTimeout(() => setCopied(false), 2000)
-            } catch {}
-        }
-
-        return (
-            <div className={styles.modalOverlay} onClick={onClose}>
-                <div className={styles.modal} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
-                    <div className={styles.sheetHandle} aria-hidden="true" />
-                    <button className={styles.modalClose} onClick={onClose} aria-label="Close">&times;</button>
-                    <div className={styles.modalHeader}>
-                        <div className={styles.modalIcon}>
-                            {release.icon?.uri ? (
-                                <Image
-                                    src={release.icon.uri}
-                                    alt={release.displayName}
-                                    width={80}
-                                    height={80}
-                                    unoptimized
-                                />
-                            ) : (
-                                <div className={styles.placeholderIcon}>
-                                    {release.displayName.charAt(0).toUpperCase()}
-                                </div>
-                            )}
-                        </div>
-                        <div className={styles.modalTitleArea}>
-                            <h2 className={styles.modalTitle}>{release.displayName}</h2>
-                            {release.publisherDetails?.name && (
-                                <span className={styles.modalPublisher}>{release.publisherDetails.name}</span>
-                            )}
-                            {app.rating?.rating && (
-                                <div className={styles.modalRating}>
-                                    {renderStars(app.rating.rating)}
-                                    <span className={styles.ratingValue}>
-                                        {app.rating.rating.toFixed(1)}
-                                        {totalReviews > 0 && ` (${totalReviews.toLocaleString()} reviews)`}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    {release.subtitle && (
-                        <p className={styles.modalSubtitle}>{release.subtitle}</p>
-                    )}
-
-                    {release.blurb && (
-                        <p className={styles.ownerBlurb}>{release.blurb}</p>
-                    )}
-
-                    {(release.publisherDetails?.twitter ||
-                        release.publisherDetails?.telegram ||
-                        release.publisherDetails?.websiteOverride ||
-                        release.publisherDetails?.website) && (
-                        <div className={styles.ownerLinks}>
-                            {(release.publisherDetails.websiteOverride ||
-                                release.publisherDetails.website) && (
-                                <a
-                                    className={styles.ownerLink}
-                                    href={
-                                        release.publisherDetails.websiteOverride ||
-                                        release.publisherDetails.website
-                                    }
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    Website
-                                </a>
-                            )}
-                            {release.publisherDetails.twitter && (
-                                <a
-                                    className={styles.ownerLink}
-                                    href={`https://x.com/${release.publisherDetails.twitter.replace(/^@/, '')}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    @{release.publisherDetails.twitter.replace(/^@/, '')}
-                                </a>
-                            )}
-                            {release.publisherDetails.telegram && (
-                                <a
-                                    className={styles.ownerLink}
-                                    href={`https://t.me/${release.publisherDetails.telegram.replace(/^@/, '')}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    Telegram
-                                </a>
-                            )}
-                        </div>
-                    )}
-
-                    {release.description && (
-                        <div className={styles.modalDescription}>
-                            <h3 className={styles.modalSectionTitle}>About</h3>
-                            <p className={styles.descriptionText}>{release.description}</p>
-                        </div>
-                    )}
-
-                    {release.newInVersion && (
-                        <div className={styles.modalWhatsNew}>
-                            <h3 className={styles.modalSectionTitle}>What&apos;s New</h3>
-                            <p className={styles.whatsNewText}>{release.newInVersion}</p>
-                        </div>
-                    )}
-
-                    <div className={styles.modalDetails}>
-                        <h3 className={styles.modalSectionTitle}>App Info</h3>
-
-                        {release.updatedOn && (
-                            <div className={styles.modalDetail}>
-                                <span className={styles.detailLabel}>Last Updated</span>
-                                <span className={styles.detailValue}>{formatDate(release.updatedOn)}</span>
-                            </div>
-                        )}
-
-                        {release.androidDetails?.version && (
-                            <div className={styles.modalDetail}>
-                                <span className={styles.detailLabel}>Version</span>
-                                <span className={styles.detailValue}>
-                                    {release.androidDetails.version}
-                                    {release.androidDetails.versionCode && ` (${release.androidDetails.versionCode})`}
-                                </span>
-                            </div>
-                        )}
-
-                        {release.androidDetails?.minSdk && (
-                            <div className={styles.modalDetail}>
-                                <span className={styles.detailLabel}>Min Android SDK</span>
-                                <span className={styles.detailValue}>{release.androidDetails.minSdk}</span>
-                            </div>
-                        )}
-
-                        <div className={styles.modalDetail}>
-                            <span className={styles.detailLabel}>Package</span>
-                            <span className={styles.detailValue}>{app.androidPackage}</span>
-                        </div>
-                    </div>
-
-                    <a
-                        href={`${catalogBase}/manage`}
-                        className={styles.maintainBtnModal}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        Maintain listing
-                    </a>
-
-                    <div className={styles.shareSection}>
-                        <h3 className={styles.modalSectionTitle}>Share</h3>
-                        <div className={styles.shareButtons}>
-                            <a
-                                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${release.displayName} on Solana Seeker dApp Store!`)}&url=${encodeURIComponent(appShareUrl)}&via=seeker_tracker`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.shareBtn}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                                </svg>
-                                Share on X
-                            </a>
-                            <a
-                                href={`https://t.me/share/url?url=${encodeURIComponent(appShareUrl)}&text=${encodeURIComponent(`Check out ${release.displayName} on Solana Seeker dApp Store!`)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.shareBtn}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                                </svg>
-                                Share on Telegram
-                            </a>
-                            <button
-                                className={`${styles.shareBtn} ${copied ? styles.shareBtnCopied : ''}`}
-                                onClick={handleCopy}
-                            >
-                                {copied ? (
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                ) : (
-                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                                    </svg>
-                                )}
-                                {copied ? 'Copied!' : 'Copy Link'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </Link>
         )
     }
 
@@ -690,7 +422,7 @@ const AppsContent = () => {
             <div className={styles.header}>
                 <h1 className={styles.title}>Seeker dApp Store</h1>
                 <p className={styles.description}>
-                    Apps for Solana Seeker — browse, favorite, and open deep links.
+                    Apps for Solana Seeker — browse, favorite, and open each dApp page.
                 </p>
                 <div className={styles.headerActions}>
                     <a href="/apps/manage" className={styles.maintainBtn}>
@@ -881,9 +613,6 @@ const AppsContent = () => {
             </>
             )}
 
-            {selectedApp && (
-                <AppModal app={selectedApp} onClose={() => selectApp(null)} />
-            )}
         </div>
     )
 }

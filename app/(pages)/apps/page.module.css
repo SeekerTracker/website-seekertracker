@@ -427,6 +427,8 @@
         background 120ms ease;
     position: relative;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
 }
 
 .removedBadge {

@@ -675,4 +675,22 @@ export async function getDappByPackage(
   return rowToApiApp(row);
 }
 
+/** Active packages for sitemap / static generation. */
+export async function listDappPackages(
+  status: DappStatus | "all" = "active",
+  db: Client = getTurso()
+): Promise<string[]> {
+  await ensureDappSchema(db);
+  const where = status === "all" ? "" : "WHERE status = ?";
+  const args = status === "all" ? [] : [status];
+  const res = await db.execute({
+    sql: `SELECT android_package FROM seeker_dapps ${where}
+          ORDER BY display_name ASC`,
+    args,
+  });
+  return res.rows.map((r) => String((r as Record<string, unknown>).android_package));
+}
+
+export type ApiDapp = ReturnType<typeof rowToApiApp>;
+
 export { hasTurso };

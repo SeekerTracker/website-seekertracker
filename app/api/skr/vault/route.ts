@@ -102,6 +102,39 @@ async function getTotalHolders(): Promise<number> {
     }
 }
 
+async function fetchSkrUsdPrice(): Promise<number> {
+    try {
+        const res = await fetch(
+            `https://api.jup.ag/price/v3?ids=${SKR_TOKEN_MINT}`,
+            { next: { revalidate: 30 } }
+        );
+        if (res.ok) {
+            const data = await res.json();
+            const n = Number(data?.[SKR_TOKEN_MINT]?.usdPrice ?? 0);
+            if (Number.isFinite(n) && n > 0) return n;
+        }
+    } catch {
+        /* fall through */
+    }
+    try {
+        const res = await fetch(
+            `https://api.dexscreener.com/latest/dex/tokens/${SKR_TOKEN_MINT}`,
+            { next: { revalidate: 30 } }
+        );
+        if (!res.ok) return 0;
+        const data = await res.json();
+        const pairs = (data?.pairs || []) as Array<{
+            priceUsd?: string;
+            liquidity?: { usd?: number };
+        }>;
+        pairs.sort((a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0));
+        const n = Number(pairs[0]?.priceUsd || 0);
+        return Number.isFinite(n) && n > 0 ? n : 0;
+    } catch {
+        return 0;
+    }
+}
+
 export async function GET() {
     try {
         const [vaultPortfolio, stakedPortfolio, totalSupply, totalHolders] = await Promise.all([
@@ -115,7 +148,11 @@ export async function GET() {
         const vaultSkr = vaultPortfolio.tokens.find(t => t.mint === SKR_TOKEN_MINT);
         const stakedSkr = stakedPortfolio.tokens.find(t => t.mint === SKR_TOKEN_MINT);
 
-        const skrPrice = vaultSkr?.price || stakedSkr?.price || 0;
+        // Helius DAS often omits price_info; Jupiter v3 is the reliable source
+        let skrPrice = vaultSkr?.price || stakedSkr?.price || 0;
+        if (!(skrPrice > 0)) {
+            skrPrice = await fetchSkrUsdPrice();
+        }
         const marketCap = totalSupply * skrPrice;
 
         return NextResponse.json({

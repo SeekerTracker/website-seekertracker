@@ -71,7 +71,7 @@ const Footer = () => {
             <p className={styles.downloadTitle}>Android app on the Solana dApp Store</p>
           </div>
           <Link
-            href="/apps?app=com.seekertracker"
+            href="/apps/com.seekertracker"
             className={styles.downloadBadge}
             aria-label="Get Seeker Tracker on Solana dApp Store"
           >

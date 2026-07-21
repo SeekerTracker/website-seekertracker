@@ -1,0 +1,420 @@
+.main {
+    display: flex;
+    flex-direction: column;
+    padding: 0 clamp(1rem, 3vw, 2rem) 3.5rem;
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+    min-height: 60vh;
+    gap: 1.25rem;
+}
+
+.backRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 40px;
+    padding: 0.35rem 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #8eb5b5;
+    text-decoration: none;
+    transition: color 120ms ease;
+}
+
+.backLink:hover {
+    color: #00ffd9;
+}
+
+.card {
+    width: 100%;
+    background: #0a2a2a;
+    border: 1px solid rgba(0, 255, 217, 0.22);
+    border-radius: 1rem;
+    padding: clamp(1.15rem, 3vw, 1.75rem);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+}
+
+.hero {
+    display: flex;
+    gap: 1.1rem;
+    align-items: flex-start;
+}
+
+.icon {
+    flex-shrink: 0;
+    width: 88px;
+    height: 88px;
+    border-radius: 1.05rem;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 217, 0.15);
+}
+
+.icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.placeholderIcon {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #00ffd9;
+    background: linear-gradient(145deg, rgba(0, 255, 217, 0.12), rgba(0, 255, 102, 0.06));
+}
+
+.titleArea {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.nameRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.name {
+    font-size: clamp(1.35rem, 3.5vw, 1.75rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #ededed;
+    margin: 0;
+    line-height: 1.15;
+}
+
+.removedBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2em 0.55em;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #ffb4b4;
+    background: rgba(255, 80, 80, 0.12);
+    border: 1px solid rgba(255, 120, 120, 0.35);
+    border-radius: 999px;
+}
+
+.claimedBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2em 0.55em;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #00ffd9;
+    background: rgba(0, 255, 217, 0.1);
+    border: 1px solid rgba(0, 255, 217, 0.28);
+    border-radius: 999px;
+}
+
+.publisher {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #00ffd9;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.15rem;
+}
+
+.star {
+    color: #00ffd9;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.starHalf {
+    color: #00ffd9;
+    opacity: 0.55;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.starEmpty {
+    color: rgba(255, 255, 255, 0.18);
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.ratingValue {
+    font-size: 0.85rem;
+    color: #a8c8c8;
+    margin-left: 0.25rem;
+}
+
+.subtitle {
+    margin: 1rem 0 0;
+    color: #a0b8b8;
+    font-size: 0.98rem;
+    line-height: 1.55;
+}
+
+.ownerBlurb {
+    margin: 1rem 0 0;
+    padding: 0.85em 1em;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #c5e0e0;
+    background: rgba(0, 255, 217, 0.06);
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    border-radius: 0.7em;
+}
+
+.ownerLinks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.ownerLink {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45em 0.85em;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #00ffd9;
+    border: 1px solid rgba(0, 255, 217, 0.3);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.ownerLink:hover {
+    background: rgba(0, 255, 217, 0.1);
+    border-color: rgba(0, 255, 217, 0.5);
+}
+
+.section {
+    margin-top: 1.35rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sectionTitle {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #00ffd9;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 0.75rem;
+}
+
+.description {
+    color: #c8d8d8;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.whatsNew {
+    color: #a8c0c0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin: 0;
+    padding: 0.85em 1em;
+    background: rgba(0, 255, 217, 0.05);
+    border-radius: 0.6em;
+    border-left: 3px solid rgba(0, 255, 217, 0.35);
+    white-space: pre-wrap;
+}
+
+.details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem 1.25rem;
+}
+
+.detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.detailFull {
+    grid-column: 1 / -1;
+}
+
+.detailLabel {
+    font-size: 0.68rem;
+    color: #668080;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+.detailValue {
+    font-size: 0.9rem;
+    color: #ededed;
+    word-break: break-all;
+}
+
+.detailLink {
+    font-size: 0.9rem;
+    color: #00ffd9;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.detailLink:hover {
+    text-decoration: underline;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 1.35rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.primaryBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0.75em 1.2em;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #001414;
+    background: linear-gradient(135deg, #00ffd9, #00e6c0);
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset, 0 8px 22px rgba(0, 255, 217, 0.16);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.primaryBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 12px 28px rgba(0, 255, 217, 0.26);
+}
+
+.secondaryBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.65em 1.1em;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #00ffd9;
+    background: transparent;
+    border: 1px solid rgba(0, 255, 217, 0.35);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.secondaryBtn:hover {
+    background: rgba(0, 255, 217, 0.08);
+    border-color: rgba(0, 255, 217, 0.55);
+}
+
+.shareButtons {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.shareBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6em 0.95em;
+    border-radius: 0.55em;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ededed;
+    text-decoration: none;
+    font-size: 0.84rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.shareBtn:hover {
+    background: rgba(0, 255, 217, 0.16);
+    color: #00ffd9;
+}
+
+.shareBtn svg {
+    flex-shrink: 0;
+}
+
+.shareBtnCopied {
+    background: rgba(0, 255, 102, 0.18) !important;
+    color: #00ff66 !important;
+}
+
+.packageMono {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-size: 0.8rem;
+    color: #668080;
+    word-break: break-all;
+}
+
+@media (max-width: 560px) {
+    .main {
+        padding: 0 0.85rem calc(3rem + env(safe-area-inset-bottom, 0px));
+        gap: 1rem;
+    }
+
+    .hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .titleArea {
+        align-items: center;
+    }
+
+    .nameRow {
+        justify-content: center;
+    }
+
+    .rating {
+        justify-content: center;
+    }
+
+    .ownerLinks {
+        justify-content: center;
+    }
+
+    .details {
+        grid-template-columns: 1fr;
+    }
+
+    .icon {
+        width: 96px;
+        height: 96px;
+    }
+}

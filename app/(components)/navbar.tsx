@@ -61,32 +61,32 @@ function isActive(pathname: string, href: string) {
   );
 }
 
+function PriceValue({
+  loading,
+  value,
+  digits,
+}: {
+  loading: boolean;
+  value: number;
+  digits: number;
+}) {
+  if (loading && !(value > 0)) {
+    return <span className={styles.priceSpinner} aria-label="Loading price" />;
+  }
+  if (!(value > 0)) {
+    return <em className={styles.priceMuted}>—</em>;
+  }
+  return <em>${value.toFixed(digits)}</em>;
+}
+
 const Navbar = () => {
-  const { solPrice, live, seekerData } = useDataContext();
+  const { solPrice, skrPrice, pricesLoading, live, seekerData } = useDataContext();
   const { openJupiter, isJupiterReady } = useJupiter();
-  const [skrPrice, setSkrPrice] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-
-  useEffect(() => {
-    const fetchSkrPrice = async () => {
-      try {
-        const response = await fetch("/api/skr/vault");
-        if (response.ok) {
-          const data = await response.json();
-          setSkrPrice(data.skrPrice);
-        }
-      } catch {
-        /* ignore */
-      }
-    };
-    fetchSkrPrice();
-    const interval = setInterval(fetchSkrPrice, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -143,13 +143,29 @@ const Navbar = () => {
       <div className={`${styles.drawer} ${menuOpen ? styles.drawerOpen : ""}`}>
         <div className={styles.drawerPrices}>
           <span>
-            SOL <strong>${solPrice.toFixed(2)}</strong>
+            SOL{" "}
+            <strong>
+              {pricesLoading && !(solPrice > 0) ? (
+                <span className={styles.priceSpinner} aria-label="Loading price" />
+              ) : solPrice > 0 ? (
+                `$${solPrice.toFixed(2)}`
+              ) : (
+                "—"
+              )}
+            </strong>
           </span>
-          {skrPrice != null && (
-            <span>
-              SKR <strong>${skrPrice.toFixed(6)}</strong>
-            </span>
-          )}
+          <span>
+            SKR{" "}
+            <strong>
+              {pricesLoading && !(skrPrice > 0) ? (
+                <span className={styles.priceSpinner} aria-label="Loading price" />
+              ) : skrPrice > 0 ? (
+                `$${skrPrice.toFixed(6)}`
+              ) : (
+                "—"
+              )}
+            </strong>
+          </span>
         </div>
         <nav className={styles.drawerNav} aria-label="Primary">
           {[...PRIMARY, ...MORE].map((item) => (
@@ -190,18 +206,18 @@ const Navbar = () => {
               rel="noopener noreferrer"
               className={styles.price}
             >
-              SOL <em>${solPrice.toFixed(2)}</em>
+              SOL{" "}
+              <PriceValue loading={pricesLoading} value={solPrice} digits={2} />
             </a>
-            {skrPrice != null && (
-              <a
-                href="https://jup.ag/tokens/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3?ref=yfgv2ibxy07v"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.price}
-              >
-                SKR <em>${skrPrice.toFixed(6)}</em>
-              </a>
-            )}
+            <a
+              href="https://jup.ag/tokens/SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3?ref=yfgv2ibxy07v"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.price}
+            >
+              SKR{" "}
+              <PriceValue loading={pricesLoading} value={skrPrice} digits={6} />
+            </a>
             <a
               href={`https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=yfgv2ibxy07v`}
               target="_blank"

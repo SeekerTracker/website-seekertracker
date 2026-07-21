@@ -205,7 +205,7 @@ async function notifyListingUpdate(opts: {
   );
 
   const when = new Date().toISOString().replace("T", " ").replace(/\.\d+Z$/, " UTC");
-  const catalogUrl = `${SITE_URL.replace(/\/$/, "")}/apps?app=${encodeURIComponent(opts.androidPackage)}`;
+  const catalogUrl = `${SITE_URL.replace(/\/$/, "")}/apps/${encodeURIComponent(opts.androidPackage)}`;
   const manageUrl = `${SITE_URL.replace(/\/$/, "")}/apps/manage`;
 
   const changeRows =
