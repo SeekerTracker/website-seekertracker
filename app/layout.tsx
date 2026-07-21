@@ -2,19 +2,19 @@ import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import { getBasicData } from "./(utils)/lib/getBasicData";
 import DataProviderClient from "./(utils)/context/dataProvider";
 import { WalletProviderWrapper } from "./(utils)/context/walletProvider";
 import Navbar from "./(components)/navbar";
 import Footer from "./(components)/footer";
 import ToastMessage from "./(components)/toastMessage";
+
 const jetBrains = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
+  display: "swap",
 });
 
-const SLOGAN = "The unofficial Solana Mobile ecosystem explorer";
 const DESCRIPTION =
   "Search and track .skr SeekerIDs, Seeker dApps, SKR stats, and analytics. Public API for agents.";
 // Keep OG titles under ~60 chars so X/LinkedIn do not truncate awkwardly.
@@ -59,31 +59,40 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+/**
+ * Root layout is intentionally synchronous.
+ * Do not await Bags / RPC / price here — that was causing ~8s TTFB on every page.
+ * Live data loads client-side via DataProviderClient.
+ */
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const basicData = await getBasicData();
   return (
     <html lang="en">
       <head>
-        <meta name="x-ogp-key" content="7828d28e-fd95-467f-9d72-d888e2b67bf3" id="ogp-key-meta" />
+        <meta
+          name="x-ogp-key"
+          content="7828d28e-fd95-467f-9d72-d888e2b67bf3"
+          id="ogp-key-meta"
+        />
+      </head>
+      <body className={`${jetBrains.variable}`}>
+        {/* afterInteractive: do not block first paint / hydration */}
         <Script
           src="https://plugin.jup.ag/plugin-v1.js"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
           data-preload
         />
-</head>
-      <body className={`${jetBrains.variable}`}>
         <div className={`mainWholeAppContainer`}>
           <WalletProviderWrapper>
-            <DataProviderClient initialData={basicData}>
+            <DataProviderClient>
               <div className="gridBG" />
               <Navbar />
               <ToastMessage />
               {children}
-<Footer />
+              <Footer />
             </DataProviderClient>
           </WalletProviderWrapper>
         </div>

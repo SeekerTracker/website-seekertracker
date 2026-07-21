@@ -134,6 +134,12 @@ export const PUBLIC_ENDPOINTS: PublicEndpoint[] = [
     summary: "Competitor / market comparison snapshot",
   },
   {
+    path: "/api/seeker-fund",
+    methods: ["GET"],
+    auth: false,
+    summary: "TRACKER fund fees + 24h volume (client shell stats)",
+  },
+  {
     path: "/api/allocation/{wallet}",
     methods: ["GET"],
     auth: false,
