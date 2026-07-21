@@ -51,6 +51,7 @@ const MORE = [
   { href: "/snake", label: "Snake" },
   { href: "/export", label: "Export" },
   { href: "/explore", label: "Explore" },
+  { href: "/developers", label: "API" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
