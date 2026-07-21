@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      // Exact /api → public agent index (OpenNext does not always bind app/api/route.ts)
+      { source: "/api", destination: "/api/index" },
       // /domain/* → /id/* (legacy profile paths)
       {
         source: "/domain/:path*",

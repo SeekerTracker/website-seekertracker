@@ -48,6 +48,12 @@ export const PUBLIC_ENDPOINTS: PublicEndpoint[] = [
     path: "/api",
     methods: ["GET"],
     auth: false,
+    summary: "API index: discovery links and public endpoint list (alias of /api/index)",
+  },
+  {
+    path: "/api/index",
+    methods: ["GET"],
+    auth: false,
     summary: "API index: discovery links and public endpoint list",
   },
   {
