@@ -1,218 +1,188 @@
-import { ImageResponse } from 'next/og';
+import { ImageResponse } from "next/og";
 
-export const runtime = 'edge';
+export const runtime = "nodejs";
+export const revalidate = 300;
+export const alt = "Seeker Tracker — Search and track .skr SeekerIDs";
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/png";
 
-export const alt = 'Seeker Tracker - .skr SeekerID Search';
-export const size = {
-    width: 1200,
-    height: 630,
-};
-export const contentType = 'image/png';
-
-async function getTotalActivations(): Promise<number> {
-    try {
-        const response = await fetch('https://seekertracker.com/api/domains', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pageSize: 1 }),
-            next: { revalidate: 60 },
-        });
-        const data = await response.json();
-        return Number(data.totalDomains ?? data.pagination?.total ?? 0);
-    } catch {
-        return 0;
-    }
+async function getActivations(): Promise<string> {
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch("https://seekertracker.com/api/health", {
+      signal: controller.signal,
+      next: { revalidate: 300 },
+    });
+    clearTimeout(t);
+    if (!res.ok) return "120k+";
+    const data = await res.json();
+    const n = Number(data.domains ?? 0);
+    return n > 0 ? n.toLocaleString() : "120k+";
+  } catch {
+    return "120k+";
+  }
 }
 
 export default async function Image() {
-    const totalActivations = await getTotalActivations();
+  const activations = await getActivations();
 
+  try {
     return new ImageResponse(
-        (
-            <div
+      (
+        <div
+          style={{
+            background: "linear-gradient(135deg, #002a2a 0%, #001a1a 50%, #000000 100%)",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            fontFamily: "system-ui, sans-serif",
+            position: "relative",
+            padding: 56,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage:
+                "linear-gradient(rgba(0,255,217,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,217,0.06) 1px, transparent 1px)",
+              backgroundSize: "50px 50px",
+              display: "flex",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 22,
+              left: 22,
+              right: 22,
+              bottom: 22,
+              border: "2px solid rgba(0,255,217,0.28)",
+              borderRadius: 20,
+              display: "flex",
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              background: "linear-gradient(135deg, #00FF66 0%, #00E6C0 100%)",
+              padding: "12px 22px",
+              borderRadius: 999,
+              width: "auto",
+              alignSelf: "flex-start",
+            }}
+          >
+            <span style={{ fontSize: 26, fontWeight: 800, color: "#07271D" }}>
+              Seeker Tracker
+            </span>
+          </div>
+
+          <div
+            style={{
+              fontSize: 72,
+              fontWeight: 800,
+              color: "#00ffd9",
+              marginTop: 28,
+              lineHeight: 1.08,
+              display: "flex",
+            }}
+          >
+            Track .skr on Solana
+          </div>
+          <div
+            style={{
+              fontSize: 30,
+              color: "#a8c8c8",
+              marginTop: 12,
+              display: "flex",
+            }}
+          >
+            Domains · dApps · SKR · public API for agents
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 20,
+              position: "absolute",
+              bottom: 52,
+              left: 56,
+              right: 56,
+            }}
+          >
+            {[
+              { value: activations, label: "Activations" },
+              { value: "API", label: "llms.txt + OpenAPI" },
+              { value: "Live", label: "Catalog + prices" },
+            ].map((s) => (
+              <div
+                key={s.label}
                 style={{
-                    background: 'linear-gradient(135deg, #002a2a 0%, #001a1a 50%, #000000 100%)',
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    fontFamily: 'system-ui, sans-serif',
-                    position: 'relative',
-                    padding: 60,
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "18px 16px",
+                  background: "rgba(0,255,217,0.1)",
+                  borderRadius: 16,
+                  border: "2px solid rgba(0,255,217,0.3)",
                 }}
-            >
-                {/* Grid overlay effect */}
+              >
                 <div
-                    style={{
-                        position: 'absolute',
-                        inset: 0,
-                        backgroundImage: `
-                            linear-gradient(rgba(0, 255, 217, 0.06) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(0, 255, 217, 0.06) 1px, transparent 1px)
-                        `,
-                        backgroundSize: '50px 50px',
-                    }}
-                />
-
-                {/* Border frame */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 24,
-                        left: 24,
-                        right: 24,
-                        bottom: 24,
-                        border: '3px solid rgba(0, 255, 217, 0.25)',
-                        borderRadius: 22,
-                    }}
-                />
-
-                {/* Top badge - like profile "Activated" pill */}
-                <div
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 12,
-                        background: 'linear-gradient(135deg, #00FF66 0%, #00E6C0 100%)',
-                        padding: '12px 24px',
-                        borderRadius: 30,
-                    }}
+                  style={{
+                    fontSize: 36,
+                    fontWeight: 800,
+                    color: "#00ffd9",
+                    display: "flex",
+                  }}
                 >
-                    <div
-                        style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 14,
-                            background: '#01C772',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                            fontSize: 18,
-                            fontWeight: 700,
-                        }}
-                    >
-                        S
-                    </div>
-                    <span style={{ fontSize: 28, fontWeight: 700, color: '#07271D' }}>
-                        SeekerID Tracker
-                    </span>
+                  {s.value}
                 </div>
-
-                {/* Main title */}
                 <div
-                    style={{
-                        fontSize: 96,
-                        fontWeight: 700,
-                        color: '#00ffd9',
-                        marginTop: 32,
-                        lineHeight: 1.1,
-                    }}
+                  style={{
+                    fontSize: 18,
+                    color: "#b0b0b0",
+                    marginTop: 4,
+                    display: "flex",
+                  }}
                 >
-                    Seeker Tracker
+                  {s.label}
                 </div>
-
-                {/* Subtitle */}
-                <div
-                    style={{
-                        fontSize: 42,
-                        color: '#b0b0b0',
-                        marginTop: 12,
-                    }}
-                >
-                    Search & Track .skr SeekerIDs on Solana
-                </div>
-
-                {/* Stats cards row - matching profile card style */}
-                <div
-                    style={{
-                        display: 'flex',
-                        gap: 24,
-                        position: 'absolute',
-                        bottom: 100,
-                        left: 60,
-                        right: 60,
-                    }}
-                >
-                    <div
-                        style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '20px 24px',
-                            background: 'rgba(0, 255, 217, 0.12)',
-                            borderRadius: 18,
-                            border: '2px solid rgba(0, 255, 217, 0.35)',
-                        }}
-                    >
-                        <div style={{ fontSize: 42, fontWeight: 700, color: '#00ffd9' }}>
-                            {totalActivations > 0 ? totalActivations.toLocaleString() : 'Live'}
-                        </div>
-                        <div style={{ fontSize: 22, color: '#b0b0b0', marginTop: 4 }}>
-                            Total Activations
-                        </div>
-                    </div>
-                    <div
-                        style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '20px 24px',
-                            background: 'rgba(0, 255, 217, 0.12)',
-                            borderRadius: 18,
-                            border: '2px solid rgba(0, 255, 217, 0.35)',
-                        }}
-                    >
-                        <div style={{ fontSize: 42, fontWeight: 700, color: '#00ffd9' }}>
-                            Analytics
-                        </div>
-                        <div style={{ fontSize: 22, color: '#b0b0b0', marginTop: 4 }}>
-                            Track SKR Stats
-                        </div>
-                    </div>
-                    <div
-                        style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '20px 24px',
-                            background: 'rgba(0, 255, 217, 0.12)',
-                            borderRadius: 18,
-                            border: '2px solid rgba(0, 255, 217, 0.35)',
-                        }}
-                    >
-                        <div style={{ fontSize: 42, fontWeight: 700, color: '#00ffd9' }}>
-                            Portfolio
-                        </div>
-                        <div style={{ fontSize: 22, color: '#b0b0b0', marginTop: 4 }}>
-                            View Holdings
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div
-                    style={{
-                        position: 'absolute',
-                        bottom: 48,
-                        left: 60,
-                        fontSize: 26,
-                        fontWeight: 600,
-                        color: '#00e6c0',
-                    }}
-                >
-                    seekertracker.com
-                </div>
-            </div>
-        ),
-        {
-            ...size,
-        }
+              </div>
+            ))}
+          </div>
+        </div>
+      ),
+      { ...size }
     );
+  } catch (e) {
+    console.error("twitter-image failed", e);
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#001a1a",
+            color: "#00ffd9",
+            fontSize: 64,
+            fontWeight: 800,
+            fontFamily: "system-ui, sans-serif",
+          }}
+        >
+          Seeker Tracker
+        </div>
+      ),
+      { ...size }
+    );
+  }
 }

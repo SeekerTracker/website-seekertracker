@@ -15,25 +15,41 @@ const jetBrains = JetBrains_Mono({
 });
 
 const SLOGAN = "The unofficial Solana Mobile ecosystem explorer";
-const DESCRIPTION = `${SLOGAN}. Search and track .skr SeekerIDs, on-chain activity, apps, and analytics.`;
-const TITLE = "Seeker Tracker — The unofficial Solana Mobile ecosystem explorer";
+const DESCRIPTION =
+  "Search and track .skr SeekerIDs, Seeker dApps, SKR stats, and analytics. Public API for agents.";
+// Keep OG titles under ~60 chars so X/LinkedIn do not truncate awkwardly.
+const TITLE = "Seeker Tracker — Solana Mobile explorer";
+const OG_TITLE = "Seeker Tracker — .skr, dApps & SKR";
 
 export const metadata: Metadata = {
-  title: TITLE,
+  title: {
+    default: TITLE,
+    template: "%s | Seeker Tracker",
+  },
   description: DESCRIPTION,
   metadataBase: new URL("https://seekertracker.com"),
-  keywords: ["Solana Mobile", "Seeker", "SeekerID", ".skr", "Solana", "web3", "crypto", "on-chain analytics"],
+  keywords: [
+    "Solana Mobile",
+    "Seeker",
+    "SeekerID",
+    ".skr",
+    "Solana",
+    "web3",
+    "dApp Store",
+    "SKR",
+    "on-chain analytics",
+  ],
   openGraph: {
-    title: TITLE,
+    title: OG_TITLE,
     description: DESCRIPTION,
     url: "https://seekertracker.com",
-    siteName: "Seeker Tracker",
+    siteName: "SeekerTracker",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: TITLE,
+    title: OG_TITLE,
     description: DESCRIPTION,
     site: "@Seeker_Tracker",
     creator: "@seeker_tracker",

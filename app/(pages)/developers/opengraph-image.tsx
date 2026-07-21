@@ -1,58 +1,19 @@
 import { ImageResponse } from "next/og";
 
-// nodejs is more reliable than edge for ImageResponse on OpenNext/CF
 export const runtime = "nodejs";
-export const revalidate = 300;
+export const revalidate = 600;
 export const alt =
-  "Seeker Tracker — .skr SeekerIDs, Solana Seeker dApps, SKR stats";
+  "Seeker Tracker Public API — llms.txt, OpenAPI, JSON for agents";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-async function getLiveStats(): Promise<{ activations: string; dApps: string }> {
-  try {
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 2500);
-    const [domainRes, dappRes] = await Promise.allSettled([
-      fetch("https://seekertracker.com/api/health", {
-        signal: controller.signal,
-        next: { revalidate: 300 },
-      }),
-      fetch("https://seekertracker.com/api/dappstore", {
-        signal: controller.signal,
-        next: { revalidate: 600 },
-      }),
-    ]);
-    clearTimeout(t);
-
-    let activations = "120k+";
-    if (domainRes.status === "fulfilled" && domainRes.value.ok) {
-      const body = await domainRes.value.json();
-      const n = Number(body.domains ?? 0);
-      if (n > 0) activations = n.toLocaleString();
-    }
-
-    let dApps = "500+";
-    if (dappRes.status === "fulfilled" && dappRes.value.ok) {
-      const body = await dappRes.value.json();
-      const n = Number(body.totalApps ?? body.activeCount ?? 0);
-      if (n > 0) dApps = `${n}+`;
-    }
-
-    return { activations, dApps };
-  } catch {
-    return { activations: "120k+", dApps: "500+" };
-  }
-}
-
 export default async function Image() {
-  const { activations, dApps } = await getLiveStats();
-
   try {
     return new ImageResponse(
       (
         <div
           style={{
-            background: "linear-gradient(135deg, #001a1a 0%, #002828 45%, #000a0a 100%)",
+            background: "linear-gradient(135deg, #001414 0%, #002a2a 50%, #000808 100%)",
             width: "100%",
             height: "100%",
             display: "flex",
@@ -68,7 +29,7 @@ export default async function Image() {
               inset: 0,
               backgroundImage:
                 "linear-gradient(rgba(0,255,217,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,217,0.05) 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
+              backgroundSize: "44px 44px",
               display: "flex",
             }}
           />
@@ -79,7 +40,7 @@ export default async function Image() {
               left: 20,
               right: 20,
               bottom: 20,
-              border: "2px solid rgba(0,255,217,0.28)",
+              border: "2px solid rgba(0,255,217,0.3)",
               borderRadius: 22,
               display: "flex",
             }}
@@ -89,69 +50,59 @@ export default async function Image() {
             <div
               style={{
                 display: "flex",
-                alignItems: "center",
-                gap: 8,
-                background: "rgba(0,255,217,0.1)",
-                border: "1.5px solid rgba(0,255,217,0.4)",
+                background: "rgba(0,255,217,0.12)",
+                border: "1.5px solid rgba(0,255,217,0.45)",
                 borderRadius: 999,
                 padding: "8px 18px",
               }}
             >
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  background: "#00ffd9",
-                  display: "flex",
-                }}
-              />
               <span
                 style={{
-                  fontSize: 14,
-                  fontWeight: 700,
+                  fontSize: 15,
+                  fontWeight: 800,
                   color: "#00ffd9",
-                  letterSpacing: "0.12em",
+                  letterSpacing: "0.14em",
                 }}
               >
-                LIVE
+                API-FIRST
               </span>
             </div>
             <span style={{ fontSize: 16, color: "rgba(0,255,217,0.55)" }}>
-              seekertracker.com
+              seekertracker.com/developers
             </span>
           </div>
 
           <div
             style={{
-              fontSize: 76,
+              fontSize: 64,
               fontWeight: 800,
               color: "#ffffff",
               lineHeight: 1.05,
-              marginTop: 28,
+              marginTop: 26,
               zIndex: 1,
               letterSpacing: "-0.02em",
               display: "flex",
             }}
           >
-            Seeker Tracker
+            Public API for agents
           </div>
           <div
             style={{
               fontSize: 28,
               color: "#00ffd9",
-              marginTop: 12,
+              marginTop: 14,
               zIndex: 1,
               display: "flex",
+              maxWidth: 900,
             }}
           >
-            .skr SeekerIDs · Seeker dApps · SKR stats
+            .skr domains · Seeker dApps · SKR · prices · no auth
           </div>
 
           <div
             style={{
               display: "flex",
-              gap: 18,
+              gap: 16,
               position: "absolute",
               bottom: 52,
               left: 56,
@@ -160,9 +111,10 @@ export default async function Image() {
             }}
           >
             {[
-              { value: activations, label: ".skr IDs" },
-              { value: dApps, label: "Seeker dApps" },
-              { value: "API", label: "Agent-ready" },
+              { value: "/llms.txt", label: "Discovery" },
+              { value: "/api", label: "JSON index" },
+              { value: "/openapi.json", label: "OpenAPI 3.1" },
+              { value: "CORS", label: "Open reads" },
             ].map((s) => (
               <div
                 key={s.label}
@@ -172,15 +124,15 @@ export default async function Image() {
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  padding: "18px 14px",
+                  padding: "16px 10px",
                   background: "rgba(0,255,217,0.07)",
                   border: "1.5px solid rgba(0,255,217,0.28)",
-                  borderRadius: 16,
+                  borderRadius: 14,
                 }}
               >
                 <div
                   style={{
-                    fontSize: 40,
+                    fontSize: 22,
                     fontWeight: 800,
                     color: "#00ffd9",
                     display: "flex",
@@ -190,8 +142,8 @@ export default async function Image() {
                 </div>
                 <div
                   style={{
-                    fontSize: 18,
-                    color: "rgba(255,255,255,0.55)",
+                    fontSize: 15,
+                    color: "rgba(255,255,255,0.5)",
                     marginTop: 6,
                     display: "flex",
                   }}
@@ -206,8 +158,7 @@ export default async function Image() {
       { ...size }
     );
   } catch (e) {
-    console.error("opengraph-image failed", e);
-    // Absolute last resort: minimal valid card (never 500)
+    console.error("developers opengraph-image failed", e);
     return new ImageResponse(
       (
         <div
@@ -215,16 +166,21 @@ export default async function Image() {
             width: "100%",
             height: "100%",
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             background: "#001a1a",
             color: "#00ffd9",
-            fontSize: 64,
-            fontWeight: 800,
             fontFamily: "system-ui, sans-serif",
+            gap: 12,
           }}
         >
-          Seeker Tracker
+          <div style={{ fontSize: 48, fontWeight: 800, display: "flex" }}>
+            Seeker Tracker API
+          </div>
+          <div style={{ fontSize: 24, color: "#8eb5b5", display: "flex" }}>
+            /developers · /llms.txt · /openapi.json
+          </div>
         </div>
       ),
       { ...size }

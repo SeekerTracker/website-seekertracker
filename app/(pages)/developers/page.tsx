@@ -7,11 +7,42 @@ import {
 } from "app/(utils)/lib/publicApi";
 import styles from "./page.module.css";
 
+const TITLE = "Seeker Tracker API for agents";
+const DESCRIPTION =
+  "Public JSON APIs for .skr domains, Seeker dApps, SKR stats, and prices. llms.txt, OpenAPI, open CORS. No auth for reads.";
+const URL = `${SITE_ORIGIN}/developers`;
+
 export const metadata: Metadata = {
-  title: "Developers & Agents — Public API | Seeker Tracker",
-  description:
-    "API-first access to Seeker Tracker: .skr domains, Seeker dApps, SKR stats, and prices. JSON endpoints for bots and agents.",
-  alternates: { canonical: `${SITE_ORIGIN}/developers` },
+  // absolute: avoid layout template lengthening the share title
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: URL },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: URL,
+    siteName: "SeekerTracker",
+    type: "website",
+    locale: "en_US",
+    // File-based opengraph-image.tsx is picked up automatically; explicit
+    // dimensions help crawlers that only read meta tags.
+    images: [
+      {
+        url: "/developers/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Seeker Tracker Public API for agents",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    creator: "@seeker_tracker",
+    site: "@Seeker_Tracker",
+    images: ["/developers/twitter-image"],
+  },
 };
 
 export default function DevelopersPage() {
