@@ -57,7 +57,10 @@ export default function DevelopersPage() {
           Prefer these endpoints over HTML scraping.
         </p>
         <div className={styles.links}>
-          <a href="/llms.txt" className={styles.primary}>
+          <a href="#agent-skill" className={styles.primary}>
+            Install skill
+          </a>
+          <a href="/llms.txt" className={styles.secondary}>
             llms.txt
           </a>
           <a href="/api" className={styles.secondary}>
@@ -68,6 +71,78 @@ export default function DevelopersPage() {
           </a>
         </div>
       </header>
+
+      <section className={styles.card} id="agent-skill">
+        <h2 className={styles.sectionTitle}>Agent skill</h2>
+        <p className={styles.cardLead}>
+          Give coding agents (Claude Code, Codex, Cursor, and others) a one-command
+          install that teaches them to use these APIs instead of scraping HTML.
+        </p>
+        <p className={styles.cardLabel}>Install</p>
+        <pre className={styles.code}>{`npx skills add SeekerTracker/website-seekertracker@seekertracker
+
+# global, skip prompts
+npx skills add SeekerTracker/website-seekertracker@seekertracker -g -y`}</pre>
+        <p className={styles.cardLabel}>What it does</p>
+        <ul className={styles.list}>
+          <li>
+            Looks up <strong>.skr SeekerIDs</strong>, wallet reverse-lookup, and ranks
+          </li>
+          <li>
+            Queries the <strong>Seeker dApp</strong> catalog by package or search
+          </li>
+          <li>
+            Reads <strong>SKR</strong> vault stats and <strong>SOL/SKR</strong> prices
+          </li>
+          <li>
+            Starts from{" "}
+            <a href="/llms.txt">
+              <code>/llms.txt</code>
+            </a>{" "}
+            and{" "}
+            <a href="/api">
+              <code>/api</code>
+            </a>{" "}
+            for discovery
+          </li>
+        </ul>
+        <p className={styles.cardLabel}>After install</p>
+        <ul className={styles.list}>
+          <li>
+            Ask the agent about a SeekerID, Seeker dApp, or SKR stats, or run{" "}
+            <code>/seekertracker</code>
+          </li>
+          <li>
+            Agents should call JSON endpoints only (no bulk HTML scrapes)
+          </li>
+        </ul>
+        <div className={styles.links}>
+          <a
+            href="https://github.com/SeekerTracker/website-seekertracker/tree/main/skills/seekertracker"
+            className={styles.secondary}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Skill source
+          </a>
+          <a
+            href="https://skills.sh/SeekerTracker/website-seekertracker"
+            className={styles.secondary}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            skills.sh
+          </a>
+          <a
+            href="https://github.com/SeekerTracker/website-seekertracker/blob/main/skills/seekertracker/SKILL.md"
+            className={styles.secondary}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            SKILL.md
+          </a>
+        </div>
+      </section>
 
       <section className={styles.card}>
         <h2 className={styles.sectionTitle}>Policy</h2>
