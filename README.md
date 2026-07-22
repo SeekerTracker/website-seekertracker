@@ -43,3 +43,13 @@ No Vercel. Git push does **not** auto-deploy a Vercel project; ship with `npm ru
 | `npm run deploy` | Build OpenNext + deploy Worker |
 | `npm run preview` | Local OpenNext preview |
 | `npm run cf-typegen` | Generate Cloudflare env types |
+
+## Agent skill
+
+Install for coding agents (skills.sh / `npx skills`):
+
+```bash
+npx skills add SeekerTracker/website-seekertracker@seekertracker
+```
+
+Source: [`skills/seekertracker`](./skills/seekertracker). Live discovery: https://seekertracker.com/llms.txt
