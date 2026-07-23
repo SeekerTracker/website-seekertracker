@@ -91,7 +91,7 @@ function ManageInner() {
         });
         const base = window.location.pathname.startsWith("/dapps")
           ? "/dapps/manage"
-          : "/apps/manage";
+          : "/dapps/manage";
         window.history.replaceState({}, "", base);
       } catch (e) {
         if (!cancelled) {
@@ -514,7 +514,7 @@ function ManageInner() {
         ) : null}
 
         <p className={styles.footerNote}>
-          <Link href="/apps">Back to catalog</Link>
+          <Link href="/dapps">Back to catalog</Link>
           {" · "}
           Official store listings stay on Solana Mobile publisher tools.
         </p>

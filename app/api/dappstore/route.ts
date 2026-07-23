@@ -104,7 +104,7 @@ async function fetchFromDAppStore(query: string): Promise<{
       "User-Agent":
         "SeekerTracker/1.0 (+https://seekertracker.com; dApp catalog mirror)",
       Origin: "https://seekertracker.com",
-      Referer: "https://seekertracker.com/apps",
+      Referer: "https://seekertracker.com/dapps",
     },
     body: JSON.stringify({ query }),
     cache: "no-store",

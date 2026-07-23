@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "unavatar.io" },
     ],
   },
+  async redirects() {
+    return [
+      // Public catalog URL is /dapps; keep /apps as permanent redirects
+      { source: "/apps", destination: "/dapps", permanent: true },
+      { source: "/apps/:path*", destination: "/dapps/:path*", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       // Exact /api → public agent index (OpenNext does not always bind app/api/route.ts)
@@ -24,7 +31,7 @@ const nextConfig: NextConfig = {
         source: "/domain/:path*",
         destination: "/id/:path*",
       },
-      // /dapps and /apps are both first-class catalog URLs (same UI)
+      // Internal app routes still live under app/(pages)/apps/*
       { source: "/dapps", destination: "/apps" },
       { source: "/dapps/manage", destination: "/apps/manage" },
       { source: "/dapps/:path*", destination: "/apps/:path*" },

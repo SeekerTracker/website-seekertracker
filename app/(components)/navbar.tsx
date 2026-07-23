@@ -37,7 +37,7 @@ export const socialMediaLinks = [
 
 /** Primary — always visible */
 const PRIMARY = [
-  { href: "/apps", label: "Apps" },
+  { href: "/dapps", label: "Apps" },
   { href: "/activations", label: "Activations" },
   { href: "/das", label: "DAS" },
   { href: "/skr", label: "SKR" },
@@ -58,7 +58,11 @@ function isActive(pathname: string, href: string) {
   return (
     pathname === href ||
     pathname.startsWith(href + "/") ||
-    (href === "/apps" && pathname.startsWith("/dapps"))
+    // Catalog is public as /dapps; legacy /apps still serves the same UI
+    (href === "/dapps" &&
+      (pathname === "/apps" ||
+        pathname.startsWith("/apps/") ||
+        pathname.startsWith("/dapps")))
   );
 }
 

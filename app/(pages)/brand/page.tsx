@@ -234,7 +234,7 @@ export default function BrandPage() {
           <Link className={styles.linkChip} href="/unsubscribe">
             Email preferences
           </Link>
-          <Link className={styles.linkChip} href="/apps">
+          <Link className={styles.linkChip} href="/dapps">
             dApp catalog
           </Link>
           <Link className={styles.linkChip} href="/privacy">

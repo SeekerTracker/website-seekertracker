@@ -67,7 +67,7 @@ function renderStars(rating: number) {
 }
 
 function appPath(androidPackage: string) {
-  return `${BASE_URL}/apps/${encodeURIComponent(androidPackage)}`;
+  return `${BASE_URL}/dapps/${encodeURIComponent(androidPackage)}`;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -201,7 +201,7 @@ export default async function AppPage({ params }: Props) {
       <JsonLd app={app} path={pathApps} />
 
       <div className={styles.backRow}>
-        <Link href="/apps" className={styles.backLink}>
+        <Link href="/dapps" className={styles.backLink}>
           ← All apps
         </Link>
       </div>
@@ -366,10 +366,10 @@ export default async function AppPage({ params }: Props) {
         </section>
 
         <div className={styles.actions}>
-          <Link href="/apps/manage" className={styles.primaryBtn}>
+          <Link href="/dapps/manage" className={styles.primaryBtn}>
             Maintain listing
           </Link>
-          <Link href="/apps" className={styles.secondaryBtn}>
+          <Link href="/dapps" className={styles.secondaryBtn}>
             Browse all apps
           </Link>
         </div>

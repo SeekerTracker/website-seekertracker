@@ -12,7 +12,7 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.seekertracker.com";
 
 /** Preferred public catalog path (alias: /dapps via rewrite). */
-export const CATALOG_PATH = "/apps";
+export const CATALOG_PATH = "/dapps";
 
 export function resendConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY);

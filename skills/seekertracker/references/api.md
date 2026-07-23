@@ -45,8 +45,8 @@ Live machine-readable sources (source of truth if this file drifts):
 
 | Path | Purpose |
 |------|---------|
-| `/apps` | dApp catalog UI |
-| `/apps/{androidPackage}` | dApp detail |
+| `/dapps` | dApp catalog UI |
+| `/dapps/{androidPackage}` | dApp detail |
 | `/id/{name.skr}` | Domain profile |
 | `/skr` | SKR stats UI |
 | `/developers` | API docs |

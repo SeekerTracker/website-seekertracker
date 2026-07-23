@@ -9,7 +9,7 @@ const STATIC_PATHS: {
   priority: number;
 }[] = [
   { path: "", changeFrequency: "daily", priority: 1 },
-  { path: "/apps", changeFrequency: "daily", priority: 0.9 },
+  { path: "/dapps", changeFrequency: "daily", priority: 0.9 },
   { path: "/explore", changeFrequency: "daily", priority: 0.9 },
   { path: "/lookup", changeFrequency: "weekly", priority: 0.8 },
   { path: "/skr", changeFrequency: "daily", priority: 0.8 },
@@ -51,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
       const packages = await listDappPackages("active");
       appEntries = packages.map((pkg) => ({
-        url: `${SITE}/apps/${encodeURIComponent(pkg)}`,
+        url: `${SITE}/dapps/${encodeURIComponent(pkg)}`,
         lastModified: now,
         changeFrequency: "weekly" as const,
         priority: 0.7,

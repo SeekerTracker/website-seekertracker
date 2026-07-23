@@ -260,11 +260,11 @@ const MainPage = () => {
                     </div>
                 </div>
                 <div className={style.heroCtas}>
-                    <Link href="/apps" className={style.heroCtaPrimary}>
+                    <Link href="/dapps" className={style.heroCtaPrimary}>
                         Browse apps
                         {dAppCount != null ? ` · ${animatedDApps.toLocaleString()}` : ''}
                     </Link>
-                    <Link href="/apps/manage" className={style.heroCtaSecondary}>
+                    <Link href="/dapps/manage" className={style.heroCtaSecondary}>
                         Maintain listing
                     </Link>
                     <Link href="/explore" className={style.heroCtaSecondary}>
@@ -286,7 +286,7 @@ const MainPage = () => {
                         <span>Today</span>
                     </div>
                 </div>
-                <Link href="/apps" className={style.tabWrapper}>
+                <Link href="/dapps" className={style.tabWrapper}>
                     <div className={style.eachTab}>
                         <strong>{dAppCount !== null ? animatedDApps.toLocaleString() : '—'}</strong>
                         <span>Apps</span>

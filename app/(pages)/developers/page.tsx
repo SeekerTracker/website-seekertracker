@@ -208,10 +208,10 @@ curl -sS ${SITE_ORIGIN}/api/skr/vault`}</pre>
         <h2 className={styles.sectionTitle}>Human pages</h2>
         <ul className={styles.list}>
           <li>
-            <Link href="/apps">/apps</Link> — dApp catalog
+            <Link href="/dapps">/dapps</Link> — dApp catalog (Solana Seeker store mirror)
           </li>
           <li>
-            <code>/apps/{"{package}"}</code> — dApp detail
+            <code>/dapps/{"{package}"}</code> — dApp detail
           </li>
           <li>
             <code>/id/{"{name.skr}"}</code> — domain profile

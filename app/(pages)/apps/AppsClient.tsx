@@ -179,7 +179,7 @@ const AppsContent = () => {
         setSelectedCategory(null)
         const params = new URLSearchParams()
         if (next !== 'active') params.set('status', next)
-        router.push(params.toString() ? `/apps?${params}` : '/apps', { scroll: false })
+        router.push(params.toString() ? `/dapps?${params}` : '/dapps', { scroll: false })
     }
 
     // Load favorites from localStorage
@@ -194,9 +194,9 @@ const AppsContent = () => {
         setSelectedCategory(category)
         setShowFavoritesOnly(false)
         if (category) {
-            router.push(`/apps?category=${encodeURIComponent(category)}`, { scroll: false })
+            router.push(`/dapps?category=${encodeURIComponent(category)}`, { scroll: false })
         } else {
-            router.push('/apps', { scroll: false })
+            router.push('/dapps', { scroll: false })
         }
     }, [router])
 
@@ -338,7 +338,7 @@ const AppsContent = () => {
         if (!release) return null
         const isFavorite = favorites.has(app.androidPackage)
         const isRemoved = app.status === 'removed'
-        const href = `/apps/${encodeURIComponent(app.androidPackage)}`
+        const href = `/dapps/${encodeURIComponent(app.androidPackage)}`
 
         return (
             <Link
@@ -425,7 +425,7 @@ const AppsContent = () => {
                     Apps for Solana Seeker — browse, favorite, and open each dApp page.
                 </p>
                 <div className={styles.headerActions}>
-                    <a href="/apps/manage" className={styles.maintainBtn}>
+                    <a href="/dapps/manage" className={styles.maintainBtn}>
                         Maintain your listing
                     </a>
                     <span className={styles.maintainSub}>
@@ -512,7 +512,7 @@ const AppsContent = () => {
                 </button>
                 <button
                     className={`${styles.categoryBtn} ${styles.favoritesBtn} ${showFavoritesOnly ? styles.active : ''}`}
-                    onClick={() => { setShowFavoritesOnly(!showFavoritesOnly); setSelectedCategory(null); router.push(!showFavoritesOnly ? '/apps?view=favorites' : '/apps', { scroll: false }); }}
+                    onClick={() => { setShowFavoritesOnly(!showFavoritesOnly); setSelectedCategory(null); router.push(!showFavoritesOnly ? '/dapps?view=favorites' : '/dapps', { scroll: false }); }}
                 >
                     {'\u2605'} Favorites ({favorites.size})
                 </button>

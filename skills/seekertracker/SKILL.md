@@ -57,7 +57,7 @@ If these fail, report outage and stop inventing data.
 | Registration activity | `GET /api/activations?view=day\|week\|month` |
 | TRACKER fund fees (shell) | `GET /api/seeker-fund` |
 
-Human pages (secondary): `/apps`, `/apps/{package}`, `/id/{name.skr}`, `/skr`.
+Human pages (secondary): `/dapps`, `/dapps/{package}`, `/id/{name.skr}`, `/skr`.
 
 ### 2. Execute with curl (or fetch)
 
@@ -106,7 +106,7 @@ curl -sS -X POST https://seekertracker.com/api/domains \
 - For prices: show `solPrice` and `skrPrice` (and `source` if useful).
 - Link human pages when the user wants a browser UI:
   - Domain: `https://seekertracker.com/id/{name.skr}`
-  - App: `https://seekertracker.com/apps/{androidPackage}`
+  - App: `https://seekertracker.com/dapps/{androidPackage}`
 
 ### 4. Etiquette and limits
 

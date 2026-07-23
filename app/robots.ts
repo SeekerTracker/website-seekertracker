@@ -18,7 +18,7 @@ export default function robots(): MetadataRoute.Robots {
           "/llms-full.txt",
           "/openapi.json",
           "/developers",
-          "/apps",
+          "/dapps",
           "/id/",
         ],
       },

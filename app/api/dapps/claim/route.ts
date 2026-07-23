@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     const { token } = await createClaimToken(pkg, email);
     const name =
       row.display_name != null ? String(row.display_name) : pkg;
-    const link = `${SITE_URL.replace(/\/$/, "")}/apps/manage?token=${encodeURIComponent(token)}`;
+    const link = `${SITE_URL.replace(/\/$/, "")}/dapps/manage?token=${encodeURIComponent(token)}`;
 
     // Resend tags: only [A-Za-z0-9_-] in name and value (no dots in package ids)
     const tagPkg = pkg.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 48);

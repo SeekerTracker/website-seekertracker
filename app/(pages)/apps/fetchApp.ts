@@ -91,7 +91,7 @@ export async function fetchAppByPackage(
         "User-Agent":
           "SeekerTracker/1.0 (+https://seekertracker.com; dApp detail)",
         Origin: "https://seekertracker.com",
-        Referer: "https://seekertracker.com/apps",
+        Referer: "https://seekertracker.com/dapps",
       },
       body: JSON.stringify({ query: getPackageQuery(pkg) }),
       next: { revalidate: 1800 },

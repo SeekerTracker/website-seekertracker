@@ -288,7 +288,7 @@ export async function GET(request: NextRequest) {
                 color: "rgba(160,190,180,0.5)",
               }}
             >
-              seekertracker.com/apps
+              seekertracker.com/dapps
             </div>
           </div>
         </div>
@@ -328,7 +328,7 @@ export async function GET(request: NextRequest) {
               color: "rgba(20,241,149,0.7)",
             }}
           >
-            seekertracker.com/apps
+            seekertracker.com/dapps
           </div>
         </div>
       ),
@@ -668,7 +668,7 @@ export async function GET(request: NextRequest) {
                       color: "rgba(160,190,180,0.55)",
                     }}
                   >
-                    seekertracker.com/apps
+                    seekertracker.com/dapps
                   </div>
                 </div>
               </div>

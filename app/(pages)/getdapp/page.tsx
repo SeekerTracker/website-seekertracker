@@ -33,7 +33,7 @@ export default function GetDappPage() {
                     <section className={styles.downloadSection}>
                         <h2>Download Mobile App</h2>
                         <p>Get the Seeker Tracker Android application</p>
-                        <Link href="/api/download/seekertracker.apk" download className={styles.downloadBadge}>
+                        <Link href="/dapps/com.seekertracker" className={styles.downloadBadge}>
                             <Image
                                 src="/sds-badge.svg"
                                 alt="Get it on Solana dApp Store"

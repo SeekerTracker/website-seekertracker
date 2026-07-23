@@ -11,16 +11,15 @@ export const metadata: Metadata = {
     title: 'Seeker dApp Store – Browse Apps for Solana Seeker | SeekerTracker',
     description:
         'Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more categories. Find the best dApps for your Seeker device.',
-    // Both /apps and /dapps serve the catalog (next.config rewrites).
-    // Single SEO canonical is /apps; /dapps is a first-class product alias.
+    // Public catalog URL is /dapps (/apps still rewrites to the same UI).
     alternates: {
-        canonical: `${BASE_URL}/apps`,
+        canonical: `${BASE_URL}/dapps`,
     },
     openGraph: {
         title: 'Seeker dApp Store – Browse Apps for the Solana Seeker',
         description:
             'Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more categories. Find the best dApps for your Seeker device.',
-        url: `${BASE_URL}/apps`,
+        url: `${BASE_URL}/dapps`,
         images: [
             {
                 url: OG_IMAGE,
@@ -47,14 +46,14 @@ type Props = {
 }
 
 /**
- * Catalog index. Legacy deep links `/apps?app=com.foo` redirect to
- * dedicated pages at `/apps/com.foo`.
+ * Catalog index. Legacy deep links `?app=com.foo` redirect to
+ * dedicated pages at `/dapps/com.foo`.
  */
 export default async function AppsPage({ searchParams }: Props) {
     const { app: appParam } = await searchParams
     if (appParam) {
         const decoded = decodeURIComponent(appParam)
-        redirect(`/apps/${encodeURIComponent(decoded)}`)
+        redirect(`/dapps/${encodeURIComponent(decoded)}`)
     }
     return <AppsClient />
 }
