@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
       // Public catalog URL is /dapps; keep /apps as permanent redirects
       { source: "/apps", destination: "/dapps", permanent: true },
       { source: "/apps/:path*", destination: "/dapps/:path*", permanent: true },
+      // External product shortcut
+      {
+        source: "/rewards",
+        destination: "https://seeker-rewards.vercel.app/",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {
