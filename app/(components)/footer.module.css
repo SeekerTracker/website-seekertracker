@@ -262,6 +262,32 @@
   letter-spacing: -0.02em;
 }
 
+.madeBy {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  opacity: 0.88;
+  transition: opacity 100ms ease, transform 100ms ease;
+  line-height: 0;
+}
+
+.madeBy:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.madeBy:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 255, 217, 0.4);
+}
+
+.madeByImg {
+  width: 100px;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
 /* Legal */
 
 .legal {
@@ -344,12 +370,14 @@
   .socialLink,
   .partner,
   .ca,
+  .madeBy,
   .legal a {
     transition: none;
   }
 
   .downloadBadge:hover,
-  .socialLink:hover {
+  .socialLink:hover,
+  .madeBy:hover {
     transform: none;
   }
 }

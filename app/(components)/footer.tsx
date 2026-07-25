@@ -21,12 +21,6 @@ const PARTNERS = [
     alt: "Helius",
   },
   {
-    label: "API by",
-    href: "https://milysec.com",
-    src: "/icons/milysec.png",
-    alt: "Milysec",
-  },
-  {
     label: "Domains by",
     href: "https://alldomains.id/?ref=hmKOC9",
     src: "/icons/alldomain.webp",
@@ -148,6 +142,25 @@ const Footer = () => {
                 {copied ? "Copied" : shortCa(SEEKER_TOKEN_ADDRESS)}
               </code>
             </button>
+            <span className={styles.dot} aria-hidden>
+              ·
+            </span>
+            <Link
+              href="https://milysec.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.madeBy}
+              aria-label="Made by Milysec.com"
+              title="Made by Milysec.com"
+            >
+              <Image
+                src="/icons/made-by-milysec.png"
+                alt="Made by Milysec.com"
+                width={114}
+                height={36}
+                className={styles.madeByImg}
+              />
+            </Link>
           </div>
 
           <nav className={styles.legal} aria-label="Legal">
