@@ -14,6 +14,112 @@ import { IoArrowForward, IoSearchOutline } from "react-icons/io5";
 
 const DAS_PUBLIC = "https://seeker-das-scanner.gm-4e8.workers.dev/public/das";
 
+type HomeDapp = {
+  androidPackage: string;
+  rating: number;
+  reviews: number;
+  displayName: string;
+  subtitle?: string;
+  iconUri?: string;
+  updatedOn?: string;
+};
+
+function reviewTotal(reviewsByRating?: number[]): number {
+  if (!reviewsByRating?.length) return 0;
+  return reviewsByRating.reduce((s, n) => s + (Number(n) || 0), 0);
+}
+
+function flattenCatalog(data: unknown): HomeDapp[] {
+  const units =
+    (data as {
+      data?: {
+        explore?: {
+          units?: {
+            edges?: Array<{
+              node?: {
+                __typename?: string;
+                dApps?: {
+                  edges?: Array<{
+                    node?: {
+                      androidPackage?: string;
+                      status?: string;
+                      rating?: { rating?: number; reviewsByRating?: number[] };
+                      lastRelease?: {
+                        displayName?: string;
+                        subtitle?: string;
+                        updatedOn?: string;
+                        icon?: { uri?: string };
+                      };
+                    };
+                  }>;
+                };
+              };
+            }>;
+          };
+        };
+      };
+    })?.data?.explore?.units?.edges || [];
+
+  const seen = new Map<string, HomeDapp>();
+  for (const edge of units) {
+    const unit = edge?.node;
+    if (unit?.__typename && unit.__typename !== "DAppsByCategoryUnit") continue;
+    for (const dEdge of unit?.dApps?.edges || []) {
+      const n = dEdge?.node;
+      const pkg = n?.androidPackage;
+      if (!pkg || seen.has(pkg)) continue;
+      if (n?.status && n.status !== "active") continue;
+      const displayName = n?.lastRelease?.displayName?.trim();
+      if (!displayName) continue;
+      seen.set(pkg, {
+        androidPackage: pkg,
+        rating: Number(n?.rating?.rating) || 0,
+        reviews: reviewTotal(n?.rating?.reviewsByRating),
+        displayName,
+        subtitle: n?.lastRelease?.subtitle || undefined,
+        iconUri: n?.lastRelease?.icon?.uri || undefined,
+        updatedOn: n?.lastRelease?.updatedOn || undefined,
+      });
+    }
+  }
+  return Array.from(seen.values());
+}
+
+/** Highest rating, preferring apps with the most reviews (min threshold when possible). */
+function pickTopRated(apps: HomeDapp[], limit = 3): HomeDapp[] {
+  const MIN_REVIEWS = 10;
+  const withReviews = apps.filter((a) => a.reviews >= MIN_REVIEWS && a.rating > 0);
+  const pool = withReviews.length >= limit ? withReviews : apps.filter((a) => a.rating > 0);
+  return [...pool]
+    .sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      return b.reviews - a.reviews;
+    })
+    .slice(0, limit);
+}
+
+function pickLatest(apps: HomeDapp[], limit = 3): HomeDapp[] {
+  return [...apps]
+    .sort((a, b) => {
+      const ta = a.updatedOn ? new Date(a.updatedOn).getTime() : 0;
+      const tb = b.updatedOn ? new Date(b.updatedOn).getTime() : 0;
+      return tb - ta;
+    })
+    .slice(0, limit);
+}
+
+function formatUpdated(iso?: string): string {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
 /** Counts up from ~95% of target to target over ~1.2s */
 function useCountUp(target: number, duration = 1200): number {
   const [display, setDisplay] = useState(target);
@@ -71,6 +177,9 @@ const MainPage = () => {
   const [totalSeekerIds, setTotalSeekerIds] = useState(0);
   const [matchCount, setMatchCount] = useState(0);
   const [dAppCount, setDAppCount] = useState<number | null>(null);
+  const [topRatedApps, setTopRatedApps] = useState<HomeDapp[]>([]);
+  const [latestApps, setLatestApps] = useState<HomeDapp[]>([]);
+  const [appsLoading, setAppsLoading] = useState(true);
   const [das, setDas] = useState<number | null>(null);
   const currSkrIdCount = useRef(0);
   const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([]);
@@ -240,12 +349,47 @@ const MainPage = () => {
   }, []);
 
   useEffect(() => {
+    const apply = (data: unknown) => {
+      const payload = data as {
+        activeCount?: number;
+        totalApps?: number;
+      };
+      const flat = flattenCatalog(data);
+      if (typeof payload.activeCount === "number") {
+        setDAppCount(payload.activeCount);
+      } else if (typeof payload.totalApps === "number") {
+        setDAppCount(payload.totalApps);
+      } else if (flat.length > 0) {
+        setDAppCount(flat.length);
+      }
+      if (flat.length > 0) {
+        setTopRatedApps(pickTopRated(flat, 3));
+        setLatestApps(pickLatest(flat, 3));
+        try {
+          sessionStorage.setItem(
+            "dappstore-catalog-v1",
+            JSON.stringify({
+              activeCount: payload.activeCount ?? flat.length,
+              totalApps: payload.totalApps ?? flat.length,
+              topRated: pickTopRated(flat, 3),
+              latest: pickLatest(flat, 3),
+            })
+          );
+        } catch {
+          /* ignore quota */
+        }
+      }
+    };
+
     try {
       const raw = sessionStorage.getItem("dappstore-catalog-v1");
       if (raw) {
         const p = JSON.parse(raw);
         if (typeof p.activeCount === "number") setDAppCount(p.activeCount);
         else if (typeof p.totalApps === "number") setDAppCount(p.totalApps);
+        if (Array.isArray(p.topRated) && p.topRated.length) setTopRatedApps(p.topRated);
+        if (Array.isArray(p.latest) && p.latest.length) setLatestApps(p.latest);
+        if (Array.isArray(p.topRated) && p.topRated.length) setAppsLoading(false);
       }
     } catch {
       /* ignore */
@@ -254,22 +398,10 @@ const MainPage = () => {
     fetch("/api/dappstore")
       .then((r) => r.json())
       .then((data) => {
-        if (typeof data.activeCount === "number") {
-          setDAppCount(data.activeCount);
-        } else if (data.totalApps) {
-          setDAppCount(data.totalApps);
-        } else {
-          const units = data.data?.explore?.units?.edges || [];
-          const seen = new Set<string>();
-          units.forEach((u: { node?: { dApps?: { edges?: Array<{ node: { androidPackage: string } }> } } }) => {
-            u.node?.dApps?.edges?.forEach((e) =>
-              seen.add(e.node.androidPackage)
-            );
-          });
-          if (seen.size > 0) setDAppCount(seen.size);
-        }
+        apply(data);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setAppsLoading(false));
   }, []);
 
   const handleRankSearch = (rankNumber?: number) => {
@@ -526,6 +658,112 @@ const MainPage = () => {
           </p>
         </section>
       </div>
+
+      {/* ── dApps spotlight ──────────────────────────────── */}
+      <section className={style.appsSpotlight} aria-label="Seeker dApps">
+        <div className={style.appsCol}>
+          <header className={style.appsHead}>
+            <div>
+              <span className={style.panelEyebrow}>Catalog</span>
+              <h2 className={style.panelTitle}>Top rated</h2>
+            </div>
+            <Link href="/dapps?sort=rating-desc" className={style.appsMore}>
+              All apps <IoArrowForward aria-hidden />
+            </Link>
+          </header>
+          <ul className={style.appList}>
+            {appsLoading && topRatedApps.length === 0
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <li key={`tr-sk-${i}`} className={style.appSkeleton} />
+                ))
+              : topRatedApps.map((app, i) => (
+                  <li key={app.androidPackage}>
+                    <Link
+                      href={`/dapps/${encodeURIComponent(app.androidPackage)}`}
+                      className={style.appRow}
+                    >
+                      <span className={style.appRank} aria-hidden>
+                        {i + 1}
+                      </span>
+                      <span className={style.appIconWrap}>
+                        {app.iconUri ? (
+                          <Image
+                            src={app.iconUri}
+                            alt=""
+                            width={40}
+                            height={40}
+                            className={style.appIcon}
+                            unoptimized
+                          />
+                        ) : (
+                          <span className={style.appIconFallback}>
+                            {app.displayName.charAt(0)}
+                          </span>
+                        )}
+                      </span>
+                      <span className={style.appMeta}>
+                        <strong>{app.displayName}</strong>
+                        <em>
+                          {app.rating.toFixed(1)} ★ · {app.reviews.toLocaleString()} reviews
+                        </em>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+          </ul>
+        </div>
+
+        <div className={style.appsCol}>
+          <header className={style.appsHead}>
+            <div>
+              <span className={style.panelEyebrow}>Fresh</span>
+              <h2 className={style.panelTitle}>Latest apps</h2>
+            </div>
+            <Link href="/dapps?sort=updated-desc" className={style.appsMore}>
+              Browse <IoArrowForward aria-hidden />
+            </Link>
+          </header>
+          <ul className={style.appList}>
+            {appsLoading && latestApps.length === 0
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <li key={`la-sk-${i}`} className={style.appSkeleton} />
+                ))
+              : latestApps.map((app) => (
+                  <li key={app.androidPackage}>
+                    <Link
+                      href={`/dapps/${encodeURIComponent(app.androidPackage)}`}
+                      className={style.appRow}
+                    >
+                      <span className={style.appIconWrap}>
+                        {app.iconUri ? (
+                          <Image
+                            src={app.iconUri}
+                            alt=""
+                            width={40}
+                            height={40}
+                            className={style.appIcon}
+                            unoptimized
+                          />
+                        ) : (
+                          <span className={style.appIconFallback}>
+                            {app.displayName.charAt(0)}
+                          </span>
+                        )}
+                      </span>
+                      <span className={style.appMeta}>
+                        <strong>{app.displayName}</strong>
+                        <em>
+                          {app.subtitle
+                            ? `${app.subtitle.slice(0, 42)}${app.subtitle.length > 42 ? "…" : ""}${app.updatedOn ? ` · ${formatUpdated(app.updatedOn)}` : ""}`
+                            : formatUpdated(app.updatedOn) || "New release"}
+                        </em>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+          </ul>
+        </div>
+      </section>
 
       {/* ── Results ──────────────────────────────────────── */}
       <section className={style.results} aria-label="SeekerID results">
