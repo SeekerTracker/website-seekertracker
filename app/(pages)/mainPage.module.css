@@ -556,6 +556,167 @@ a.metric:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── dApps spotlight ──────────────────────────────────────── */
+
+.appsSpotlight {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.appsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 255, 217, 0.14);
+  background: rgba(0, 14, 14, 0.55);
+  backdrop-filter: blur(12px);
+  min-width: 0;
+}
+
+.appsHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.appsMore {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #7aa8a8;
+  text-decoration: none;
+  transition: color 100ms ease;
+}
+
+.appsMore:hover {
+  color: #00ffd9;
+}
+
+.appList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.appRow {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    background 100ms ease,
+    border-color 100ms ease,
+    transform 120ms ease;
+}
+
+.appsCol:nth-child(2) .appRow {
+  grid-template-columns: auto 1fr;
+}
+
+.appRow:hover {
+  background: rgba(0, 255, 217, 0.07);
+  border-color: rgba(0, 255, 217, 0.2);
+  transform: translateY(-1px);
+}
+
+.appRow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 255, 217, 0.3);
+}
+
+.appRank {
+  width: 1.15rem;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: rgba(0, 255, 217, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.appIconWrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(0, 255, 217, 0.08);
+  border: 1px solid rgba(0, 255, 217, 0.12);
+}
+
+.appIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.appIconFallback {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #00ffd9;
+}
+
+.appMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.appMeta strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f2fffc;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appMeta em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: #7aa8a8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.appSkeleton {
+  height: 3.4rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 217, 0.1);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 255, 217, 0.04) 0%,
+    rgba(0, 255, 217, 0.1) 50%,
+    rgba(0, 255, 217, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: homeShimmer 1.15s ease-in-out infinite;
+}
+
 /* ── Results ──────────────────────────────────────────────── */
 
 .results {
@@ -785,7 +946,8 @@ a.metric:focus-visible {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .midGrid {
+  .midGrid,
+  .appsSpotlight {
     grid-template-columns: 1fr;
   }
 }
@@ -876,11 +1038,13 @@ a.metric:focus-visible {
   .heroCtaPrimary:hover,
   .heroCtaSecondary:hover,
   .searchBtn:hover,
-  .showAllLink:hover {
+  .showAllLink:hover,
+  .appRow:hover {
     transform: none;
   }
 
-  .listSkeletonCard {
+  .listSkeletonCard,
+  .appSkeleton {
     animation: none;
   }
 
