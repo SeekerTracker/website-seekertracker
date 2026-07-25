@@ -81,7 +81,7 @@ export async function GET() {
 
   return NextResponse.json(
     {
-      lifeTimeSolFees: Number(lifeTimeSolFees.toFixed(4)),
+      lifeTimeSolFees: Number(lifeTimeSolFees.toFixed(2)),
       token24hVol,
       fundBalance,
       asOf: Date.now(),
