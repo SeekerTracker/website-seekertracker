@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const DAS_PUBLIC =
@@ -10,8 +10,8 @@ const DAS_PUBLIC =
 export async function GET() {
   try {
     const res = await fetch(DAS_PUBLIC, {
-      next: { revalidate: 60 },
       headers: { Accept: "application/json" },
+      cache: "no-store",
     });
     if (!res.ok) {
       return NextResponse.json(
