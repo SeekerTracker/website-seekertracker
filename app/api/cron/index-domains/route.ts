@@ -106,6 +106,13 @@ function deserializeNameAccount(data: Buffer) {
 const DOMAIN_LOG_RE =
   /(?:Buying|Transfering|Transferring|Registering|Claiming)\s+domain\s+([a-z0-9_-]+)\.skr/i;
 
+/** Only these log verbs count as a brand-new activation (not secondary market / transfers). */
+const NEW_ACTIVATION_LOG_RE =
+  /(?:Buying|Registering|Claiming)\s+domain\s+([a-z0-9_-]+)\.skr/i;
+
+/** Don't Telegram-alert domains whose on-chain created_at is older than this (hours). */
+const MAX_ALERT_AGE_HOURS = 48;
+
 async function rpc<T>(method: string, params: unknown[]): Promise<T> {
   const res = await fetch(CONN_RPC_URL, {
     method: "POST",
@@ -151,9 +158,15 @@ export async function GET(request: NextRequest) {
     (lastSigRes.rows[0]?.value as string | undefined) || undefined;
 
   type Sig = { signature: string; blockTime: number | null; err: unknown };
+  // Incremental: Solana `until` = search back from newest until that sig.
+  // Without this, every cron re-scans the same latest N txs and can re-alert
+  // old domains missing from Turso (e.g. transfers of Sep-2025 IDs).
   const sigs = await rpc<Sig[]>("getSignaturesForAddress", [
     SKR_PARENT_NA,
-    { limit, ...(untilSig ? {} : {}) },
+    {
+      limit,
+      ...(untilSig ? { until: untilSig } : {}),
+    },
   ]);
 
   // Process oldest-first among this batch so ranks increase chronologically
@@ -189,9 +202,12 @@ export async function GET(request: NextRequest) {
       }
       const logs = tx.meta?.logMessages || [];
       const names: string[] = [];
+      const activationNames = new Set<string>();
       for (const line of logs) {
         const m = line.match(DOMAIN_LOG_RE);
         if (m?.[1]) names.push(m[1].toLowerCase());
+        const act = line.match(NEW_ACTIVATION_LOG_RE);
+        if (act?.[1]) activationNames.add(act[1].toLowerCase());
       }
       if (!names.length) {
         skipped++;
@@ -210,6 +226,10 @@ export async function GET(request: NextRequest) {
         }
         const parsed = deserializeNameAccount(Buffer.from(info.data));
         const created_at = new Date(parsed.createdAt * 1000).toISOString();
+        const createdMs = parsed.createdAt * 1000;
+        const ageHours = (Date.now() - createdMs) / (1000 * 60 * 60);
+        const isFreshActivation =
+          activationNames.has(sub) && ageHours <= MAX_ALERT_AGE_HOURS;
 
         const existing = await db.execute({
           sql: `SELECT rank FROM seeker_domains WHERE LOWER(subdomain) = ? LIMIT 1`,
@@ -260,15 +280,18 @@ export async function GET(request: NextRequest) {
             ],
           });
           inserted++;
-          newDomains.push({
-            subdomain: sub,
-            domain: ".skr",
-            owner: parsed.owner,
-            rank,
-            created_at,
-            subdomain_tx: txSig,
-            name_account: subDomain_NA.toBase58(),
-          });
+          // Only TG-alert true new activations (not transfers / historical backfill)
+          if (isFreshActivation) {
+            newDomains.push({
+              subdomain: sub,
+              domain: ".skr",
+              owner: parsed.owner,
+              rank,
+              created_at,
+              subdomain_tx: txSig,
+              name_account: subDomain_NA.toBase58(),
+            });
+          }
         }
       }
     } catch (e) {
