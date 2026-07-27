@@ -49,6 +49,23 @@
     max-width: 400px;
 }
 
+.rewardRequirement {
+    margin: 0.75em 0 0 0;
+    max-width: 440px;
+    padding: 0.65em 1em;
+    border-radius: 0.65em;
+    border: 1px solid rgba(45, 248, 160, 0.35);
+    background: rgba(45, 248, 160, 0.08);
+    color: #c8f7df;
+    font-size: 0.98em;
+    line-height: 1.4;
+}
+
+.rewardRequirement strong {
+    color: #2DF8A0;
+    font-variant-numeric: tabular-nums;
+}
+
 /* Prize Pool Section */
 .prizePool {
     display: flex;

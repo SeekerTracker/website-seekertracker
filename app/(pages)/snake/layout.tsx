@@ -2,10 +2,12 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
     title: 'Snake Game | SeekerTracker',
-    description: 'Play Snake on Solana Seeker. Compete on the leaderboard and win prizes!',
+    description:
+        'Play Snake on Solana Seeker. Hold at least 1,000,000 TRACKER to earn rewards. Compete on the leaderboard and win prizes!',
     openGraph: {
         title: 'Snake Game | SeekerTracker',
-        description: 'Play Snake on Solana Seeker. Compete on the leaderboard and win prizes!',
+        description:
+            'Play Snake on Solana Seeker. Hold at least 1,000,000 TRACKER to earn rewards. Compete on the leaderboard and win prizes!',
         images: [
             {
                 url: '/snake/banner.png',
@@ -20,7 +22,8 @@ export const metadata: Metadata = {
     twitter: {
         card: 'summary_large_image',
         title: 'Snake Game | SeekerTracker',
-        description: 'Play Snake on Solana Seeker. Compete on the leaderboard and win prizes!',
+        description:
+            'Play Snake on Solana Seeker. Hold at least 1,000,000 TRACKER to earn rewards. Compete on the leaderboard and win prizes!',
         images: ['/snake/banner.png'],
         creator: '@seeker_tracker',
     },
