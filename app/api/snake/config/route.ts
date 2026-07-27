@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
 
 const DEFAULT_CONFIG = {
-    min_tracker_balance: 100000,
+    min_tracker_balance: 1_000_000,
     tokens_per_pill: 10,
     airdrop_enabled: true,
     maintenance_mode: false,

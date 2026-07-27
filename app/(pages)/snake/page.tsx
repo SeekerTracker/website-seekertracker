@@ -8,7 +8,7 @@ import Backbutton from 'app/(components)/shared/Backbutton'
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 const TRACKER_MINT = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
-const DEFAULT_REQUIRED_TRACKER = 100_000;
+const DEFAULT_REQUIRED_TRACKER = 1_000_000;
 
 type LeaderboardEntry = {
     wallet: string;
@@ -138,6 +138,9 @@ const SnakePage = () => {
                 <h1 className={styles.title}>SNAKE</h1>
                 <p className={styles.subtitle}>for Solana Seeker</p>
                 <p className={styles.tagline}>The classic 1997-inspired snake game with global leaderboard</p>
+                <p className={styles.rewardRequirement}>
+                    Requires a minimum of <strong>1,000,000 TRACKER</strong> to earn rewards
+                </p>
             </div>
 
             {/* Prize Pool */}
@@ -172,9 +175,9 @@ const SnakePage = () => {
             {/* Eligibility */}
             <div className={styles.eligibility}>
                 <span className={styles.eligibilityIcon}>🎫</span>
-                <span className={styles.eligibilityTitle}>Eligibility Requirement</span>
+                <span className={styles.eligibilityTitle}>Reward Requirement</span>
                 <span className={styles.eligibilityDesc}>
-                    Hold <strong>{requiredTracker.toLocaleString()} TRACKER</strong> tokens to be eligible for rewards
+                    Hold at least <strong>{requiredTracker.toLocaleString()} TRACKER</strong> (1 million minimum) to earn in-game rewards
                     {trackerPrice !== null && (
                         <span className={styles.eligibilityUsd}>
                             {' '}(≈ ${(requiredTracker * trackerPrice).toFixed(2)} USD)
