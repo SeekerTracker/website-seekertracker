@@ -5,6 +5,8 @@ import styles from './page.module.css'
 import Image from 'next/image'
 import Link from 'next/link'
 import Backbutton from 'app/(components)/shared/Backbutton'
+import { useWalletContext } from 'app/(utils)/context/walletProvider'
+import { useAccount, useConnector } from '@solana/connector/react'
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 const TRACKER_MINT = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
@@ -17,6 +19,8 @@ type LeaderboardEntry = {
     high_score: number;
     total_plays: number;
     total_score: number;
+    trackerBalance?: number;
+    eligible?: boolean;
 };
 
 const SnakePage = () => {
@@ -28,6 +32,10 @@ const SnakePage = () => {
     const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
     const [trackerPrice, setTrackerPrice] = useState<number | null>(null);
     const [requiredTracker, setRequiredTracker] = useState<number>(DEFAULT_REQUIRED_TRACKER);
+
+    const { trackerBalance, isLoadingBalance, openWalletModal } = useWalletContext();
+    const { connected } = useConnector();
+    const { address } = useAccount();
 
     useEffect(() => {
         async function fetchPrizePool() {
@@ -53,6 +61,9 @@ const SnakePage = () => {
                 if (data.success) {
                     setLeaderboard(data.leaderboard);
                     setGameStats(data.stats);
+                    if (data.minRewardTracker) {
+                        setRequiredTracker(Number(data.minRewardTracker));
+                    }
                     setLeaderboardError(null);
                 } else {
                     setLeaderboardError('Failed to load leaderboard');
@@ -101,26 +112,28 @@ const SnakePage = () => {
         fetchTrackerPrice();
         fetchConfig();
 
-        // Refresh prize pool every 20 seconds
         const prizePoolInterval = setInterval(fetchPrizePool, 20000);
-        // Refresh TRACKER price every 60 seconds
         const priceInterval = setInterval(fetchTrackerPrice, 60000);
+        const lbInterval = setInterval(fetchLeaderboard, 60000);
 
         return () => {
             clearInterval(prizePoolInterval);
             clearInterval(priceInterval);
+            clearInterval(lbInterval);
         };
     }, []);
 
     const formatNumber = (num: number) => {
         if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
         if (num >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
-        return num.toLocaleString();
+        return num.toLocaleString(undefined, { maximumFractionDigits: 0 });
     };
 
     const truncateWallet = (wallet: string) => {
         return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
     };
+
+    const userEligible = trackerBalance >= requiredTracker;
 
     return (
         <div className={styles.main}>
@@ -141,6 +154,42 @@ const SnakePage = () => {
                 <p className={styles.rewardRequirement}>
                     Requires a minimum of <strong>1,000,000 TRACKER</strong> to earn rewards
                 </p>
+            </div>
+
+            {/* Connected wallet TRACKER balance */}
+            <div className={styles.userBalanceCard}>
+                <span className={styles.userBalanceLabel}>Your TRACKER balance</span>
+                {connected && address ? (
+                    <>
+                        <span className={styles.userBalanceAmount}>
+                            {isLoadingBalance ? '…' : formatNumber(trackerBalance)}{' '}
+                            <span className={styles.userBalanceUnit}>TRACKER</span>
+                        </span>
+                        <span
+                            className={
+                                userEligible ? styles.userEligible : styles.userIneligible
+                            }
+                        >
+                            {userEligible
+                                ? '✓ Eligible for rewards'
+                                : `Need ${formatNumber(Math.max(0, requiredTracker - trackerBalance))} more for rewards`}
+                        </span>
+                        <span className={styles.userWallet}>{truncateWallet(address)}</span>
+                    </>
+                ) : (
+                    <>
+                        <span className={styles.userBalanceHint}>
+                            Connect wallet to see your balance & reward eligibility
+                        </span>
+                        <button
+                            type="button"
+                            className={styles.connectBtn}
+                            onClick={openWalletModal}
+                        >
+                            Connect wallet
+                        </button>
+                    </>
+                )}
             </div>
 
             {/* Prize Pool */}
@@ -205,35 +254,61 @@ const SnakePage = () => {
                         <div className={styles.leaderboardHeader}>
                             <span className={styles.rank}>#</span>
                             <span className={styles.player}>Player</span>
+                            <span className={styles.trackerCol}>TRACKER</span>
                             <span className={styles.score}>High Score</span>
                             <span className={styles.plays}>Games</span>
                         </div>
-                        {leaderboard.map((entry, index) => (
-                            <div key={entry.wallet} className={styles.leaderboardRow}>
-                                <span className={styles.rank}>
-                                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                                </span>
-                                <span className={styles.player}>
-                                    {entry.skrId && (
-                                        <span className={styles.skrId}>{entry.skrId}.skr</span>
-                                    )}
-                                    <Link
-                                        href={`https://solscan.io/account/${entry.wallet}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={styles.playerLink}
+                        {leaderboard.map((entry, index) => {
+                            const bal = entry.trackerBalance ?? 0;
+                            const ok = entry.eligible ?? bal >= requiredTracker;
+                            return (
+                                <div
+                                    key={entry.wallet}
+                                    className={`${styles.leaderboardRow} ${
+                                        ok ? styles.rowEligible : styles.rowIneligible
+                                    }`}
+                                >
+                                    <span className={styles.rank}>
+                                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                                    </span>
+                                    <span className={styles.player}>
+                                        {entry.skrId && (
+                                            <span className={styles.skrId}>{entry.skrId}.skr</span>
+                                        )}
+                                        <Link
+                                            href={`https://solscan.io/account/${entry.wallet}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={styles.playerLink}
+                                        >
+                                            {truncateWallet(entry.wallet)}
+                                        </Link>
+                                    </span>
+                                    <span
+                                        className={`${styles.trackerCol} ${
+                                            ok ? styles.trackerOk : styles.trackerLow
+                                        }`}
+                                        title={
+                                            ok
+                                                ? 'Eligible for rewards (≥1M TRACKER)'
+                                                : 'Below 1M TRACKER — not eligible for rewards'
+                                        }
                                     >
-                                        {truncateWallet(entry.wallet)}
-                                    </Link>
-                                </span>
-                                <span className={styles.score}>{entry.high_score}</span>
-                                <span className={styles.plays}>{entry.total_plays}</span>
-                            </div>
-                        ))}
+                                        {formatNumber(bal)}
+                                        <span className={styles.eligDot}>{ok ? '✓' : '·'}</span>
+                                    </span>
+                                    <span className={styles.score}>{entry.high_score}</span>
+                                    <span className={styles.plays}>{entry.total_plays}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className={styles.noScores}>No scores yet. Be the first to play!</div>
                 )}
+                <p className={styles.lbNote}>
+                    ✓ = holds ≥ {requiredTracker.toLocaleString()} TRACKER (reward eligible)
+                </p>
             </div>
 
             {/* Features */}
