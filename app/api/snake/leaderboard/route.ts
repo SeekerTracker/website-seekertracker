@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { CONN_RPC_URL, SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 /**
  * Snake leaderboard + global stats for seekertracker.com/snake.
  * Reads Snake Turso over HTTP pipeline (never @libsql/client on Workers).
@@ -138,9 +141,9 @@ async function tursoPipeline(
   const res = await fetch(`${base}/v2/pipeline`, {
     method: "POST",
     headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+      Authorization: "Bearer " + token,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({ requests }),
     cache: "no-store",
   });
@@ -208,7 +211,7 @@ export async function GET() {
           totalPlayers: Number(playersRaw) || 0,
           totalGames: Number(gamesRaw) || 0,
         },
-      });
+      }, { headers: { "Cache-Control": "no-store" } });
     }
 
     // Fallback: CF worker list + separate count queries via worker if present
@@ -274,7 +277,7 @@ export async function GET() {
       leaderboard,
       minRewardTracker: MIN_REWARD_TRACKER,
       stats: { totalPlayers, totalGames },
-    });
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("Leaderboard API error:", error);
     return NextResponse.json(
