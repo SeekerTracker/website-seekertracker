@@ -1,15 +1,96 @@
 import { NextResponse } from "next/server";
+import { CONN_RPC_URL, SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
 
 /**
  * Snake leaderboard + global stats for seekertracker.com/snake.
  * Reads Snake Turso over HTTP pipeline (never @libsql/client on Workers).
  *
  * Prefers SNAKE_TURSO_* secrets; falls back to SNAKE_AIRDROP_API_URL worker.
+ * Enriches each row with live TRACKER balance (for reward eligibility).
  */
 
 const SNAKE_API =
   process.env.SNAKE_AIRDROP_API_URL ||
   "https://snake-airdrop-api.gm-4e8.workers.dev";
+
+const TRACKER_MINT = SEEKER_TOKEN_ADDRESS;
+const MIN_REWARD_TRACKER = 1_000_000;
+
+/** Batch-fetch TRACKER balances for wallets via getTokenAccountsByOwner */
+async function fetchTrackerBalances(
+  wallets: string[]
+): Promise<Record<string, number>> {
+  const unique = [...new Set(wallets.filter(Boolean))];
+  if (unique.length === 0) return {};
+
+  const body = unique.map((wallet, i) => ({
+    jsonrpc: "2.0",
+    id: `tb-${i}`,
+    method: "getTokenAccountsByOwner",
+    params: [
+      wallet,
+      { mint: TRACKER_MINT },
+      { encoding: "jsonParsed", commitment: "confirmed" },
+    ],
+  }));
+
+  try {
+    const res = await fetch(CONN_RPC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+    if (!res.ok) return Object.fromEntries(unique.map((w) => [w, 0]));
+
+    const data = (await res.json()) as Array<{
+      id?: string;
+      result?: {
+        value?: Array<{
+          account?: {
+            data?: {
+              parsed?: {
+                info?: { tokenAmount?: { uiAmount?: number | null } };
+              };
+            };
+          };
+        }>;
+      };
+    }>;
+
+    const out: Record<string, number> = {};
+    for (let i = 0; i < unique.length; i++) {
+      const wallet = unique[i];
+      const entry = Array.isArray(data)
+        ? data.find((d) => d.id === `tb-${i}`) || data[i]
+        : null;
+      const accounts = entry?.result?.value || [];
+      let bal = 0;
+      for (const acc of accounts) {
+        const ui = acc?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
+        if (typeof ui === "number" && Number.isFinite(ui)) bal += ui;
+      }
+      out[wallet] = bal;
+    }
+    return out;
+  } catch (e) {
+    console.error("fetchTrackerBalances failed", e);
+    return Object.fromEntries(unique.map((w) => [w, 0]));
+  }
+}
+
+function withBalances<
+  T extends { wallet: string; [k: string]: unknown },
+>(rows: T[], balances: Record<string, number>) {
+  return rows.map((row) => {
+    const trackerBalance = balances[row.wallet] ?? 0;
+    return {
+      ...row,
+      trackerBalance,
+      eligible: trackerBalance >= MIN_REWARD_TRACKER,
+    };
+  });
+}
 
 function snakeTursoBase(): string | null {
   const raw =
@@ -57,9 +138,9 @@ async function tursoPipeline(
   const res = await fetch(`${base}/v2/pipeline`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
     body: JSON.stringify({ requests }),
     cache: "no-store",
   });
@@ -102,7 +183,7 @@ export async function GET() {
       const playersRaw = cell(data.results?.[1]?.response?.result?.rows?.[0], 0);
       const gamesRaw = cell(data.results?.[2]?.response?.result?.rows?.[0], 0);
 
-      const leaderboard = lbRows.map((row, i) => {
+      const baseBoard = lbRows.map((row, i) => {
         const wallet = cell(row, 0);
         const username = cell(row, 1) || null;
         return {
@@ -116,9 +197,13 @@ export async function GET() {
         };
       });
 
+      const balances = await fetchTrackerBalances(baseBoard.map((r) => r.wallet));
+      const leaderboard = withBalances(baseBoard, balances);
+
       return NextResponse.json({
         success: true,
         leaderboard,
+        minRewardTracker: MIN_REWARD_TRACKER,
         stats: {
           totalPlayers: Number(playersRaw) || 0,
           totalGames: Number(gamesRaw) || 0,
@@ -149,7 +234,7 @@ export async function GET() {
     };
 
     const rows = Array.isArray(upstream.leaderboard) ? upstream.leaderboard : [];
-    const leaderboard = rows.map((row, i) => ({
+    const baseBoard = rows.map((row, i) => ({
       wallet: row.wallet || "",
       username: row.domain || null,
       high_score: Number(row.score) || 0,
@@ -181,9 +266,13 @@ export async function GET() {
       }
     }
 
+    const balances = await fetchTrackerBalances(baseBoard.map((r) => r.wallet));
+    const leaderboard = withBalances(baseBoard, balances);
+
     return NextResponse.json({
       success: true,
       leaderboard,
+      minRewardTracker: MIN_REWARD_TRACKER,
       stats: { totalPlayers, totalGames },
     });
   } catch (error) {

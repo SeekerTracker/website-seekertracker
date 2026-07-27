@@ -163,6 +163,79 @@
     font-weight: 500;
 }
 
+/* Connected user TRACKER card */
+.userBalanceCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.4em;
+    width: 100%;
+    max-width: 420px;
+    padding: 1.25em 1.5em;
+    border-radius: 1em;
+    border: 1px solid rgba(0, 255, 217, 0.35);
+    background: linear-gradient(145deg, rgba(0, 255, 217, 0.1), rgba(45, 248, 160, 0.04));
+}
+
+.userBalanceLabel {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #8a9a94;
+}
+
+.userBalanceAmount {
+    font-size: 1.75em;
+    font-weight: 700;
+    color: #00ffd9;
+    font-variant-numeric: tabular-nums;
+    font-family: monospace;
+}
+
+.userBalanceUnit {
+    font-size: 0.55em;
+    font-weight: 600;
+    color: #2DF8A0;
+}
+
+.userEligible {
+    font-size: 0.9em;
+    color: #2DF8A0;
+    font-weight: 600;
+}
+
+.userIneligible {
+    font-size: 0.9em;
+    color: #f0b429;
+}
+
+.userWallet {
+    font-family: monospace;
+    font-size: 0.85em;
+    color: #666;
+}
+
+.userBalanceHint {
+    font-size: 0.95em;
+    color: #a0a0a0;
+}
+
+.connectBtn {
+    margin-top: 0.35em;
+    padding: 0.55em 1.25em;
+    border-radius: 999px;
+    border: 1px solid rgba(45, 248, 160, 0.5);
+    background: rgba(45, 248, 160, 0.15);
+    color: #2DF8A0;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.connectBtn:hover {
+    background: rgba(45, 248, 160, 0.25);
+}
+
 /* Leaderboard Section */
 .leaderboardSection {
     display: flex;
@@ -190,26 +263,69 @@
 
 .leaderboardHeader {
     display: grid;
-    grid-template-columns: 50px 1fr 100px 80px;
-    padding: 1em;
+    grid-template-columns: 44px minmax(0, 1.2fr) minmax(72px, 0.9fr) 88px 64px;
+    padding: 1em 0.75em;
     background: rgba(45, 248, 160, 0.1);
     font-weight: 600;
     color: #2DF8A0;
-    font-size: 0.85em;
+    font-size: 0.75em;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    gap: 0.35em;
 }
 
 .leaderboardRow {
     display: grid;
-    grid-template-columns: 50px 1fr 100px 80px;
-    padding: 0.75em 1em;
+    grid-template-columns: 44px minmax(0, 1.2fr) minmax(72px, 0.9fr) 88px 64px;
+    padding: 0.75em 0.75em;
     border-top: 1px solid rgba(45, 248, 160, 0.1);
     transition: background 0.2s ease;
+    gap: 0.35em;
+    align-items: center;
 }
 
 .leaderboardRow:hover {
     background: rgba(45, 248, 160, 0.08);
+}
+
+.rowEligible {
+    /* subtle green tint */
+}
+
+.rowIneligible .trackerCol {
+    opacity: 0.85;
+}
+
+.trackerCol {
+    text-align: right;
+    font-family: monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.9em;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25em;
+}
+
+.trackerOk {
+    color: #2DF8A0;
+}
+
+.trackerLow {
+    color: #f0b429;
+}
+
+.eligDot {
+    font-size: 0.85em;
+    opacity: 0.9;
+}
+
+.lbNote {
+    font-size: 0.8em;
+    color: #666;
+    margin: 0.25em 0 0;
+    text-align: center;
 }
 
 .rank {
