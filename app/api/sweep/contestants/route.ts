@@ -13,6 +13,14 @@ const MIN_BALANCE = 1_000_000;
 const MAX_COUNTED = 20_000_000;
 const TOKEN_DECIMALS = 9;
 
+/** Protocol / LP / treasury wallets that must never enter the sweep pool */
+const EXCLUDED_WALLETS = new Set(
+  [
+    // TRACKER LP (Bags pool)
+    "HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC",
+  ].map((w) => w.trim())
+);
+
 interface TokenAccount {
   address?: string;
   amount: number;
@@ -31,7 +39,8 @@ interface Contestant {
 /**
  * Eligible holders for TRACKER sweep drip.
  * - Min hold 1M TRACKER
- * - Balances above 20M still eligible; weight capped at 20M (not excluded)
+ * - Max 20M TRACKER (above 20M not eligible — same as bot)
+ * - LP / protocol wallets excluded
  */
 export async function GET() {
   try {
@@ -93,15 +102,17 @@ export async function GET() {
 
     const raw: Contestant[] = [];
     for (const [wallet, balance] of byOwner) {
-      if (balance < MIN_BALANCE) continue;
-      const counted = Math.min(balance, MAX_COUNTED);
+      if (EXCLUDED_WALLETS.has(wallet)) continue;
+      // Same band as tracker-sweep-bot: 1M–20M inclusive
+      if (balance < MIN_BALANCE || balance > MAX_COUNTED) continue;
+      const counted = balance; // already ≤ 20M
       raw.push({
         wallet,
         balance,
         counted,
         weight: 0,
         eligible: true,
-        capped: balance > MAX_COUNTED,
+        capped: false,
       });
     }
 

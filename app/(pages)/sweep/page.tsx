@@ -109,8 +109,8 @@ const Sweep = () => {
     const row = contestants.find((c) => c.wallet === address);
     if (row) return { ...row, inList: true as const };
     const balance = trackerBalance || 0;
-    const counted = Math.min(balance, MAX_COUNTED);
-    const eligible = balance >= MIN_HOLD;
+    const eligible = balance >= MIN_HOLD && balance <= MAX_COUNTED;
+    const counted = eligible ? balance : 0;
     const weight = totalCounted > 0 && eligible ? counted / totalCounted : 0;
     return {
       wallet: address,
@@ -118,7 +118,7 @@ const Sweep = () => {
       counted,
       weight,
       eligible,
-      capped: balance > MAX_COUNTED,
+      capped: false,
       inList: false as const,
     };
   }, [connected, address, contestants, trackerBalance, totalCounted]);
@@ -132,7 +132,7 @@ const Sweep = () => {
           &nbsp;TRACKER Sweep
         </span>
         <span className={styles.tokenDesc}>
-          Hourly SOL drip · 10% of fees · hold 1M–20M counted
+          Hourly SOL drip · 10% of fees · hold 1M–20M TRACKER
         </span>
         <div className={styles.countdownRow}>
           <span className={styles.countdownLabel}>Next drip window</span>
@@ -158,10 +158,10 @@ const Sweep = () => {
         </div>
         <div className={styles.infoCard}>
           <span className={styles.cardIcon}>🎯</span>
-          <span className={styles.cardTitle}>Weight cap</span>
+          <span className={styles.cardTitle}>Max hold</span>
           <span className={styles.cardValue}>20M</span>
           <span className={styles.cardDesc}>
-            Above 20M still eligible — weight stops at 20M
+            Must hold ≤20M TRACKER to stay eligible (LP excluded)
           </span>
         </div>
         <div className={styles.infoCard}>
@@ -319,7 +319,7 @@ const Sweep = () => {
             <span className={styles.stepNumber}>1</span>
             <span className={styles.stepTitle}>Hold TRACKER</span>
             <span className={styles.stepDesc}>
-              ≥1M in a non-custodial wallet. Above 20M still counts — weight capped at 20M.
+              Hold between 1M and 20M TRACKER in a non-custodial wallet. LP wallets excluded.
             </span>
           </div>
           <div className={styles.step}>
@@ -333,7 +333,7 @@ const Sweep = () => {
             <span className={styles.stepNumber}>3</span>
             <span className={styles.stepTitle}>Hourly drip</span>
             <span className={styles.stepDesc}>
-              Share ∝ counted balance. Min 0.01 SOL per payout. Winners in Telegram.
+              Share ∝ balance in band. Min 0.01 SOL per payout. Winners in Telegram.
             </span>
           </div>
         </div>
@@ -363,7 +363,11 @@ const Sweep = () => {
           </div>
           <div className={styles.requirement}>
             <span className={styles.checkmark}>✓</span>
-            <span>Weight capped at 20,000,000 per wallet (whales still eligible)</span>
+            <span>Maximum 20,000,000 TRACKER (above 20M not eligible)</span>
+          </div>
+          <div className={styles.requirement}>
+            <span className={styles.checkmark}>✓</span>
+            <span>LP / protocol wallets excluded</span>
           </div>
           <div className={styles.requirement}>
             <span className={styles.checkmark}>✓</span>
