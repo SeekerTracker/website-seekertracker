@@ -14,19 +14,16 @@ type Contestant = {
   counted?: number;
   weight?: number;
   eligible: boolean;
-  capped?: boolean;
 };
 
 type Stats = {
   totalEligible: number;
   totalBalance: number;
   totalCounted?: number;
-  minRequired?: number;
-  maxCounted?: number;
 };
 
 const MIN_HOLD = 1_000_000;
-const MAX_COUNTED = 20_000_000;
+const MAX_HOLD = 20_000_000;
 
 function msToNextHour(): number {
   const now = Date.now();
@@ -42,17 +39,30 @@ function formatCountdown(ms: number): string {
   return `${m.toString().padStart(2, "0")}:${r.toString().padStart(2, "0")}`;
 }
 
-const Sweep = () => {
+function formatTracker(num: number): string {
+  const n = Math.floor(num);
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
+}
+
+function shortWallet(w: string): string {
+  return `${w.slice(0, 4)}…${w.slice(-4)}`;
+}
+
+export default function Sweep() {
   const { address } = useAccount();
   const { connected } = useConnector();
-  const { trackerBalance, openWalletModal } = useWalletContext();
+  const { trackerBalance, openWalletModal, isLoadingBalance } =
+    useWalletContext();
+
   const [contestants, setContestants] = useState<Contestant[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [countdown, setCountdown] = useState(msToNextHour());
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,9 +75,9 @@ const Sweep = () => {
       }
       setContestants(data.contestants || []);
       setStats(data.stats || null);
-      setLastUpdated(data.lastUpdated || Date.now());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setUpdatedAt(data.lastUpdated || Date.now());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -82,15 +92,13 @@ const Sweep = () => {
     return () => clearInterval(id);
   }, []);
 
-  const formatNumber = (num: number) => {
-    const rounded = Math.floor(num);
-    if (rounded >= 1_000_000) return `${(rounded / 1_000_000).toFixed(2)}M`;
-    if (rounded >= 1_000) return `${(rounded / 1_000).toFixed(0)}K`;
-    return rounded.toLocaleString();
-  };
-
-  const truncateWallet = (wallet: string) =>
-    `${wallet.slice(0, 4)}…${wallet.slice(-4)}`;
+  const pool = useMemo(() => {
+    return (
+      stats?.totalCounted ??
+      stats?.totalBalance ??
+      contestants.reduce((s, c) => s + c.balance, 0)
+    );
+  }, [stats, contestants]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -98,200 +106,254 @@ const Sweep = () => {
     return contestants.filter((c) => c.wallet.toLowerCase().includes(q));
   }, [contestants, query]);
 
-  const shown = filtered.slice(0, 100);
+  const shown = filtered.slice(0, 75);
 
-  const totalCounted =
-    stats?.totalCounted ??
-    contestants.reduce((s, c) => s + (c.counted ?? Math.min(c.balance, MAX_COUNTED)), 0);
+  const youRank = useMemo(() => {
+    if (!address) return null;
+    const i = contestants.findIndex((c) => c.wallet === address);
+    return i >= 0 ? i + 1 : null;
+  }, [address, contestants]);
 
   const you = useMemo(() => {
     if (!connected || !address) return null;
     const row = contestants.find((c) => c.wallet === address);
-    if (row) return { ...row, inList: true as const };
+    if (row) {
+      return {
+        wallet: address,
+        balance: row.balance,
+        weight: row.weight ?? (pool > 0 ? row.balance / pool : 0),
+        eligible: true,
+        rank: youRank,
+      };
+    }
     const balance = trackerBalance || 0;
-    const eligible = balance >= MIN_HOLD && balance <= MAX_COUNTED;
-    const counted = eligible ? balance : 0;
-    const weight = totalCounted > 0 && eligible ? counted / totalCounted : 0;
+    const eligible = balance >= MIN_HOLD && balance <= MAX_HOLD;
     return {
       wallet: address,
       balance,
-      counted,
-      weight,
+      weight: eligible && pool > 0 ? balance / pool : 0,
       eligible,
-      capped: false,
-      inList: false as const,
+      rank: null as number | null,
     };
-  }, [connected, address, contestants, trackerBalance, totalCounted]);
+  }, [connected, address, contestants, trackerBalance, pool, youRank]);
 
   return (
     <div className={styles.main}>
       <Backbutton />
-      <div className={styles.topBar}>
-        <span className={styles.header}>
-          <Image src="/icons/bags-icon.png" alt="" width={36} height={36} />
-          &nbsp;TRACKER Sweep
-        </span>
-        <span className={styles.tokenDesc}>
-          Hourly SOL drip · 10% of fees · hold 1M–20M TRACKER
-        </span>
-        <div className={styles.countdownRow}>
-          <span className={styles.countdownLabel}>Next drip window</span>
-          <span className={styles.countdownValue}>{formatCountdown(countdown)}</span>
-          <span className={styles.countdownHint}>top of each hour · UTC cadence via bot</span>
-        </div>
-      </div>
 
-      <div className={styles.infoCards}>
-        <div className={styles.infoCard}>
-          <span className={styles.cardIcon}>💧</span>
-          <span className={styles.cardTitle}>Model</span>
-          <span className={styles.cardValue}>Drip</span>
-          <span className={styles.cardDesc}>
-            Fee-funded SOL every hour — not a one-time dump
-          </span>
-        </div>
-        <div className={styles.infoCard}>
-          <span className={styles.cardIcon}>📊</span>
-          <span className={styles.cardTitle}>Min hold</span>
-          <span className={styles.cardValue}>1M</span>
-          <span className={styles.cardDesc}>TRACKER required to enter the pool</span>
-        </div>
-        <div className={styles.infoCard}>
-          <span className={styles.cardIcon}>🎯</span>
-          <span className={styles.cardTitle}>Max hold</span>
-          <span className={styles.cardValue}>20M</span>
-          <span className={styles.cardDesc}>
-            Must hold ≤20M TRACKER to stay eligible (LP excluded)
-          </span>
-        </div>
-        <div className={styles.infoCard}>
-          <span className={styles.cardIcon}>⚡</span>
-          <span className={styles.cardTitle}>Min payout</span>
-          <span className={styles.cardValue}>0.01 SOL</span>
-          <span className={styles.cardDesc}>Dust below floor is skipped</span>
-        </div>
-      </div>
-
-      {you && (
-        <div
-          className={`${styles.youCard} ${
-            you.eligible ? styles.youEligible : styles.youIneligible
-          }`}
-        >
-          <div className={styles.youTitle}>Your wallet</div>
-          <div className={styles.youWallet}>{truncateWallet(you.wallet)}</div>
-          {you.inList || you.eligible ? (
-            <>
-              <div className={styles.youStats}>
-                <span>
-                  Balance <strong>{formatNumber(you.balance)}</strong>
-                </span>
-                <span>
-                  Counted <strong>{formatNumber(you.counted ?? 0)}</strong>
-                  {you.capped ? " · capped" : ""}
-                </span>
-                <span>
-                  Est. weight{" "}
-                  <strong>
-                    {(((you.weight ?? 0) * 100) || 0).toFixed(2)}%
-                  </strong>
-                </span>
-              </div>
-              <div className={styles.youBadge}>
-                {you.eligible ? "Eligible for drip" : "Below minimum"}
-              </div>
-            </>
-          ) : (
-            <div className={styles.youStats}>
-              <span>
-                Need ≥ {formatNumber(MIN_HOLD)} TRACKER · balance{" "}
-                <strong>{formatNumber(you.balance)}</strong>
+      {/* Hero */}
+      <header className={styles.hero}>
+        <div className={styles.heroTop}>
+          <div className={styles.brandBlock}>
+            <p className={styles.eyebrow}>$TRACKER · fee share</p>
+            <h1 className={styles.title}>Sweep</h1>
+            <p className={styles.slogan}>
+              Hourly SOL drip for holders in the 1M–20M band. Funded by fees —
+              not a one-time dump. LP wallets excluded.
+            </p>
+          </div>
+          <div className={styles.heroAside}>
+            <div className={styles.countdownCard}>
+              <span className={styles.countdownLabel}>Next drip</span>
+              <span className={styles.countdownValue}>
+                {formatCountdown(countdown)}
               </span>
-              <button type="button" className={styles.refreshBtn} onClick={openWalletModal}>
-                Wallet
+              <span className={styles.countdownHint}>every hour</span>
+            </div>
+            <div className={styles.heroActions}>
+              <a
+                className={styles.ctaPrimary}
+                href="https://t.me/seeker_tracker"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Results on TG
+              </a>
+              <button
+                type="button"
+                className={styles.ctaGhost}
+                onClick={load}
+                disabled={loading}
+              >
+                {loading ? "Refreshing…" : "Refresh"}
               </button>
             </div>
-          )}
+          </div>
         </div>
-      )}
+      </header>
 
-      <div className={styles.contestantsSection}>
-        <div className={styles.sectionHead}>
-          <span className={styles.sectionTitle}>Eligible holders</span>
-          <button
-            type="button"
-            className={styles.refreshBtn}
-            onClick={load}
-            disabled={loading}
-          >
-            {loading ? "Loading…" : "Refresh"}
-          </button>
+      {/* Metrics */}
+      <section className={styles.metrics} aria-label="Sweep stats">
+        <div className={styles.metric}>
+          <span className={styles.metricLabel}>Eligible</span>
+          <span className={styles.metricValue}>
+            {stats ? stats.totalEligible.toLocaleString() : loading ? "…" : "—"}
+          </span>
         </div>
-        {stats && (
-          <div className={styles.contestantStats}>
-            <span>{stats.totalEligible.toLocaleString()} wallets</span>
-            <span>·</span>
-            <span>{formatNumber(totalCounted)} TRACKER counted</span>
-            {lastUpdated && (
-              <>
-                <span>·</span>
-                <span>updated {new Date(lastUpdated).toLocaleTimeString()}</span>
-              </>
-            )}
+        <div className={styles.metric}>
+          <span className={styles.metricLabel}>Pool TRACKER</span>
+          <span className={styles.metricValue}>
+            {stats || contestants.length
+              ? formatTracker(pool)
+              : loading
+                ? "…"
+                : "—"}
+          </span>
+        </div>
+        <div className={styles.metric}>
+          <span className={styles.metricLabel}>Band</span>
+          <span className={styles.metricValue}>
+            1–20<em>M</em>
+          </span>
+        </div>
+        <div className={styles.metric}>
+          <span className={styles.metricLabel}>Min payout</span>
+          <span className={styles.metricValue}>
+            0.01<em>SOL</em>
+          </span>
+        </div>
+      </section>
+
+      {/* You */}
+      <section className={styles.youPanel}>
+        {!connected || !address ? (
+          <div className={styles.youInner}>
+            <div>
+              <p className={styles.youLabel}>Your eligibility</p>
+              <p className={styles.youCopy}>
+                Connect a wallet holding 1M–20M TRACKER to see your weight.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.ctaPrimary}
+              onClick={openWalletModal}
+            >
+              Connect wallet
+            </button>
+          </div>
+        ) : (
+          <div className={styles.youInner}>
+            <div className={styles.youMeta}>
+              <p className={styles.youLabel}>Your wallet</p>
+              <p className={styles.youAddr}>{shortWallet(address)}</p>
+            </div>
+            <div className={styles.youStats}>
+              <div>
+                <span className={styles.youStatLabel}>Balance</span>
+                <span className={styles.youStatValue}>
+                  {isLoadingBalance && !you?.balance
+                    ? "…"
+                    : formatTracker(you?.balance ?? trackerBalance)}
+                </span>
+              </div>
+              <div>
+                <span className={styles.youStatLabel}>Weight</span>
+                <span className={styles.youStatValue}>
+                  {you?.eligible
+                    ? `${((you.weight || 0) * 100).toFixed(2)}%`
+                    : "—"}
+                </span>
+              </div>
+              {you?.rank != null && (
+                <div>
+                  <span className={styles.youStatLabel}>Rank</span>
+                  <span className={styles.youStatValue}>#{you.rank}</span>
+                </div>
+              )}
+            </div>
+            <span
+              className={
+                you?.eligible ? styles.badgeOk : styles.badgeNo
+              }
+            >
+              {you?.eligible
+                ? "Eligible"
+                : (you?.balance ?? 0) > MAX_HOLD
+                  ? "Above 20M — not eligible"
+                  : "Need 1M–20M TRACKER"}
+            </span>
           </div>
         )}
-        <input
-          type="search"
-          className={styles.search}
-          placeholder="Search wallet…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        {error && <div className={styles.errorBox}>{error}</div>}
+      </section>
+
+      {/* Holders */}
+      <section className={styles.panel}>
+        <div className={styles.panelHead}>
+          <div>
+            <h2 className={styles.panelTitle}>Eligible holders</h2>
+            <p className={styles.panelSub}>
+              {stats
+                ? `${stats.totalEligible.toLocaleString()} wallets · ${formatTracker(pool)} in band`
+                : "Live holder set"}
+              {updatedAt
+                ? ` · ${new Date(updatedAt).toLocaleTimeString()}`
+                : ""}
+            </p>
+          </div>
+          <input
+            type="search"
+            className={styles.search}
+            placeholder="Search wallet"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search wallet"
+          />
+        </div>
+
+        {error && <p className={styles.error}>{error}</p>}
+
         {loading && contestants.length === 0 ? (
-          <div className={styles.loadingContestants}>Loading contestants…</div>
-        ) : shown.length > 0 ? (
+          <div className={styles.skeletonList} aria-hidden>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className={styles.skeletonRow} />
+            ))}
+          </div>
+        ) : shown.length === 0 ? (
+          <p className={styles.empty}>
+            {query ? "No wallets match." : "No eligible holders right now."}
+          </p>
+        ) : (
           <>
-            <div className={styles.contestantsList}>
-              <div className={styles.contestantHeader}>
-                <span className={styles.contestantRank}>#</span>
-                <span className={styles.contestantWallet}>Wallet</span>
-                <span className={styles.contestantBalance}>Balance</span>
-                <span className={styles.contestantCounted}>Counted</span>
-                <span className={styles.contestantWeight}>Weight</span>
+            <div className={styles.table} role="table">
+              <div className={styles.thead} role="row">
+                <span role="columnheader">#</span>
+                <span role="columnheader">Wallet</span>
+                <span role="columnheader" className={styles.num}>
+                  Balance
+                </span>
+                <span role="columnheader" className={styles.num}>
+                  Weight
+                </span>
               </div>
-              {shown.map((c, index) => {
-                const counted = c.counted ?? Math.min(c.balance, MAX_COUNTED);
+              {shown.map((c, i) => {
                 const weight =
-                  c.weight ?? (totalCounted > 0 ? counted / totalCounted : 0);
+                  c.weight ?? (pool > 0 ? c.balance / pool : 0);
                 const isYou = !!address && c.wallet === address;
                 return (
                   <div
                     key={c.wallet}
-                    className={`${styles.contestantRow} ${
-                      isYou ? styles.contestantYou : ""
-                    }`}
+                    className={`${styles.trow} ${isYou ? styles.trowYou : ""}`}
+                    role="row"
                   >
-                    <span className={styles.contestantRank}>{index + 1}</span>
-                    <span className={styles.contestantWallet}>
-                      <Link
+                    <span className={styles.rank} role="cell">
+                      {i + 1}
+                    </span>
+                    <span role="cell" className={styles.walletCell}>
+                      <a
                         href={`https://solscan.io/account/${c.wallet}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.walletLink}
                       >
-                        {truncateWallet(c.wallet)}
-                      </Link>
-                      {c.capped && <span className={styles.capTag}>cap</span>}
-                      {isYou && <span className={styles.youTag}>you</span>}
+                        {shortWallet(c.wallet)}
+                      </a>
+                      {isYou && <span className={styles.youChip}>you</span>}
                     </span>
-                    <span className={styles.contestantBalance}>
-                      {formatNumber(c.balance)}
+                    <span className={`${styles.num} ${styles.bal}`} role="cell">
+                      {formatTracker(c.balance)}
                     </span>
-                    <span className={styles.contestantCounted}>
-                      {formatNumber(counted)}
-                    </span>
-                    <span className={styles.contestantWeight}>
+                    <span className={`${styles.num} ${styles.wt}`} role="cell">
                       {(weight * 100).toFixed(2)}%
                     </span>
                   </div>
@@ -299,92 +361,57 @@ const Sweep = () => {
               })}
             </div>
             {filtered.length > shown.length && (
-              <div className={styles.listFoot}>
-                Showing top {shown.length} of {filtered.length}
-                {query ? " matches" : " eligible"}
-              </div>
+              <p className={styles.foot}>
+                Showing {shown.length} of {filtered.length}
+                {query ? " matches" : ""}
+              </p>
             )}
           </>
-        ) : (
-          <div className={styles.noContestants}>
-            {query ? "No wallets match that search" : "No eligible contestants found"}
-          </div>
         )}
-      </div>
+      </section>
 
-      <div className={styles.howItWorks}>
-        <span className={styles.sectionTitle}>How the drip works</span>
-        <div className={styles.steps}>
-          <div className={styles.step}>
-            <span className={styles.stepNumber}>1</span>
-            <span className={styles.stepTitle}>Hold TRACKER</span>
-            <span className={styles.stepDesc}>
-              Hold between 1M and 20M TRACKER in a non-custodial wallet. LP wallets excluded.
-            </span>
-          </div>
-          <div className={styles.step}>
-            <span className={styles.stepNumber}>2</span>
-            <span className={styles.stepTitle}>Fees fund the pot</span>
-            <span className={styles.stepDesc}>
-              ~10% of platform fees set aside as SOL for holders
-            </span>
-          </div>
-          <div className={styles.step}>
-            <span className={styles.stepNumber}>3</span>
-            <span className={styles.stepTitle}>Hourly drip</span>
-            <span className={styles.stepDesc}>
-              Share ∝ balance in band. Min 0.01 SOL per payout. Winners in Telegram.
-            </span>
-          </div>
+      {/* How + rules */}
+      <section className={styles.bottomGrid}>
+        <div className={styles.panel}>
+          <h2 className={styles.panelTitle}>How it works</h2>
+          <ol className={styles.steps}>
+            <li>
+              <strong>Hold 1M–20M TRACKER</strong>
+              <span>Non-custodial wallet. Outside the band = out.</span>
+            </li>
+            <li>
+              <strong>Fees fund SOL</strong>
+              <span>~10% of platform fees go to the drip pot.</span>
+            </li>
+            <li>
+              <strong>Hourly drip</strong>
+              <span>Share ∝ balance. Min 0.01 SOL. Posted in Telegram.</span>
+            </li>
+          </ol>
         </div>
-      </div>
-
-      <div className={styles.announcements}>
-        <span className={styles.announcementIcon}>📢</span>
-        <span className={styles.announcementText}>
-          Results posted hourly in Telegram
-        </span>
-        <Link
-          href="https://t.me/seeker_tracker"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.telegramButton}
-        >
-          Join Telegram
-        </Link>
-      </div>
-
-      <div className={styles.eligibility}>
-        <span className={styles.sectionTitle}>Eligibility</span>
-        <div className={styles.requirements}>
-          <div className={styles.requirement}>
-            <span className={styles.checkmark}>✓</span>
-            <span>Minimum 1,000,000 TRACKER</span>
-          </div>
-          <div className={styles.requirement}>
-            <span className={styles.checkmark}>✓</span>
-            <span>Maximum 20,000,000 TRACKER (above 20M not eligible)</span>
-          </div>
-          <div className={styles.requirement}>
-            <span className={styles.checkmark}>✓</span>
-            <span>LP / protocol wallets excluded</span>
-          </div>
-          <div className={styles.requirement}>
-            <span className={styles.checkmark}>✓</span>
-            <span>Minimum reward 0.01 SOL</span>
-          </div>
-          <div className={styles.requirement}>
-            <span className={styles.checkmark}>✓</span>
-            <span>Non-custodial wallet (not CEX)</span>
-          </div>
+        <div className={styles.panel}>
+          <h2 className={styles.panelTitle}>Rules</h2>
+          <ul className={styles.rules}>
+            <li>Min 1,000,000 TRACKER</li>
+            <li>Max 20,000,000 TRACKER</li>
+            <li>LP / protocol wallets excluded</li>
+            <li>Min payout 0.01 SOL</li>
+            <li>No CEX / custodial holdings</li>
+          </ul>
+          <Link
+            href="https://t.me/seeker_tracker"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.tgLink}
+          >
+            Join @seeker_tracker →
+          </Link>
         </div>
-      </div>
+      </section>
 
-      <span className={styles.disclaimer}>
-        Unofficial product surface · rules subject to change · fee-funded drip
-      </span>
+      <p className={styles.disclaimer}>
+        Fee-funded drip · rules can change · not financial advice
+      </p>
     </div>
   );
-};
-
-export default Sweep;
+}
