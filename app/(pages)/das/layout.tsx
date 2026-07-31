@@ -1,11 +1,13 @@
 import { Metadata } from "next";
 
 const TITLE = "DAS — Daily Active Seekers | SeekerTracker";
-const DESCRIPTION = "On-chain transaction activity across every .skr ID. Daily, weekly, and monthly active wallet counts.";
+const DESCRIPTION =
+    "Live Daily / Weekly / Monthly Active .skr IDs from on-chain scans. Stickiness, distribution, and most-active SeekerIDs.";
 
 export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
+    alternates: { canonical: "https://seekertracker.com/das" },
     openGraph: {
         title: TITLE,
         description: DESCRIPTION,

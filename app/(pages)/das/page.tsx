@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
 import Link from "next/link";
 import Backbutton from "app/(components)/shared/Backbutton";
-import { IoPhonePortraitOutline, IoWarningOutline } from "react-icons/io5";
-import { FaXTwitter, FaTelegram } from "react-icons/fa6";
+import { IoPhonePortraitOutline, IoWarningOutline, IoRefresh, IoSearch } from "react-icons/io5";
+import { FaXTwitter, FaTelegram, FaCopy, FaCheck } from "react-icons/fa6";
 import {
     ResponsiveContainer,
     AreaChart,
@@ -45,6 +45,9 @@ type DasResponse = {
     top: TopRow[];
 };
 
+type RangeKey = 7 | 14 | 30;
+type SortKey = "txDay" | "txWeek" | "txMonth";
+
 const MEDALS = ["🥇", "🥈", "🥉"];
 const MEDAL_COLORS = ["#ffc800", "#b4b4b4", "#c8823c"];
 
@@ -53,8 +56,13 @@ const COLOR_WAS = "#00b388";
 const COLOR_MAS = "#5d7777";
 const COLOR_STICKY = "#ffc800";
 
+const REFRESH_MS = 5 * 60 * 1000;
+const PRIMARY = "/api/das";
+const FALLBACK = "https://seeker-das-scanner.gm-4e8.workers.dev/public/das";
+
 function timeAgo(unixSec: number): string {
     const diff = Math.floor(Date.now() / 1000) - unixSec;
+    if (diff < 0) return "just now";
     if (diff < 60) return `${diff}s ago`;
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
@@ -62,12 +70,17 @@ function timeAgo(unixSec: number): string {
 }
 
 function shortAddress(addr: string): string {
+    if (!addr || addr.length < 10) return addr;
     return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
 }
 
 function formatTickDate(iso: string): string {
     const d = new Date(iso + "T00:00:00Z");
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+    return d.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+    });
 }
 
 function Delta({ value, suffix }: { value: number | null; suffix?: string }) {
@@ -82,24 +95,63 @@ function Delta({ value, suffix }: { value: number | null; suffix?: string }) {
     );
 }
 
+async function fetchDasJson(): Promise<DasResponse> {
+    const tryUrl = async (url: string) => {
+        const r = await fetch(url, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const ct = r.headers.get("content-type") || "";
+        if (!ct.includes("json")) throw new Error("non-JSON");
+        const d = await r.json();
+        if (d?.error) throw new Error(String(d.error));
+        if (typeof d?.das !== "number") throw new Error("invalid payload");
+        return d as DasResponse;
+    };
+    try {
+        return await tryUrl(PRIMARY);
+    } catch {
+        return await tryUrl(FALLBACK);
+    }
+}
+
 export default function DasPage() {
     const [das, setDas] = useState<DasResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [visible, setVisible] = useState({ DAS: true, WAS: true, MAS: true });
+    const [range, setRange] = useState<RangeKey>(30);
+    const [query, setQuery] = useState("");
+    const [sortKey, setSortKey] = useState<SortKey>("txDay");
+
+    const load = useCallback(async (isRefresh = false) => {
+        if (isRefresh) setRefreshing(true);
+        else setLoading(true);
+        try {
+            const d = await fetchDasJson();
+            setDas(d);
+            setError(null);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : String(e));
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, []);
 
     useEffect(() => {
         setMounted(true);
-        fetch("https://seeker-das-scanner.gm-4e8.workers.dev/public/das")
-            .then((r) => r.json())
-            .then((d) => {
-                if (d?.error) setError(d.error);
-                else setDas(d);
-            })
-            .catch((e) => setError(String(e)));
-    }, []);
+        load(false);
+        const id = setInterval(() => load(true), REFRESH_MS);
+        return () => clearInterval(id);
+    }, [load]);
 
     const history = das?.history ?? [];
+
+    const rangedHistory = useMemo(() => {
+        if (history.length <= range) return history;
+        return history.slice(-range);
+    }, [history, range]);
 
     const deltas = useMemo(() => {
         if (history.length < 2) return { das: null, was: null, mas: null };
@@ -114,7 +166,7 @@ export default function DasPage() {
 
     const trendData = useMemo(
         () =>
-            history.map((h) => ({
+            rangedHistory.map((h) => ({
                 date: h.date,
                 label: formatTickDate(h.date),
                 DAS: h.das,
@@ -122,8 +174,41 @@ export default function DasPage() {
                 MAS: h.mas,
                 stickiness: h.mas > 0 ? Number(((h.das / h.mas) * 100).toFixed(2)) : 0,
             })),
-        [history]
+        [rangedHistory]
     );
+
+    const insights = useMemo(() => {
+        if (!das || history.length === 0) return null;
+        const last7 = history.slice(-7);
+        const avg7 =
+            last7.reduce((s, h) => s + h.das, 0) / Math.max(1, last7.length);
+        const peak = history.reduce(
+            (best, h) => (h.das > best.das ? h : best),
+            history[0]
+        );
+        const low = history.reduce(
+            (best, h) => (h.das < best.das ? h : best),
+            history[0]
+        );
+        const stickiness = das.mas > 0 ? (das.das / das.mas) * 100 : 0;
+        const activeRate = das.totalIndexed > 0 ? (das.das / das.totalIndexed) * 100 : 0;
+        const engaged =
+            (das.distribution?.light ?? 0) +
+            (das.distribution?.regular ?? 0) +
+            (das.distribution?.heavy ?? 0) +
+            (das.distribution?.power ?? 0);
+        return {
+            avg7: Math.round(avg7),
+            peakDas: peak.das,
+            peakDate: peak.date,
+            lowDas: low.das,
+            lowDate: low.date,
+            stickiness,
+            activeRate,
+            engaged,
+            dormant: das.distribution?.dormant ?? 0,
+        };
+    }, [das, history]);
 
     const stickinessNow = das && das.mas > 0 ? (das.das / das.mas) * 100 : null;
     const stickinessDelta = useMemo(() => {
@@ -139,7 +224,18 @@ export default function DasPage() {
         ? dist.dormant + dist.light + dist.regular + dist.heavy + dist.power
         : 0;
 
-    const top = das?.top ?? [];
+    const topFiltered = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        let rows = [...(das?.top ?? [])];
+        if (q) {
+            rows = rows.filter((r) => {
+                const id = `${r.subdomain}${r.domain}`.toLowerCase();
+                return id.includes(q) || r.owner.toLowerCase().includes(q);
+            });
+        }
+        rows.sort((a, b) => (b[sortKey] ?? 0) - (a[sortKey] ?? 0));
+        return rows;
+    }, [das?.top, query, sortKey]);
 
     return (
         <div className={styles.container}>
@@ -156,23 +252,40 @@ export default function DasPage() {
                 {das?.updatedAt ? <> · updated {timeAgo(das.updatedAt)}</> : null}
             </p>
 
-            <ShareRow das={das} />
+            <div className={styles.toolbar}>
+                <ShareRow das={das} />
+                <button
+                    type="button"
+                    className={styles.refreshBtn}
+                    onClick={() => load(true)}
+                    disabled={refreshing || loading}
+                    aria-label="Refresh DAS data"
+                >
+                    <IoRefresh className={refreshing ? styles.spin : undefined} />
+                    {refreshing ? "Refreshing…" : "Refresh"}
+                </button>
+            </div>
 
             <div className={styles.disclaimer}>
                 <IoWarningOutline />
                 <span>
-                    Unofficial figures derived from public RPC scans every ~6 hours. Tx counts are
-                    capped at the most-recent 100 signatures per ID — IDs above that ceiling will
-                    tie. Don&apos;t use this page for trading or compliance.
+                    Unofficial figures from public RPC scans (~every 6h). Tx counts cap at the
+                    most-recent 100 signatures per ID — top of the board often ties at 100+.
+                    Not for trading or compliance.
                 </span>
             </div>
 
-            {error && <p className={styles.error}>{error}</p>}
-            {!das && !error && <p className={styles.loading}>Loading…</p>}
+            {error && !das && <p className={styles.error}>Failed to load: {error}</p>}
+            {loading && !das && (
+                <div className={styles.skeletonGrid} aria-hidden>
+                    <div className={styles.skeleton} />
+                    <div className={styles.skeleton} />
+                    <div className={styles.skeleton} />
+                </div>
+            )}
 
             {das && (
                 <>
-                    {/* Headline */}
                     <div className={styles.headlineGrid}>
                         <HeadlineCard
                             label="DAS · 24h"
@@ -197,35 +310,86 @@ export default function DasPage() {
                         />
                     </div>
 
-                    {/* Active-IDs trend */}
+                    {insights && (
+                        <div className={styles.insightGrid}>
+                            <Insight
+                                label="7d avg DAS"
+                                value={insights.avg7.toLocaleString()}
+                                hint="mean daily actives"
+                            />
+                            <Insight
+                                label="30d peak"
+                                value={insights.peakDas.toLocaleString()}
+                                hint={formatTickDate(insights.peakDate)}
+                            />
+                            <Insight
+                                label="Active rate"
+                                value={`${insights.activeRate.toFixed(2)}%`}
+                                hint="DAS / all .skr"
+                            />
+                            <Insight
+                                label="Stickiness"
+                                value={`${insights.stickiness.toFixed(1)}%`}
+                                hint="DAS ÷ MAS"
+                                accent={COLOR_STICKY}
+                            />
+                            <Insight
+                                label="Engaged · 30d"
+                                value={insights.engaged.toLocaleString()}
+                                hint="≥1 tx in month"
+                            />
+                            <Insight
+                                label="Dormant"
+                                value={insights.dormant.toLocaleString()}
+                                hint="0 txs · 30d"
+                            />
+                        </div>
+                    )}
+
                     {trendData.length > 1 && (
                         <div className={styles.chartCard}>
                             <div className={styles.chartHeader}>
                                 <div>
                                     <div className={styles.chartTitle}>Active IDs over time</div>
                                     <div className={styles.chartSub}>
-                                        {trendData.length} day{trendData.length === 1 ? "" : "s"} of
-                                        history · tap a series to toggle
+                                        {trendData.length} day{trendData.length === 1 ? "" : "s"} ·
+                                        tap a series to toggle
                                     </div>
                                 </div>
-                                <div className={styles.legendRow}>
-                                    {(["DAS", "WAS", "MAS"] as const).map((k) => (
-                                        <SeriesToggle
-                                            key={k}
-                                            label={k}
-                                            color={
-                                                k === "DAS"
-                                                    ? COLOR_DAS
-                                                    : k === "WAS"
-                                                    ? COLOR_WAS
-                                                    : COLOR_MAS
-                                            }
-                                            active={visible[k]}
-                                            onClick={() =>
-                                                setVisible((v) => ({ ...v, [k]: !v[k] }))
-                                            }
-                                        />
-                                    ))}
+                                <div className={styles.chartControls}>
+                                    <div className={styles.rangeRow}>
+                                        {([7, 14, 30] as const).map((n) => (
+                                            <button
+                                                key={n}
+                                                type="button"
+                                                className={`${styles.rangeBtn} ${
+                                                    range === n ? styles.rangeActive : ""
+                                                }`}
+                                                onClick={() => setRange(n)}
+                                            >
+                                                {n}d
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className={styles.legendRow}>
+                                        {(["DAS", "WAS", "MAS"] as const).map((k) => (
+                                            <SeriesToggle
+                                                key={k}
+                                                label={k}
+                                                color={
+                                                    k === "DAS"
+                                                        ? COLOR_DAS
+                                                        : k === "WAS"
+                                                          ? COLOR_WAS
+                                                          : COLOR_MAS
+                                                }
+                                                active={visible[k]}
+                                                onClick={() =>
+                                                    setVisible((v) => ({ ...v, [k]: !v[k] }))
+                                                }
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                             <div className={styles.chartBody}>
@@ -271,7 +435,10 @@ export default function DasPage() {
                                             />
                                             <Tooltip
                                                 content={<TrendTooltip />}
-                                                cursor={{ stroke: "rgba(0, 255, 217, 0.25)", strokeDasharray: 3 }}
+                                                cursor={{
+                                                    stroke: "rgba(0, 255, 217, 0.25)",
+                                                    strokeDasharray: 3,
+                                                }}
                                             />
                                             {visible.MAS && (
                                                 <Area
@@ -313,14 +480,14 @@ export default function DasPage() {
                         </div>
                     )}
 
-                    {/* Stickiness trend */}
                     {trendData.length > 1 && stickinessNow != null && (
                         <div className={styles.chartCard}>
                             <div className={styles.chartHeader}>
                                 <div>
                                     <div className={styles.chartTitle}>Stickiness (DAS / MAS)</div>
                                     <div className={styles.chartSub}>
-                                        Share of monthly-actives that returned in the last 24h. Higher = more engaged base.
+                                        Share of monthly-actives that returned in the last 24h.
+                                        Higher = stickier base.
                                     </div>
                                 </div>
                                 <div className={styles.stickinessNow}>
@@ -393,7 +560,6 @@ export default function DasPage() {
                         </div>
                     )}
 
-                    {/* Distribution */}
                     {dist && distTotal > 0 && (
                         <div className={styles.distCard}>
                             <div className={styles.distHeader}>
@@ -402,29 +568,91 @@ export default function DasPage() {
                                     {distTotal.toLocaleString()} IDs
                                 </span>
                             </div>
-                            <DistRow label="Dormant" hint="0 txs" count={dist.dormant} total={distTotal} color="#3a4a4a" />
-                            <DistRow label="Light" hint="1–5 txs" count={dist.light} total={distTotal} color="#00b388" />
-                            <DistRow label="Regular" hint="6–20 txs" count={dist.regular} total={distTotal} color="#00ffae" />
-                            <DistRow label="Heavy" hint="21–100 txs" count={dist.heavy} total={distTotal} color="#ffc800" />
+                            <DistRow
+                                label="Dormant"
+                                hint="0 txs"
+                                count={dist.dormant}
+                                total={distTotal}
+                                color="#3a4a4a"
+                            />
+                            <DistRow
+                                label="Light"
+                                hint="1–5 txs"
+                                count={dist.light}
+                                total={distTotal}
+                                color="#00b388"
+                            />
+                            <DistRow
+                                label="Regular"
+                                hint="6–20 txs"
+                                count={dist.regular}
+                                total={distTotal}
+                                color="#00ffae"
+                            />
+                            <DistRow
+                                label="Heavy"
+                                hint="21–100 txs"
+                                count={dist.heavy}
+                                total={distTotal}
+                                color="#ffc800"
+                            />
                             {dist.power > 0 && (
-                                <DistRow label="Power" hint="100+ txs" count={dist.power} total={distTotal} color="#ff8400" />
+                                <DistRow
+                                    label="Power"
+                                    hint="100+ txs"
+                                    count={dist.power}
+                                    total={distTotal}
+                                    color="#ff8400"
+                                />
                             )}
                         </div>
                     )}
 
-                    {/* Leaderboard */}
                     <div className={styles.boardCard}>
                         <div className={styles.boardHeader}>
                             <div>
                                 <div className={styles.boardTitle}>Most-active IDs · last 24h</div>
                                 <div className={styles.boardSub}>
-                                    Sorted by 24h tx count. The RPC scan caps at 100 signatures per
-                                    ID, so the top of the leaderboard ties.
+                                    Sorted by activity. Cap at 100 sigs/ID → top often ties at 100+.
+                                </div>
+                            </div>
+                            <div className={styles.boardTools}>
+                                <label className={styles.searchWrap}>
+                                    <IoSearch aria-hidden />
+                                    <input
+                                        type="search"
+                                        placeholder="Search .skr or wallet"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        className={styles.searchInput}
+                                    />
+                                </label>
+                                <div className={styles.sortRow}>
+                                    {(
+                                        [
+                                            ["txDay", "24h"],
+                                            ["txWeek", "7d"],
+                                            ["txMonth", "30d"],
+                                        ] as const
+                                    ).map(([k, label]) => (
+                                        <button
+                                            key={k}
+                                            type="button"
+                                            className={`${styles.sortBtn} ${
+                                                sortKey === k ? styles.sortActive : ""
+                                            }`}
+                                            onClick={() => setSortKey(k)}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         </div>
-                        {top.length === 0 ? (
-                            <p className={styles.empty}>No active IDs in this window.</p>
+                        {topFiltered.length === 0 ? (
+                            <p className={styles.empty}>
+                                {query ? "No IDs match that search." : "No active IDs in this window."}
+                            </p>
                         ) : (
                             <div className={styles.tableWrapper}>
                                 <table className={styles.table}>
@@ -441,13 +669,15 @@ export default function DasPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {top.map((row, i) => {
+                                        {topFiltered.map((row, i) => {
                                             const skrId = `${row.subdomain}${row.domain}`;
-                                            const isMedal = i < 3;
+                                            const isMedal = i < 3 && !query;
                                             return (
                                                 <tr
-                                                    key={skrId}
-                                                    className={`${styles.row} ${isMedal ? styles.medalRow : ""}`}
+                                                    key={skrId + row.owner}
+                                                    className={`${styles.row} ${
+                                                        isMedal ? styles.medalRow : ""
+                                                    }`}
                                                 >
                                                     <td className={styles.tdRank}>
                                                         {isMedal ? (
@@ -462,11 +692,16 @@ export default function DasPage() {
                                                         )}
                                                     </td>
                                                     <td>
-                                                        <Link href={`/id/${skrId}`} className={styles.skrLink}>
+                                                        <Link
+                                                            href={`/id/${skrId}`}
+                                                            className={styles.skrLink}
+                                                        >
                                                             {skrId}
                                                         </Link>
                                                     </td>
-                                                    <td className={`${styles.tdNum} ${styles.tdActive}`}>
+                                                    <td
+                                                        className={`${styles.tdNum} ${styles.tdActive}`}
+                                                    >
                                                         <TxCell n={row.txDay} highlight />
                                                     </td>
                                                     <td className={styles.tdNum}>
@@ -477,7 +712,9 @@ export default function DasPage() {
                                                     </td>
                                                     <td className={styles.tdNum}>
                                                         {row.lastUsed ? (
-                                                            <span className={styles.lastUsed}>{timeAgo(row.lastUsed)}</span>
+                                                            <span className={styles.lastUsed}>
+                                                                {timeAgo(row.lastUsed)}
+                                                            </span>
                                                         ) : (
                                                             <span className={styles.noActivity}>—</span>
                                                         )}
@@ -511,6 +748,31 @@ export default function DasPage() {
                     </div>
                 </>
             )}
+        </div>
+    );
+}
+
+function Insight({
+    label,
+    value,
+    hint,
+    accent,
+}: {
+    label: string;
+    value: string;
+    hint: string;
+    accent?: string;
+}) {
+    return (
+        <div className={styles.insightCard}>
+            <div className={styles.insightLabel}>{label}</div>
+            <div
+                className={styles.insightValue}
+                style={accent ? { color: accent } : undefined}
+            >
+                {value}
+            </div>
+            <div className={styles.insightHint}>{hint}</div>
         </div>
     );
 }
@@ -613,22 +875,40 @@ function TrendTooltip({
     );
 }
 
+function buildShareText(das: DasResponse | null): string {
+    if (!das) return "📱 Seeker DAS — Daily Active Seekers";
+    const stick = das.mas > 0 ? ((das.das / das.mas) * 100).toFixed(1) : "—";
+    return (
+        `📱 Seeker DAS\n\n` +
+        `DAS · 24h: ${das.das.toLocaleString()}\n` +
+        `WAS · 7d:  ${das.was.toLocaleString()}\n` +
+        `MAS · 30d: ${das.mas.toLocaleString()}\n` +
+        `Stickiness: ${stick}%\n` +
+        `of ${das.totalIndexed.toLocaleString()} .skr IDs`
+    );
+}
+
 function ShareRow({ das }: { das: DasResponse | null }) {
-    const text = das
-        ? `📱 Seeker DAS\n\n` +
-          `DAS · 24h: ${das.das.toLocaleString()}\n` +
-          `WAS · 7d:  ${das.was.toLocaleString()}\n` +
-          `MAS · 30d: ${das.mas.toLocaleString()}\n` +
-          `of ${das.totalIndexed.toLocaleString()} .skr IDs`
-        : "📱 Seeker DAS — Daily Active Seekers";
+    const [copied, setCopied] = useState(false);
+    const text = buildShareText(das);
     const url = "https://seekertracker.com/das";
     const tweet = `${text}\n\n${url}\n\nvia @seeker_tracker`;
     const xUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`;
     const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
 
+    const onCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(`${text}\n\n${url}`);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1600);
+        } catch {
+            /* ignore */
+        }
+    };
+
     return (
         <div className={styles.shareRow}>
-            <span className={styles.shareLabel}>Share:</span>
+            <span className={styles.shareLabel}>Share</span>
             <a
                 href={xUrl}
                 target="_blank"
@@ -649,6 +929,15 @@ function ShareRow({ das }: { das: DasResponse | null }) {
                 <FaTelegram />
                 <span>Telegram</span>
             </a>
+            <button
+                type="button"
+                className={styles.shareBtn}
+                onClick={onCopy}
+                aria-label="Copy stats"
+            >
+                {copied ? <FaCheck /> : <FaCopy />}
+                <span>{copied ? "Copied" : "Copy"}</span>
+            </button>
         </div>
     );
 }
