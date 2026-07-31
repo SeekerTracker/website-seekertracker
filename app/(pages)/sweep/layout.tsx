@@ -2,10 +2,13 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = {
     title: 'Sweep | SeekerTracker',
-    description: '10% of fees rewarded to $TRACKER holders hourly. Hold 1M-20M $TRACKER to participate.',
+    description:
+        'Hourly SOL drip for TRACKER holders. Hold ≥1M; weight capped at 20M. Fee-funded — not a one-time dump.',
+    alternates: { canonical: 'https://seekertracker.com/sweep' },
     openGraph: {
         title: 'Sweep | SeekerTracker',
-        description: '10% of fees rewarded to $TRACKER holders hourly. Hold 1M-20M $TRACKER to participate.',
+        description:
+            'Hourly SOL drip for TRACKER holders. Hold ≥1M; weight capped at 20M. Fee-funded — not a one-time dump.',
         images: [
             {
                 url: '/api/og?page=sweep',
@@ -16,11 +19,13 @@ export const metadata: Metadata = {
         ],
         type: 'website',
         siteName: 'SeekerTracker',
+        url: 'https://seekertracker.com/sweep',
     },
     twitter: {
         card: 'summary_large_image',
         title: 'Sweep | SeekerTracker',
-        description: '10% of fees rewarded to $TRACKER holders hourly. Hold 1M-20M $TRACKER to participate.',
+        description:
+            'Hourly SOL drip for TRACKER holders. Hold ≥1M; weight capped at 20M.',
         images: ['/api/og?page=sweep'],
         creator: '@seeker_tracker',
     },

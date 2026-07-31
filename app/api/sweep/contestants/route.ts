@@ -1,106 +1,144 @@
 import { NextResponse } from "next/server";
+import { CONN_RPC_URL, SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
 
-const TRACKER_TOKEN = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
-const HELIUS_RPC = "https://viviyan-bkj12u-fast-mainnet.helius-rpc.com";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const TRACKER_TOKEN = SEEKER_TOKEN_ADDRESS;
+const HELIUS_RPC =
+  process.env.HELIUS_RPC_URL ||
+  CONN_RPC_URL ||
+  "https://cassandra-bq5oqs-fast-mainnet.helius-rpc.com";
 const MIN_BALANCE = 1_000_000;
-const MAX_BALANCE = 20_000_000;
+const MAX_COUNTED = 20_000_000;
 const TOKEN_DECIMALS = 9;
 
 interface TokenAccount {
-    address: string;
-    amount: number;
-    owner: string;
+  address?: string;
+  amount: number;
+  owner: string;
 }
 
 interface Contestant {
-    wallet: string;
-    balance: number;
-    eligible: boolean;
+  wallet: string;
+  balance: number;
+  counted: number;
+  weight: number;
+  eligible: boolean;
+  capped: boolean;
 }
 
+/**
+ * Eligible holders for TRACKER sweep drip.
+ * - Min hold 1M TRACKER
+ * - Balances above 20M still eligible; weight capped at 20M (not excluded)
+ */
 export async function GET() {
-    try {
-        // Use Helius getTokenAccounts to fetch all holders
-        let allAccounts: TokenAccount[] = [];
-        let cursor: string | undefined;
+  try {
+    let allAccounts: TokenAccount[] = [];
+    let cursor: string | undefined;
+    let pages = 0;
+    const maxPages = 50;
 
-        // Paginate through all token accounts
-        do {
-            const body: {
-                jsonrpc: string;
-                id: string;
-                method: string;
-                params: {
-                    mint: string;
-                    limit: number;
-                    cursor?: string;
-                };
-            } = {
-                jsonrpc: "2.0",
-                id: "sweep-contestants",
-                method: "getTokenAccounts",
-                params: {
-                    mint: TRACKER_TOKEN,
-                    limit: 1000,
-                },
-            };
+    do {
+      const body: {
+        jsonrpc: string;
+        id: string;
+        method: string;
+        params: { mint: string; limit: number; cursor?: string };
+      } = {
+        jsonrpc: "2.0",
+        id: "sweep-contestants",
+        method: "getTokenAccounts",
+        params: {
+          mint: TRACKER_TOKEN,
+          limit: 1000,
+        },
+      };
+      if (cursor) body.params.cursor = cursor;
 
-            if (cursor) {
-                body.params.cursor = cursor;
-            }
+      const response = await fetch(HELIUS_RPC, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        cache: "no-store",
+      });
 
-            const response = await fetch(HELIUS_RPC, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
+      if (!response.ok) {
+        throw new Error(`Helius API error: ${response.status}`);
+      }
 
-            if (!response.ok) {
-                throw new Error(`Helius API error: ${response.status}`);
-            }
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error.message || JSON.stringify(data.error));
+      }
 
-            const data = await response.json();
+      if (data.result?.token_accounts) {
+        allAccounts = allAccounts.concat(data.result.token_accounts);
+      }
 
-            if (data.result?.token_accounts) {
-                allAccounts = allAccounts.concat(data.result.token_accounts);
-            }
+      cursor = data.result?.cursor;
+      pages += 1;
+    } while (cursor && pages < maxPages);
 
-            cursor = data.result?.cursor;
-        } while (cursor);
-
-        // Filter and format contestants
-        const contestants: Contestant[] = allAccounts
-            .map((account) => {
-                const balance = account.amount / Math.pow(10, TOKEN_DECIMALS);
-                return {
-                    wallet: account.owner,
-                    balance,
-                    eligible: balance >= MIN_BALANCE && balance <= MAX_BALANCE,
-                };
-            })
-            .filter((c) => c.balance >= MIN_BALANCE && c.balance <= MAX_BALANCE)
-            .sort((a, b) => b.balance - a.balance);
-
-        // Calculate stats
-        const totalEligible = contestants.length;
-        const totalBalance = contestants.reduce((sum, c) => sum + c.balance, 0);
-
-        return NextResponse.json({
-            success: true,
-            contestants,
-            stats: {
-                totalEligible,
-                totalBalance,
-                minRequired: MIN_BALANCE,
-                maxCounted: MAX_BALANCE,
-            },
-            lastUpdated: Date.now(),
-        });
-    } catch (error) {
-        console.error("Sweep contestants API error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch contestants", details: String(error) },
-            { status: 500 }
-        );
+    // Aggregate by owner (multiple ATAs possible)
+    const byOwner = new Map<string, number>();
+    for (const account of allAccounts) {
+      const bal = Number(account.amount) / Math.pow(10, TOKEN_DECIMALS);
+      if (!Number.isFinite(bal) || bal <= 0) continue;
+      const owner = account.owner;
+      if (!owner) continue;
+      byOwner.set(owner, (byOwner.get(owner) || 0) + bal);
     }
+
+    const raw: Contestant[] = [];
+    for (const [wallet, balance] of byOwner) {
+      if (balance < MIN_BALANCE) continue;
+      const counted = Math.min(balance, MAX_COUNTED);
+      raw.push({
+        wallet,
+        balance,
+        counted,
+        weight: 0,
+        eligible: true,
+        capped: balance > MAX_COUNTED,
+      });
+    }
+
+    raw.sort((a, b) => b.counted - a.counted || b.balance - a.balance);
+
+    const totalCounted = raw.reduce((s, c) => s + c.counted, 0);
+    const contestants = raw.map((c) => ({
+      ...c,
+      weight: totalCounted > 0 ? c.counted / totalCounted : 0,
+    }));
+
+    return NextResponse.json(
+      {
+        success: true,
+        contestants,
+        stats: {
+          totalEligible: contestants.length,
+          totalBalance: contestants.reduce((s, c) => s + c.balance, 0),
+          totalCounted,
+          minRequired: MIN_BALANCE,
+          maxCounted: MAX_COUNTED,
+          holdersScanned: byOwner.size,
+          accountsScanned: allAccounts.length,
+        },
+        lastUpdated: Date.now(),
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Sweep contestants API error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to fetch contestants", details: String(error) },
+      { status: 500 }
+    );
+  }
 }

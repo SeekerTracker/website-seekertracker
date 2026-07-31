@@ -123,6 +123,7 @@ export default function DasPage() {
     const [range, setRange] = useState<RangeKey>(30);
     const [query, setQuery] = useState("");
     const [sortKey, setSortKey] = useState<SortKey>("txDay");
+    const [distMode, setDistMode] = useState<"active" | "all">("active");
 
     const load = useCallback(async (isRefresh = false) => {
         if (isRefresh) setRefreshing(true);
@@ -563,48 +564,107 @@ export default function DasPage() {
                     {dist && distTotal > 0 && (
                         <div className={styles.distCard}>
                             <div className={styles.distHeader}>
-                                <span className={styles.distTitle}>30-day tx distribution</span>
-                                <span className={styles.distMeta}>
-                                    {distTotal.toLocaleString()} IDs
+                                <div>
+                                    <span className={styles.distTitle}>30-day tx distribution</span>
+                                    <div className={styles.distSub}>
+                                        On-chain sigs per .skr owner wallet · scan caps at 100
+                                        sigs/ID
+                                    </div>
+                                </div>
+                                <div className={styles.distHeaderRight}>
+                                    <div className={styles.rangeRow}>
+                                        <button
+                                            type="button"
+                                            className={`${styles.rangeBtn} ${
+                                                distMode === "active" ? styles.rangeActive : ""
+                                            }`}
+                                            onClick={() => setDistMode("active")}
+                                        >
+                                            Among MAS
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`${styles.rangeBtn} ${
+                                                distMode === "all" ? styles.rangeActive : ""
+                                            }`}
+                                            onClick={() => setDistMode("all")}
+                                        >
+                                            All IDs
+                                        </button>
+                                    </div>
+                                    <span className={styles.distMeta}>
+                                        {(distMode === "active"
+                                            ? dist.light +
+                                              dist.regular +
+                                              dist.heavy +
+                                              dist.power
+                                            : distTotal
+                                        ).toLocaleString()}{" "}
+                                        IDs
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className={styles.dormantCallout}>
+                                <span className={styles.dormantLabel}>Dormant · 0 txs / 30d</span>
+                                <span className={styles.dormantValue}>
+                                    {dist.dormant.toLocaleString()}{" "}
+                                    <em>
+                                        (
+                                        {distTotal > 0
+                                            ? ((dist.dormant / distTotal) * 100).toFixed(1)
+                                            : "0"}
+                                        % of all .skr)
+                                    </em>
+                                </span>
+                                <span className={styles.dormantHint}>
+                                    Most SeekerIDs never send on-chain txs after mint — not the same
+                                    as app DAU.
                                 </span>
                             </div>
-                            <DistRow
-                                label="Dormant"
-                                hint="0 txs"
-                                count={dist.dormant}
-                                total={distTotal}
-                                color="#3a4a4a"
-                            />
-                            <DistRow
-                                label="Light"
-                                hint="1–5 txs"
-                                count={dist.light}
-                                total={distTotal}
-                                color="#00b388"
-                            />
-                            <DistRow
-                                label="Regular"
-                                hint="6–20 txs"
-                                count={dist.regular}
-                                total={distTotal}
-                                color="#00ffae"
-                            />
-                            <DistRow
-                                label="Heavy"
-                                hint="21–100 txs"
-                                count={dist.heavy}
-                                total={distTotal}
-                                color="#ffc800"
-                            />
-                            {dist.power > 0 && (
-                                <DistRow
-                                    label="Power"
-                                    hint="100+ txs"
-                                    count={dist.power}
-                                    total={distTotal}
-                                    color="#ff8400"
-                                />
-                            )}
+
+                            {(() => {
+                                const engaged =
+                                    dist.light + dist.regular + dist.heavy + dist.power;
+                                const barTotal =
+                                    distMode === "active" ? Math.max(1, engaged) : distTotal;
+                                // Scanner: heavy = 21–100 (includes cap); power = 100+ never fills.
+                                const heavyOrCap = dist.heavy + dist.power;
+                                return (
+                                    <>
+                                        {distMode === "all" && (
+                                            <DistRow
+                                                label="Dormant"
+                                                hint="0 txs"
+                                                count={dist.dormant}
+                                                total={barTotal}
+                                                color="#3a4a4a"
+                                            />
+                                        )}
+                                        <DistRow
+                                            label="Light"
+                                            hint="1–5 txs"
+                                            count={dist.light}
+                                            total={barTotal}
+                                            color="#00b388"
+                                        />
+                                        <DistRow
+                                            label="Regular"
+                                            hint="6–20 txs"
+                                            count={dist.regular}
+                                            total={barTotal}
+                                            color="#00ffae"
+                                        />
+                                        <DistRow
+                                            label="Heavy / at cap"
+                                            hint="21–100 txs · 100 is scan max"
+                                            count={heavyOrCap}
+                                            total={barTotal}
+                                            color="#ffc800"
+                                        />
+                                    </>
+                                );
+                            })()}
                         </div>
                     )}
 
@@ -948,12 +1008,14 @@ function DistRow({
     count,
     total,
     color,
+    emptyNote,
 }: {
     label: string;
     hint: string;
     count: number;
     total: number;
     color: string;
+    emptyNote?: string;
 }) {
     const pct = total > 0 ? (count / total) * 100 : 0;
     return (
@@ -965,12 +1027,21 @@ function DistRow({
             <div className={styles.distBarWrap}>
                 <div
                     className={styles.distBar}
-                    style={{ width: `${Math.max(0.5, pct)}%`, background: color }}
+                    style={{
+                        width: count > 0 ? `${Math.max(0.5, pct)}%` : "0%",
+                        background: color,
+                        opacity: count > 0 ? 0.85 : 0.25,
+                    }}
                 />
             </div>
             <div className={styles.distCount}>
                 <span className={styles.distNum}>{count.toLocaleString()}</span>
-                <span className={styles.distPct}>{pct.toFixed(1)}%</span>
+                <span className={styles.distPct}>
+                    {count > 0 ? `${pct.toFixed(1)}%` : emptyNote ? "n/a" : "0%"}
+                </span>
+                {count === 0 && emptyNote ? (
+                    <span className={styles.distEmptyNote}>{emptyNote}</span>
+                ) : null}
             </div>
         </div>
     );
