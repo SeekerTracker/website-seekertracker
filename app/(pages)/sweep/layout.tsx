@@ -3,7 +3,8 @@ import { Metadata } from "next";
 const TITLE = "Sweep | SeekerTracker";
 const DESCRIPTION =
   "Hourly SOL drip for TRACKER holders. Hold 1M–20M. Fee-funded. LP excluded.";
-const OG = "https://seekertracker.com/sweep/opengraph-image";
+/** Static PNG — OpenNext edge ImageResponse routes 500 on this Worker */
+const OG = "https://seekertracker.com/og/sweep.png";
 
 export const metadata: Metadata = {
   title: TITLE,
