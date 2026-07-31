@@ -579,8 +579,75 @@
 .distHeader {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
     margin-bottom: 0.5rem;
+}
+
+.distHeaderRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.4rem;
+}
+
+.distSub {
+    font-size: 0.75rem;
+    color: #5d7777;
+    margin-top: 0.2rem;
+}
+
+.dormantCallout {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.15rem 1rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    border-radius: 10px;
+    border: 1px dashed rgba(93, 119, 119, 0.45);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.dormantLabel {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #5d7777;
+    font-weight: 700;
+    grid-column: 1;
+}
+
+.dormantValue {
+    grid-column: 2;
+    text-align: right;
+    color: #c0c0c0;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.dormantValue em {
+    font-style: normal;
+    font-weight: 500;
+    color: #5d7777;
+    margin-left: 0.35rem;
+}
+
+.dormantHint {
+    grid-column: 1 / -1;
+    font-size: 0.75rem;
+    color: #5d7777;
+    line-height: 1.4;
+}
+
+.distEmptyNote {
+    display: block;
+    font-size: 0.65rem;
+    color: #5d7777;
+    line-height: 1.3;
+    margin-top: 0.15rem;
+    max-width: 12rem;
+    margin-left: auto;
 }
 
 .distTitle {

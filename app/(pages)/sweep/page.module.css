@@ -33,8 +33,213 @@
 }
 
 .tokenDesc {
-  font-size: 1.2em;
+  font-size: 1.1em;
   color: #a0a0a0;
+}
+
+.countdownRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 255, 217, 0.2);
+}
+
+.countdownLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5d7777;
+  font-weight: 700;
+}
+
+.countdownValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #00ffd9;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-jetbrains-mono), monospace;
+}
+
+.countdownHint {
+  font-size: 0.75rem;
+  color: #5d7777;
+}
+
+.youCard {
+  width: 100%;
+  max-width: 700px;
+  padding: 1.25rem 1.5rem;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 255, 217, 0.25);
+  background: rgba(0, 255, 217, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.youEligible {
+  border-color: rgba(0, 255, 102, 0.4);
+}
+
+.youIneligible {
+  border-color: rgba(255, 200, 0, 0.35);
+  background: rgba(255, 200, 0, 0.05);
+}
+
+.youTitle {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5d7777;
+  font-weight: 700;
+}
+
+.youWallet {
+  font-family: var(--font-jetbrains-mono), monospace;
+  color: #00ffd9;
+  font-weight: 700;
+}
+
+.youStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+  color: #c0c0c0;
+}
+
+.youStats strong {
+  color: #ededed;
+  font-variant-numeric: tabular-nums;
+}
+
+.youBadge {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  padding: 0.25em 0.75em;
+  border-radius: 999px;
+  background: rgba(0, 255, 102, 0.15);
+  border: 1px solid rgba(0, 255, 102, 0.35);
+  color: #00ff66;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.refreshBtn {
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 255, 217, 0.3);
+  background: rgba(0, 255, 217, 0.08);
+  color: #00ffd9;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.search {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: #ededed;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.search:focus {
+  border-color: rgba(0, 255, 217, 0.45);
+}
+
+.errorBox {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 85, 102, 0.4);
+  background: rgba(255, 85, 102, 0.08);
+  color: #ff8899;
+  font-size: 0.9rem;
+}
+
+.contestantHeader,
+.contestantRow {
+  display: grid;
+  grid-template-columns: 44px 1.2fr 0.85fr 0.85fr 0.7fr;
+  padding: 0.75em 1em;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.contestantCounted {
+  text-align: right;
+  font-weight: 600;
+  color: #00ffd9;
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.contestantWeight {
+  text-align: right;
+  font-weight: 600;
+  color: #a0a0a0;
+  font-family: monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9em;
+}
+
+.contestantYou {
+  background: rgba(0, 255, 217, 0.1);
+}
+
+.capTag,
+.youTag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1em 0.45em;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+.capTag {
+  color: #ffc800;
+  border: 1px solid rgba(255, 200, 0, 0.4);
+  background: rgba(255, 200, 0, 0.1);
+}
+
+.youTag {
+  color: #00ffd9;
+  border: 1px solid rgba(0, 255, 217, 0.4);
+  background: rgba(0, 255, 217, 0.1);
+}
+
+.listFoot {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #5d7777;
 }
 
 .infoCards {
@@ -275,22 +480,24 @@
 
 .contestantHeader {
   display: grid;
-  grid-template-columns: 50px 1fr 120px 100px;
+  grid-template-columns: 44px 1.2fr 0.85fr 0.85fr 0.7fr;
   padding: 1em;
   background: rgba(0, 255, 217, 0.1);
   font-weight: 600;
   color: #00ffd9;
-  font-size: 0.85em;
+  font-size: 0.8em;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .contestantRow {
   display: grid;
-  grid-template-columns: 50px 1fr 120px 100px;
+  grid-template-columns: 44px 1.2fr 0.85fr 0.85fr 0.7fr;
   padding: 0.75em 1em;
   border-top: 1px solid rgba(0, 255, 217, 0.1);
   transition: background 0.2s ease;
+  gap: 0.35rem;
+  align-items: center;
 }
 
 .contestantRow:hover {
@@ -397,16 +604,20 @@
 
   .contestantHeader,
   .contestantRow {
-    grid-template-columns: 40px 1fr 80px 70px;
-    font-size: 0.85em;
+    grid-template-columns: 36px 1fr 70px 70px 56px;
+    font-size: 0.8em;
   }
 
   .contestantHeader {
-    font-size: 0.75em;
+    font-size: 0.68em;
   }
 
   .eligibleBadge {
     font-size: 0.7em;
     padding: 0.2em 0.5em;
+  }
+
+  .countdownValue {
+    font-size: 1.25rem;
   }
 }
