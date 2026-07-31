@@ -15,34 +15,23 @@ export default async function Image() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: "56px 64px",
-          background:
-            "linear-gradient(165deg, #031414 0%, #020a0a 45%, #041a16 100%)",
-          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          padding: "52px 60px",
+          background: "#020a0a",
+          fontFamily: "sans-serif",
           position: "relative",
           color: "#e8fffa",
         }}
       >
+        {/* cyan frame */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(rgba(0,255,217,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,217,0.05) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            opacity: 0.5,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            width: 420,
-            height: 420,
-            right: -60,
-            top: -100,
-            borderRadius: 999,
-            background:
-              "radial-gradient(circle, rgba(0,255,217,0.22), transparent 70%)",
+            top: 20,
+            left: 20,
+            right: 20,
+            bottom: 20,
+            border: "2px solid rgba(0,255,217,0.28)",
+            borderRadius: 20,
           }}
         />
 
@@ -54,32 +43,28 @@ export default async function Image() {
             position: "relative",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div
-              style={{
-                fontSize: 18,
-                letterSpacing: "0.16em",
-                textTransform: "uppercase",
-                color: "rgba(0,255,217,0.75)",
-                fontWeight: 700,
-              }}
-            >
-              Seeker Tracker · $TRACKER
-            </div>
+          <div
+            style={{
+              fontSize: 20,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#00ffd9",
+              fontWeight: 700,
+            }}
+          >
+            Seeker Tracker · $TRACKER
           </div>
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              gap: 10,
               padding: "10px 18px",
               borderRadius: 999,
-              border: "1px solid rgba(0,255,217,0.35)",
-              background: "rgba(0,255,217,0.08)",
+              border: "1px solid rgba(0,255,217,0.4)",
+              background: "rgba(0,255,217,0.1)",
               color: "#00ffd9",
               fontSize: 18,
               fontWeight: 700,
-              letterSpacing: "0.1em",
+              letterSpacing: "0.08em",
               textTransform: "uppercase",
             }}
           >
@@ -91,33 +76,40 @@ export default async function Image() {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 18,
+            gap: 16,
             position: "relative",
-            marginTop: 24,
+            marginTop: 12,
           }}
         >
           <div
             style={{
-              fontSize: 72,
+              fontSize: 68,
               fontWeight: 800,
-              lineHeight: 0.98,
-              letterSpacing: "-0.04em",
+              lineHeight: 1.02,
+              letterSpacing: "-0.03em",
               textTransform: "uppercase",
-              background: "linear-gradient(120deg, #00ffd9 0%, #00ff66 55%, #00e6c0 100%)",
-              backgroundClip: "text",
-              color: "transparent",
+              color: "#00ffd9",
             }}
           >
             Hold TRACKER.
-            <br />
+          </div>
+          <div
+            style={{
+              fontSize: 68,
+              fontWeight: 800,
+              lineHeight: 1.02,
+              letterSpacing: "-0.03em",
+              textTransform: "uppercase",
+              color: "#00ff66",
+            }}
+          >
             Get paid hourly.
           </div>
           <div
             style={{
               fontSize: 26,
               color: "#8ab8b0",
-              maxWidth: 820,
-              lineHeight: 1.4,
+              marginTop: 4,
             }}
           >
             Fee-funded SOL drip · 1M–20M band · LP excluded
@@ -131,26 +123,28 @@ export default async function Image() {
             position: "relative",
           }}
         >
-          {[
-            ["10%", "of fees"],
-            ["1–20M", "hold band"],
-            ["0.01 SOL", "min payout"],
-            ["Hourly", "cadence"],
-          ].map(([v, l]) => (
+          {(
+            [
+              ["10%", "of fees"],
+              ["1–20M", "hold band"],
+              ["0.01 SOL", "min payout"],
+              ["Hourly", "cadence"],
+            ] as const
+          ).map(([v, l]) => (
             <div
               key={l}
               style={{
                 flex: 1,
                 display: "flex",
                 flexDirection: "column",
-                gap: 6,
-                padding: "18px 16px",
+                gap: 8,
+                padding: "20px 16px",
                 borderRadius: 14,
-                border: "1px solid rgba(0,255,217,0.2)",
-                background: "rgba(0,20,20,0.65)",
+                border: "1px solid rgba(0,255,217,0.25)",
+                background: "rgba(0,30,28,0.9)",
               }}
             >
-              <div style={{ fontSize: 28, fontWeight: 800, color: "#00ffd9" }}>
+              <div style={{ fontSize: 30, fontWeight: 800, color: "#00ffd9" }}>
                 {v}
               </div>
               <div
@@ -158,7 +152,7 @@ export default async function Image() {
                   fontSize: 16,
                   color: "#6a9090",
                   textTransform: "uppercase",
-                  letterSpacing: "0.08em",
+                  letterSpacing: "0.06em",
                   fontWeight: 600,
                 }}
               >
@@ -174,13 +168,12 @@ export default async function Image() {
             justifyContent: "space-between",
             alignItems: "center",
             position: "relative",
-            marginTop: 8,
           }}
         >
           <div style={{ fontSize: 24, fontWeight: 700, color: "#00ffd9" }}>
             seekertracker.com/sweep
           </div>
-          <div style={{ fontSize: 18, color: "#6a9090" }}>@Seeker_Tracker</div>
+          <div style={{ fontSize: 20, color: "#6a9090" }}>@Seeker_Tracker</div>
         </div>
       </div>
     ),
