@@ -16,6 +16,14 @@ type Contestant = {
   eligible: boolean;
 };
 
+type Winner = {
+  wallet: string;
+  sol: number;
+  signature: string;
+  blockTime: number | null;
+  receiptUrl: string;
+};
+
 type Stats = {
   totalEligible: number;
   totalBalance: number;
@@ -46,8 +54,23 @@ function formatTracker(num: number): string {
   return n.toLocaleString();
 }
 
+function formatSol(n: number): string {
+  if (n >= 1) return n.toFixed(3);
+  if (n >= 0.01) return n.toFixed(4);
+  return n.toFixed(5);
+}
+
 function shortWallet(w: string): string {
   return `${w.slice(0, 4)}…${w.slice(-4)}`;
+}
+
+function timeAgo(unixSec: number | null): string {
+  if (!unixSec) return "—";
+  const diff = Math.floor(Date.now() / 1000) - unixSec;
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 }
 
 export default function Sweep() {
@@ -57,8 +80,10 @@ export default function Sweep() {
     useWalletContext();
 
   const [contestants, setContestants] = useState<Contestant[]>([]);
+  const [winners, setWinners] = useState<Winner[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [winnersLoading, setWinnersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [countdown, setCountdown] = useState(msToNextHour());
@@ -83,9 +108,25 @@ export default function Sweep() {
     }
   }, []);
 
+  const loadWinners = useCallback(async () => {
+    setWinnersLoading(true);
+    try {
+      const res = await fetch("/api/sweep/winners?limit=20", {
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (data.success) setWinners(data.winners || []);
+    } catch {
+      /* non-fatal */
+    } finally {
+      setWinnersLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadWinners();
+  }, [load, loadWinners]);
 
   useEffect(() => {
     const id = setInterval(() => setCountdown(msToNextHour()), 1000);
@@ -273,6 +314,85 @@ export default function Sweep() {
                   ? "Above 20M — not eligible"
                   : "Need 1M–20M TRACKER"}
             </span>
+          </div>
+        )}
+      </section>
+
+      {/* Winners */}
+      <section className={styles.panel}>
+        <div className={styles.panelHead}>
+          <div>
+            <h2 className={styles.panelTitle}>Recent winners</h2>
+            <p className={styles.panelSub}>
+              Last 20 SOL drips from reward wallet ·{" "}
+              <a
+                href="https://solscan.io/account/rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.inlineLink}
+              >
+                rwdk…Mug
+              </a>
+            </p>
+          </div>
+        </div>
+
+        {winnersLoading && winners.length === 0 ? (
+          <div className={styles.skeletonList} aria-hidden>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className={styles.skeletonRow} />
+            ))}
+          </div>
+        ) : winners.length === 0 ? (
+          <p className={styles.empty}>No recent payouts found.</p>
+        ) : (
+          <div className={styles.table} role="table">
+            <div className={styles.whead} role="row">
+              <span role="columnheader">#</span>
+              <span role="columnheader">Winner</span>
+              <span role="columnheader" className={styles.num}>
+                SOL
+              </span>
+              <span role="columnheader" className={styles.num}>
+                When
+              </span>
+              <span role="columnheader" className={styles.num}>
+                Receipt
+              </span>
+            </div>
+            {winners.map((w, i) => (
+              <div key={w.signature} className={styles.wrow} role="row">
+                <span className={styles.rank} role="cell">
+                  {i + 1}
+                </span>
+                <span role="cell" className={styles.walletCell}>
+                  <a
+                    href={`https://solscan.io/account/${w.wallet}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.walletLink}
+                  >
+                    {shortWallet(w.wallet)}
+                  </a>
+                </span>
+                <span className={`${styles.num} ${styles.sol}`} role="cell">
+                  {formatSol(w.sol)}
+                </span>
+                <span className={`${styles.num} ${styles.when}`} role="cell">
+                  {timeAgo(w.blockTime)}
+                </span>
+                <span className={`${styles.num}`} role="cell">
+                  <a
+                    href={w.receiptUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.receiptLink}
+                  >
+                    view
+                  </a>
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </section>

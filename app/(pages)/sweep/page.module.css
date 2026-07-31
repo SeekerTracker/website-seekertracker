@@ -511,6 +511,64 @@
   color: #5d7777;
 }
 
+.inlineLink {
+  color: #00ffd9;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.inlineLink:hover {
+  text-decoration: underline;
+}
+
+.whead,
+.wrow {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1.3fr) 5rem 4.5rem 4rem;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+}
+
+.whead {
+  background: rgba(0, 255, 217, 0.06);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #00ffd9;
+}
+
+.wrow {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.9rem;
+}
+
+.wrow:hover {
+  background: rgba(0, 255, 217, 0.05);
+}
+
+.sol {
+  font-weight: 700;
+  color: #14f195;
+}
+
+.when {
+  color: #7aa8a8;
+  font-size: 0.82rem;
+}
+
+.receiptLink {
+  color: #00ffd9;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.receiptLink:hover {
+  text-decoration: underline;
+}
+
 /* ── Bottom ───────────────────────────────────────────────── */
 
 .bottomGrid {
@@ -674,7 +732,15 @@
     font-size: 0.82rem;
   }
 
-  .thead {
+  .whead,
+  .wrow {
+    grid-template-columns: 2rem minmax(0, 1fr) 4.25rem 3.5rem 3.25rem;
+    padding: 0.55rem 0.65rem;
+    font-size: 0.8rem;
+  }
+
+  .thead,
+  .whead {
     font-size: 0.62rem;
   }
 }
