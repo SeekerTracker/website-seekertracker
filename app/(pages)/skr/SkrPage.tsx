@@ -133,34 +133,92 @@ const SkrPage = () => {
                 }
                 setResolvedDomain(domainName);
 
-                const parts = domainName.split(".");
-                const subdomain = parts[0];
-                const domain = "." + parts[1];
+                // Prefer Turso/API resolve — browser RPC often fails
+                let owner: string | null = null;
+                try {
+                    const r = await fetch(
+                        `/api/domain?domain=${encodeURIComponent(domainName)}`,
+                        { cache: "no-store" }
+                    );
+                    if (r.ok) {
+                        const j = await r.json();
+                        owner =
+                            j?.owner ||
+                            j?.data?.owner ||
+                            j?.domain?.owner ||
+                            null;
+                    }
+                } catch {
+                    /* fall through */
+                }
 
-                const domainData = await getOnchainDomainData(domain, subdomain);
-                if (!domainData || !domainData.owner) {
+                if (!owner) {
+                    try {
+                        const r = await fetch(
+                            `https://api.metasal.xyz/api/ans/${encodeURIComponent(domainName)}`,
+                            { cache: "no-store" }
+                        );
+                        if (r.ok) {
+                            const j = await r.json();
+                            if (j?.success && j?.owner) owner = j.owner;
+                        }
+                    } catch {
+                        /* fall through */
+                    }
+                }
+
+                if (!owner) {
+                    // Last resort: client on-chain
+                    const parts = domainName.split(".");
+                    const subdomain = parts[0];
+                    const domain = "." + parts[1];
+                    const domainData = await getOnchainDomainData(domain, subdomain);
+                    owner = domainData?.owner || null;
+                }
+
+                if (!owner) {
                     setError(`Could not find owner for ${domainName}`);
                     setLoading(false);
                     return;
                 }
 
-                walletAddress = domainData.owner;
+                walletAddress = owner;
                 setResolvedWallet(walletAddress);
             }
 
-            const response = await fetch(`/api/allocation/${walletAddress}`);
+            const response = await fetch(`/api/allocation/${walletAddress}`, {
+                cache: "no-store",
+            });
 
             if (!response.ok) {
                 if (response.status === 404) {
                     setError("No allocation found for this wallet");
                 } else {
-                    setError("Failed to fetch allocation data");
+                    const errBody = await response.json().catch(() => null);
+                    setError(
+                        errBody?.error ||
+                            "Failed to fetch allocation data — try again"
+                    );
                 }
                 setLoading(false);
                 return;
             }
 
             const data: AllocationData = await response.json();
+            if (!data.success && !data.claimDetails) {
+                setError("No allocation found for this wallet");
+                setLoading(false);
+                return;
+            }
+            // Ensure claimDetails always present for UI
+            if (!data.claimDetails) {
+                data.claimDetails = {
+                    lockedAmount: 0,
+                    lockedWithdrawn: 0,
+                    unlockedAmount: 0,
+                    totalAllocation: 0,
+                };
+            }
             setAllocationData(data);
         } catch (err) {
             console.error("Error fetching allocation:", err);
@@ -219,28 +277,63 @@ const SkrPage = () => {
         setStatsLoading(true);
         setStatsError(null);
         try {
-            // Fetch summary from live API and tiers from static JSON
+            // Prefer live summary; tiers from static snapshot (optional)
             const [summaryRes, tiersRes] = await Promise.all([
-                fetch("/api/skr/summary"),
-                fetch("/skr-stats.json"),
+                fetch("/api/skr/summary", { cache: "no-store" }),
+                fetch("/skr-stats.json").catch(() => null),
             ]);
 
-            if (!summaryRes.ok) {
+            let summary: {
+                generated?: string;
+                totalClaimers?: number;
+                totalAllocations?: number;
+                totalLocked?: number;
+                totalLockedWithdrawn?: number;
+                totalUnlocked?: number;
+                grandTotal?: number;
+            } | null = null;
+
+            if (summaryRes.ok) {
+                summary = await summaryRes.json();
+            }
+
+            let tiers: { amount: number; count: number; totalTokens: number }[] =
+                [];
+            let generated = summary?.generated || new Date().toISOString();
+
+            if (tiersRes && "ok" in tiersRes && tiersRes.ok) {
+                const tiersData = await tiersRes.json();
+                tiers = tiersData.tiers || [];
+                if (!summary) {
+                    summary = tiersData.summary || null;
+                    generated = tiersData.generated || generated;
+                }
+            }
+
+            if (!summary) {
                 throw new Error("Failed to fetch stats");
             }
 
-            const summaryData = await summaryRes.json();
-            const tiersData = await tiersRes.json();
-
             setStatsData({
-                generated: summaryData.generated,
-                summary: summaryData,
-                tiers: tiersData.tiers || [],
+                generated,
+                summary: {
+                    totalClaimers: Number(summary.totalClaimers ?? 0),
+                    totalAllocations: Number(summary.totalAllocations ?? 0),
+                    totalLocked: Number(summary.totalLocked ?? 0),
+                    totalLockedWithdrawn: Number(
+                        summary.totalLockedWithdrawn ?? 0
+                    ),
+                    totalUnlocked: Number(summary.totalUnlocked ?? 0),
+                    grandTotal: Number(summary.grandTotal ?? 0),
+                },
+                tiers,
             });
             setShowStats(true);
         } catch (err) {
             console.error("Failed to load stats:", err);
-            setStatsError("Data is loading from chain, please try again in ~30 seconds");
+            setStatsError(
+                "Could not load SKR stats — try again in a few seconds"
+            );
         } finally {
             setStatsLoading(false);
         }
@@ -296,23 +389,40 @@ const SkrPage = () => {
                 </div>
             )}
 
-            {vaultData && (
+            {vaultData && vaultData.totalSupply > 0 && (
                 <div className={styles.stakedPercentageContainer}>
                     <div className={styles.stakedPercentageHeader}>
                         <span className={styles.stakedPercentageLabel}>Staked</span>
                         <span className={styles.stakedPercentageValue}>
-                            {((vaultData.stakedVault.skrBalance / vaultData.totalSupply) * 100).toFixed(1)}%
+                            {(
+                                (vaultData.stakedVault.skrBalance /
+                                    vaultData.totalSupply) *
+                                100
+                            ).toFixed(1)}
+                            %
                         </span>
                     </div>
                     <div className={styles.stakedProgressBar}>
                         <div
                             className={styles.stakedProgressFill}
-                            style={{ width: `${(vaultData.stakedVault.skrBalance / vaultData.totalSupply) * 100}%` }}
+                            style={{
+                                width: `${Math.min(
+                                    100,
+                                    (vaultData.stakedVault.skrBalance /
+                                        vaultData.totalSupply) *
+                                        100
+                                )}%`,
+                            }}
                         />
                     </div>
                     <div className={styles.stakedProgressLabels}>
-                        <span>{formatCompact(vaultData.stakedVault.skrBalance)} staked</span>
-                        <span>{formatCompact(vaultData.totalSupply)} total</span>
+                        <span>
+                            {formatCompact(vaultData.stakedVault.skrBalance)}{" "}
+                            staked
+                        </span>
+                        <span>
+                            {formatCompact(vaultData.totalSupply)} total
+                        </span>
                     </div>
                 </div>
             )}
