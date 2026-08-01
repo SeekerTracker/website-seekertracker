@@ -1,38 +1,41 @@
-import { Metadata } from 'next'
+import { Metadata } from "next";
+
+const TITLE = "Snake | SeekerTracker";
+const DESCRIPTION =
+  "Play Snake on Solana Seeker (com.snakeseeker). Hold ≥1M TRACKER to earn airdrops. Live on the dApp Store.";
 
 export const metadata: Metadata = {
-    title: 'Snake Game | SeekerTracker',
-    description:
-        'Play Snake on Solana Seeker. Hold at least 1,000,000 TRACKER to earn rewards. Compete on the leaderboard and win prizes!',
-    openGraph: {
-        title: 'Snake Game | SeekerTracker',
-        description:
-            'Play Snake on Solana Seeker. Hold at least 1,000,000 TRACKER to earn rewards. Compete on the leaderboard and win prizes!',
-        images: [
-            {
-                url: '/snake/banner.png',
-                width: 1200,
-                height: 630,
-                alt: 'SeekerTracker Snake Game',
-            },
-        ],
-        type: 'website',
-        siteName: 'SeekerTracker',
-    },
-    twitter: {
-        card: 'summary_large_image',
-        title: 'Snake Game | SeekerTracker',
-        description:
-            'Play Snake on Solana Seeker. Hold at least 1,000,000 TRACKER to earn rewards. Compete on the leaderboard and win prizes!',
-        images: ['/snake/banner.png'],
-        creator: '@seeker_tracker',
-    },
-}
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: { canonical: "https://seekertracker.com/snake" },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://seekertracker.com/snake",
+    images: [
+      {
+        url: "/snake/banner.png",
+        width: 1200,
+        height: 630,
+        alt: "SeekerTracker Snake",
+      },
+    ],
+    type: "website",
+    siteName: "SeekerTracker",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["/snake/banner.png"],
+    creator: "@seeker_tracker",
+  },
+};
 
 export default function SnakeLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode
+  children: React.ReactNode;
 }) {
-    return children
+  return children;
 }

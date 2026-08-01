@@ -155,6 +155,9 @@ export async function GET() {
         }
         const marketCap = totalSupply * skrPrice;
 
+        const vaultSkrBal = vaultSkr?.balance || 0;
+        const stakedSkrBal = stakedSkr?.balance || 0;
+
         return NextResponse.json({
             success: true,
             skrMint: SKR_TOKEN_MINT,
@@ -164,13 +167,13 @@ export async function GET() {
             marketCap,
             vault: {
                 address: VAULT_ADDRESS,
-                skrBalance: vaultSkr?.balance || 0,
-                skrUsdValue: vaultSkr?.usdValue || 0,
+                skrBalance: vaultSkrBal,
+                skrUsdValue: vaultSkrBal * skrPrice,
             },
             stakedVault: {
                 address: STAKED_VAULT_ADDRESS,
-                skrBalance: stakedSkr?.balance || 0,
-                skrUsdValue: stakedSkr?.usdValue || 0,
+                skrBalance: stakedSkrBal,
+                skrUsdValue: stakedSkrBal * skrPrice,
             },
             lastUpdated: Date.now(),
         });

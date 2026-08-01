@@ -11,6 +11,8 @@ import { useAccount, useConnector } from '@solana/connector/react'
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 const TRACKER_MINT = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
 const DEFAULT_REQUIRED_TRACKER = 1_000_000;
+const SNAKE_DAPP = "com.snakeseeker";
+const SNAKE_DAPP_URL = `https://seekertracker.com/dapps/${SNAKE_DAPP}`;
 
 type LeaderboardEntry = {
     wallet: string;
@@ -22,6 +24,13 @@ type LeaderboardEntry = {
     trackerBalance?: number;
     eligible?: boolean;
 };
+
+function displaySkr(entry: LeaderboardEntry): string | null {
+    const raw = (entry.skrId || entry.username || "").trim();
+    if (!raw) return null;
+    const base = raw.replace(/\.skr$/i, "");
+    return base ? `${base}.skr` : null;
+}
 
 const SnakePage = () => {
     const [prizePool, setPrizePool] = useState<{ trackerBalance: number; solBalance: number } | null>(null);
@@ -150,9 +159,13 @@ const SnakePage = () => {
                 />
                 <h1 className={styles.title}>SNAKE</h1>
                 <p className={styles.subtitle}>for Solana Seeker</p>
-                <p className={styles.tagline}>The classic 1997-inspired snake game with global leaderboard</p>
+                <p className={styles.tagline}>
+                    Classic snake · global leaderboard · TRACKER airdrops for holders
+                </p>
                 <p className={styles.rewardRequirement}>
-                    Requires a minimum of <strong>1,000,000 TRACKER</strong> to earn rewards
+                    Hold at least{" "}
+                    <strong>{requiredTracker.toLocaleString()} TRACKER</strong> to
+                    earn in-game rewards
                 </p>
             </div>
 
@@ -194,7 +207,7 @@ const SnakePage = () => {
 
             {/* Prize Pool */}
             <div className={styles.prizePool}>
-                <span className={styles.prizeLabel}>Prize Pool</span>
+                <span className={styles.prizeLabel}>Reward treasury</span>
                 <div className={styles.prizeAmount}>
                     {loading ? (
                         <span className={styles.loading}>Loading...</span>
@@ -217,19 +230,21 @@ const SnakePage = () => {
                     rel="noopener noreferrer"
                     className={styles.walletLink}
                 >
-                    View Prize Wallet
+                    View treasury wallet
                 </Link>
             </div>
 
             {/* Eligibility */}
             <div className={styles.eligibility}>
                 <span className={styles.eligibilityIcon}>🎫</span>
-                <span className={styles.eligibilityTitle}>Reward Requirement</span>
+                <span className={styles.eligibilityTitle}>Reward requirement</span>
                 <span className={styles.eligibilityDesc}>
-                    Hold at least <strong>{requiredTracker.toLocaleString()} TRACKER</strong> (1 million minimum) to earn in-game rewards
+                    Hold ≥ <strong>{requiredTracker.toLocaleString()} TRACKER</strong> to
+                    earn airdrops while playing
                     {trackerPrice !== null && (
                         <span className={styles.eligibilityUsd}>
-                            {' '}(≈ ${(requiredTracker * trackerPrice).toFixed(2)} USD)
+                            {" "}
+                            (≈ ${(requiredTracker * trackerPrice).toFixed(2)} USD)
                         </span>
                     )}
                 </span>
@@ -261,6 +276,7 @@ const SnakePage = () => {
                         {leaderboard.map((entry, index) => {
                             const bal = entry.trackerBalance ?? 0;
                             const ok = entry.eligible ?? bal >= requiredTracker;
+                            const skrLabel = displaySkr(entry);
                             return (
                                 <div
                                     key={entry.wallet}
@@ -272,8 +288,8 @@ const SnakePage = () => {
                                         {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                                     </span>
                                     <span className={styles.player}>
-                                        {entry.skrId && (
-                                            <span className={styles.skrId}>{entry.skrId}.skr</span>
+                                        {skrLabel && (
+                                            <span className={styles.skrId}>{skrLabel}</span>
                                         )}
                                         <Link
                                             href={`https://solscan.io/account/${entry.wallet}`}
@@ -290,8 +306,8 @@ const SnakePage = () => {
                                         }`}
                                         title={
                                             ok
-                                                ? 'Eligible for rewards (≥1M TRACKER)'
-                                                : 'Below 1M TRACKER — not eligible for rewards'
+                                                ? `Eligible for rewards (≥${requiredTracker.toLocaleString()} TRACKER)`
+                                                : `Below ${requiredTracker.toLocaleString()} TRACKER — not eligible`
                                         }
                                     >
                                         {formatNumber(bal)}
@@ -387,8 +403,14 @@ const SnakePage = () => {
             {/* Download */}
             <div className={styles.downloadSection}>
                 <Link
-                    href="snakeseeker://"
+                    href={SNAKE_DAPP_URL}
                     className={styles.downloadButton}
+                >
+                    View on Seeker dApp Store
+                </Link>
+                <Link
+                    href="snakeseeker://"
+                    className={styles.secondaryButton}
                 >
                     Open in App
                 </Link>
@@ -400,13 +422,18 @@ const SnakePage = () => {
                 >
                     Download APK
                 </Link>
-                <span className={styles.downloadNote}>Android only - Sideload on your Seeker device</span>
+                <span className={styles.downloadNote}>
+                    Live on Solana dApp Store · package {SNAKE_DAPP} · Android / Seeker
+                </span>
             </div>
 
             {/* CTA */}
             <div className={styles.cta}>
-                <span className={styles.ctaLabel}>Coming Soon to Seeker dApp Store</span>
-                <span className={styles.ctaHighlight}>Instant Airdrop for Players</span>
+                <span className={styles.ctaLabel}>Live on Seeker dApp Store</span>
+                <span className={styles.ctaHighlight}>
+                    TRACKER airdrops while you play · min{" "}
+                    {requiredTracker.toLocaleString()} TRACKER
+                </span>
             </div>
 
             {/* Footer */}
