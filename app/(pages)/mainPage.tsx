@@ -163,8 +163,9 @@ function useCountUp(target: number, duration = 1200): number {
   return display;
 }
 
-function formatSol(n: number | undefined | null): string {
+function formatSol(n: number | undefined | null, loading = false): string {
   if (n == null || !Number.isFinite(Number(n))) return "—";
+  if (Number(n) <= 0) return loading ? "…" : "—";
   return Number(n).toLocaleString("en-US", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
@@ -425,7 +426,8 @@ const MainPage = () => {
     else handleTextSearch(searchText.replace(".skr", "").trim());
   };
 
-  const fundSol = formatSol(seekerData?.lifeTimeSolFees);
+  const fundLoading = !(seekerData?.lifeTimeSolFees > 0);
+  const fundSol = formatSol(seekerData?.lifeTimeSolFees, fundLoading);
 
   const regionRows: Array<{ key: keyof typeof regionDistribution; label: string }> = [
     { key: "Americas", label: "Americas" },
@@ -553,13 +555,17 @@ const MainPage = () => {
         <div className={style.metric}>
           <span className={style.metricLabel}>SeekerIDs</span>
           <strong className={style.metricValue}>
-            {animatedTotal.toLocaleString()}
+            {listLoading && totalSeekerIds === 0
+              ? "…"
+              : animatedTotal.toLocaleString()}
           </strong>
         </div>
         <div className={style.metric}>
           <span className={style.metricLabel}>Today</span>
           <strong className={style.metricValue}>
-            {animatedToday.toLocaleString()}
+            {listLoading && todaySeekerIds === 0 && totalSeekerIds === 0
+              ? "…"
+              : animatedToday.toLocaleString()}
           </strong>
         </div>
         <Link href="/dapps" className={style.metric}>
@@ -578,7 +584,7 @@ const MainPage = () => {
           <span className={style.metricLabel}>Seeker Fund</span>
           <strong className={style.metricValue}>
             {fundSol}
-            <em> SOL</em>
+            {fundSol !== "…" && fundSol !== "—" ? <em> SOL</em> : null}
           </strong>
         </Link>
       </section>

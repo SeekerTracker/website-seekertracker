@@ -10,6 +10,10 @@ import Backbutton from 'app/(components)/shared/Backbutton'
 const Index = () => {
     const [isCopied, setIsCopied] = useState(false);
     const { solPrice, seekerData } = useDataContext();
+    const fees = Number(seekerData?.lifeTimeSolFees) || 0;
+    const bal = Number(seekerData?.fundBalance) || 0;
+    const price = Number(solPrice) || 0;
+    const ready = fees > 0 || bal > 0;
 
     const copyToClipboard = async () => {
         try {
@@ -36,27 +40,27 @@ const Index = () => {
             </div>
             <div className={styles.tokenStats}>
                 <div className={styles.eachStat}>
-                    <span className={styles.number}>{seekerData.lifeTimeSolFees}&nbsp;SOL</span>
+                    <span className={styles.number}>{ready ? `${fees.toLocaleString(undefined, { maximumFractionDigits: 2 })} SOL` : "…"}</span>
                     <span className={styles.label}>Lifetime Fees</span>
                     <span className={styles.desc}>Total SOL earned from token trading</span>
                 </div>
 
                 <div className={styles.eachStat}>
-                    <span className={styles.number}>${(seekerData.lifeTimeSolFees * solPrice).toFixed(2)}</span>
+                    <span className={styles.number}>{ready && price > 0 ? `$${(fees * price).toFixed(2)}` : "…"}</span>
                     <span className={styles.label}>Fund Value (USD)</span>
                     <span className={styles.desc}>Real-time USD value of fees</span>
                 </div>
 
                 <div className={styles.eachStat}>
-                    <span className={styles.number}>${solPrice}</span>
+                    <span className={styles.number}>{price > 0 ? `$${price.toFixed(2)}` : "…"}</span>
                     <span className={styles.label}>Current SOL Price</span>
-                    <span className={styles.desc}>Live price via paid Helius RPC + Jupiter API</span>
+                    <span className={styles.desc}>Live price via Jupiter API</span>
                 </div>
 
                 <div className={styles.eachStat}>
-                    <span className={styles.number}>{seekerData.fundBalance.toFixed(2)}&nbsp;SOL</span>
+                    <span className={styles.number}>{ready ? `${bal.toFixed(2)} SOL` : "…"}</span>
                     <span className={styles.label}>Current Fund Balance</span>
-                    <span className={styles.desc}>Real-time balance via paid Helius RPC</span>
+                    <span className={styles.desc}>On-chain fund wallet balance</span>
                 </div>
 
                 <div className={styles.eachStat}>

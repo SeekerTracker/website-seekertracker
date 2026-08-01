@@ -1,146 +1,189 @@
-.container {
+/* Winners — homepage-aligned Seeker Cyan */
+
+.main {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 2rem 1rem;
-  min-height: 100vh;
-  max-width: 960px;
+  width: 100%;
+  max-width: 1120px;
   margin: 0 auto;
+  padding: 0 clamp(1rem, 3.5vw, 2rem) 3.5rem;
+  gap: 1.25rem;
+  color: #ededed;
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 2.5rem;
+.hero {
+  padding: 0.5rem 0 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(0, 255, 217, 0.7);
 }
 
 .title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #ffd700, #ffaa00);
+  margin: 0;
+  font-size: clamp(1.7rem, 4.5vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  background: linear-gradient(120deg, #00ffd9 0%, #00ff66 55%, #00e6c0 100%);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.subtitle {
-  font-size: 0.95rem;
-  color: #aaa;
-  margin-bottom: 0.75rem;
+.slogan {
+  margin: 0.35rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: #7aa8a8;
+  max-width: 40rem;
 }
 
-.link {
+.inlineLink {
   color: #00ffd9;
+  font-weight: 600;
   text-decoration: none;
 }
 
-.link:hover {
+.inlineLink:hover {
   text-decoration: underline;
 }
 
-.threadLink {
-  display: inline-block;
-  font-size: 0.85rem;
-  color: #ffd700;
-  text-decoration: none;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  padding: 0.4em 1em;
-  border-radius: 0.4em;
-  transition: all 0.3s ease;
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
 }
 
-.threadLink:hover {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: #ffd700;
+.ctaPrimary,
+.ctaGhost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  font-family: inherit;
+  border: 1px solid transparent;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+
+.ctaPrimary {
+  color: #021210;
+  background: linear-gradient(120deg, #00ffd9, #00ff66);
+}
+
+.ctaPrimary:hover {
+  transform: translateY(-1px);
+}
+
+.ctaGhost {
+  color: #9ed9cc;
+  background: rgba(0, 255, 217, 0.06);
+  border-color: rgba(0, 255, 217, 0.22);
+}
+
+.ctaGhost:hover {
+  border-color: rgba(0, 255, 217, 0.4);
+  color: #00ffd9;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.2rem;
+  gap: 0.85rem;
   width: 100%;
 }
 
 .cardLink {
   text-decoration: none;
   color: inherit;
+  min-width: 0;
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  background: rgba(0, 255, 217, 0.04);
-  border: 1px solid rgba(0, 255, 217, 0.12);
-  border-radius: 0.75rem;
-  overflow: hidden;
-  transition: all 0.3s ease;
   height: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 255, 217, 0.14);
+  background: rgba(0, 14, 14, 0.55);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  transition: border-color 120ms ease, transform 120ms ease;
 }
 
-.card:hover {
-  border-color: rgba(255, 215, 0, 0.4);
-  background: rgba(255, 215, 0, 0.05);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.1);
+.cardLink:hover .card {
+  border-color: rgba(0, 255, 217, 0.35);
+  transform: translateY(-2px);
 }
 
 .cardImageSection {
+  position: relative;
   width: 100%;
 }
 
 .tweetImageWrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: #001414;
 }
 
 .tweetImage {
   object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.card:hover .tweetImage {
-  transform: scale(1.05);
 }
 
 .numberOverlay {
   position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  background: rgba(0, 0, 0, 0.75);
-  color: #ffd700;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 0.2em 0.6em;
-  border-radius: 0.4em;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  top: 0.65rem;
+  left: 0.65rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #021210;
+  background: linear-gradient(120deg, #00ffd9, #00ff66);
 }
 
 .cardContent {
-  padding: 1rem;
-  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.9rem 1rem 1.05rem;
+  flex: 1;
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.6rem;
+  gap: 0.65rem;
+  min-width: 0;
 }
 
 .pfpWrapper {
   flex-shrink: 0;
-}
-
-.pfp {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+  overflow: hidden;
+  border: 1px solid rgba(0, 255, 217, 0.25);
+}
+
+.pfp {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
@@ -148,42 +191,57 @@
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  min-width: 0;
 }
 
 .winnerName {
+  font-weight: 700;
+  color: #00ffd9;
   font-size: 0.95rem;
-  font-weight: 600;
-  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .projectBadge {
-  font-size: 0.7rem;
-  padding: 0.15em 0.5em;
-  background: rgba(0, 255, 102, 0.12);
-  border: 1px solid rgba(0, 255, 102, 0.25);
-  border-radius: 1em;
-  color: #00ff66;
-  width: fit-content;
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  color: #9ed9cc;
+  border: 1px solid rgba(0, 255, 217, 0.25);
+  background: rgba(0, 255, 217, 0.08);
 }
 
 .description {
+  margin: 0;
   font-size: 0.82rem;
-  color: #bbb;
-  line-height: 1.5;
-  flex: 1;
+  line-height: 1.45;
+  color: #8ab8b0;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-@media (max-width: 600px) {
-  .title {
-    font-size: 1.6rem;
+@media (max-width: 760px) {
+  .main {
+    padding: 0 1rem 2.5rem;
   }
 
   .grid {
     grid-template-columns: 1fr;
   }
 
-  .pfp {
-    width: 36px;
-    height: 36px;
+  .heroActions {
+    flex-direction: column;
+  }
+
+  .ctaPrimary,
+  .ctaGhost {
+    width: 100%;
   }
 }

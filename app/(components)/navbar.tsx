@@ -66,6 +66,15 @@ function isActive(pathname: string, href: string) {
   );
 }
 
+function formatVol(n: number): string {
+  if (!(n > 0)) return "";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  if (n >= 100) return n.toFixed(0);
+  if (n >= 1) return n.toFixed(2);
+  return n.toFixed(2);
+}
+
 function PriceValue({
   loading,
   value,
@@ -82,6 +91,13 @@ function PriceValue({
     return <em className={styles.priceMuted}>—</em>;
   }
   return <em>${value.toFixed(digits)}</em>;
+}
+
+function VolValue({ value }: { value: number }) {
+  if (!(value > 0)) {
+    return <em className={styles.priceMuted}>—</em>;
+  }
+  return <em>${formatVol(value)}</em>;
 }
 
 const Navbar = () => {
@@ -229,7 +245,7 @@ const Navbar = () => {
               rel="noopener noreferrer"
               className={styles.price}
             >
-              24h <em>${seekerData.token24hVol}</em>
+              24h <VolValue value={Number(seekerData.token24hVol) || 0} />
             </a>
           </div>
         </div>
