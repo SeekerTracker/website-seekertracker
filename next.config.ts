@@ -25,12 +25,8 @@ const nextConfig: NextConfig = {
       { source: "/usage", destination: "/das", permanent: true },
       // Internal pack demo
       { source: "/pack", destination: "/", permanent: false },
-      // External product shortcut
-      {
-        source: "/rewards",
-        destination: "https://seeker-rewards.vercel.app/",
-        permanent: true,
-      },
+      // Old Vercel rewards app → on-site sweep drip
+      { source: "/rewards", destination: "/sweep", permanent: true },
     ];
   },
   async rewrites() {
