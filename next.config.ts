@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
       // Public catalog URL is /dapps; keep /apps as permanent redirects
       { source: "/apps", destination: "/dapps", permanent: true },
       { source: "/apps/:path*", destination: "/dapps/:path*", permanent: true },
+      // DAS alias
+      { source: "/usage", destination: "/das", permanent: true },
+      // Internal pack demo
+      { source: "/pack", destination: "/", permanent: false },
       // External product shortcut
       {
         source: "/rewards",

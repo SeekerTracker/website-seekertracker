@@ -132,42 +132,53 @@ const winners: Winner[] = [
 
 export default function WinnersPage() {
   return (
-    <div className={styles.container}>
+    <div className={styles.main}>
       <Backbutton />
-      <div className={styles.header}>
-        <h1 className={styles.title}>🏆 Seeker Winners</h1>
-        <p className={styles.subtitle}>
-          Seeker Tracker awards Solana Ecosystem contributors with a brand new{" "}
+
+      <header className={styles.hero}>
+        <p className={styles.eyebrow}>Community · hardware awards</p>
+        <h1 className={styles.title}>Seeker phone winners</h1>
+        <p className={styles.slogan}>
+          Ecosystem builders awarded a Solana Mobile{" "}
           <Link
             href="https://x.com/solanamobile"
             target="_blank"
             rel="noopener noreferrer"
-            className={styles.link}
+            className={styles.inlineLink}
           >
             @solanamobile
           </Link>{" "}
-          Seeker
+          Seeker. Not TRACKER sweep drips — those live on{" "}
+          <Link href="/sweep" className={styles.inlineLink}>
+            /sweep
+          </Link>
+          .
         </p>
-        <Link
-          href="https://x.com/seeker_tracker/status/2007374242627866703"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.threadLink}
-        >
-          View original thread on 𝕏
-        </Link>
-      </div>
+        <div className={styles.heroActions}>
+          <a
+            href="https://x.com/seeker_tracker/status/2007374242627866703"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaPrimary}
+          >
+            Original X thread
+          </a>
+          <Link href="/sweep" className={styles.ctaGhost}>
+            Hourly SOL drip →
+          </Link>
+        </div>
+      </header>
 
       <div className={styles.grid}>
         {winners.map((winner) => (
-          <Link
+          <a
             key={winner.number}
             href={`https://x.com/Seeker_Tracker/status/${winner.tweetId}`}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.cardLink}
           >
-            <div className={styles.card}>
+            <article className={styles.card}>
               <div className={styles.cardImageSection}>
                 <div className={styles.tweetImageWrapper}>
                   <Image
@@ -186,7 +197,7 @@ export default function WinnersPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`https://unavatar.io/twitter/${winner.handle}`}
-                      alt={winner.handle}
+                      alt=""
                       className={styles.pfp}
                       width={40}
                       height={40}
@@ -203,8 +214,8 @@ export default function WinnersPage() {
                 </div>
                 <p className={styles.description}>{winner.description}</p>
               </div>
-            </div>
-          </Link>
+            </article>
+          </a>
         ))}
       </div>
     </div>

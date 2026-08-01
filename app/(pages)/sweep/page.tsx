@@ -189,8 +189,8 @@ export default function Sweep() {
             <p className={styles.eyebrow}>$TRACKER · fee share</p>
             <h1 className={styles.title}>Sweep</h1>
             <p className={styles.slogan}>
-              Hourly SOL drip for holders in the 1M–20M band. Funded by fees —
-              not a one-time dump. LP wallets excluded.
+              Hourly SOL drip for holders in the 1M–20M band. Equal-odds lottery among
+              eligible wallets. Floor prize when volume is low. LP excluded.
             </p>
           </div>
           <div className={styles.heroAside}>
@@ -248,9 +248,9 @@ export default function Sweep() {
           </span>
         </div>
         <div className={styles.metric}>
-          <span className={styles.metricLabel}>Min payout</span>
+          <span className={styles.metricLabel}>Min drip</span>
           <span className={styles.metricValue}>
-            0.01<em>SOL</em>
+            0.002<em>SOL</em>
           </span>
         </div>
       </section>
@@ -262,7 +262,7 @@ export default function Sweep() {
             <div>
               <p className={styles.youLabel}>Your eligibility</p>
               <p className={styles.youCopy}>
-                Connect a wallet holding 1M–20M TRACKER to see your weight.
+                Connect a wallet holding 1M–20M TRACKER to check eligibility.
               </p>
             </div>
             <button
@@ -289,7 +289,7 @@ export default function Sweep() {
                 </span>
               </div>
               <div>
-                <span className={styles.youStatLabel}>Weight</span>
+                <span className={styles.youStatLabel}>Pool share*</span>
                 <span className={styles.youStatValue}>
                   {you?.eligible
                     ? `${((you.weight || 0) * 100).toFixed(2)}%`
@@ -443,7 +443,7 @@ export default function Sweep() {
                   Balance
                 </span>
                 <span role="columnheader" className={styles.num}>
-                  Weight
+                  Odds*
                 </span>
               </div>
               {shown.map((c, i) => {
@@ -497,15 +497,21 @@ export default function Sweep() {
           <ol className={styles.steps}>
             <li>
               <strong>Hold 1M–20M TRACKER</strong>
-              <span>Non-custodial wallet. Outside the band = out.</span>
+              <span>Non-custodial wallet. Outside the band = out. LP excluded.</span>
             </li>
             <li>
-              <strong>Fees fund SOL</strong>
-              <span>~10% of platform fees go to the drip pot.</span>
+              <strong>Prize from fees / floor</strong>
+              <span>
+                Target ~0.1% of 1h volume in SOL (capped). If volume is low, floor
+                prize 0.002 SOL while the reward wallet can pay.
+              </span>
             </li>
             <li>
-              <strong>Hourly drip</strong>
-              <span>Share ∝ balance. Min 0.01 SOL. Posted in Telegram.</span>
+              <strong>Hourly lottery</strong>
+              <span>
+                One winner drawn each hour among eligible holders (equal odds). Memo:
+                “Congrats from SeekerTracker.com”. Posted in Telegram.
+              </span>
             </li>
           </ol>
         </div>
@@ -513,9 +519,10 @@ export default function Sweep() {
           <h2 className={styles.panelTitle}>Rules</h2>
           <ul className={styles.rules}>
             <li>Min 1,000,000 TRACKER</li>
-            <li>Max 20,000,000 TRACKER</li>
+            <li>Max 20,000,000 TRACKER (above = not eligible)</li>
             <li>LP / protocol wallets excluded</li>
-            <li>Min payout 0.01 SOL</li>
+            <li>Equal-odds draw among eligible (not balance-weighted)</li>
+            <li>Floor prize 0.002 SOL when volume is low</li>
             <li>No CEX / custodial holdings</li>
           </ul>
           <Link
@@ -530,7 +537,8 @@ export default function Sweep() {
       </section>
 
       <p className={styles.disclaimer}>
-        Fee-funded drip · rules can change · not financial advice
+        *Pool share is balance / band total (display only). Live draw is equal odds
+        among eligible. Fee-funded drip · rules can change · not financial advice
       </p>
     </div>
   );

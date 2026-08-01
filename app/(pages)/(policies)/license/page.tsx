@@ -18,7 +18,7 @@ export default function LicensePage() {
                 <div className={styles.content}>
                     <section>
                         <h2>MIT License</h2>
-                        <p>Copyright (c) 2025 Seeker Tracker</p>
+                        <p>Copyright (c) 2026 Seeker Tracker</p>
                         <p>
                             Permission is hereby granted, free of charge, to any person obtaining a copy
                             of this software and associated documentation files (the &quot;Software&quot;), to deal

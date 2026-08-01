@@ -19,7 +19,7 @@ export default function CopyrightPage() {
                     <section>
                         <h2>Copyright Notice</h2>
                         <p>
-                            © 2025 Seeker Tracker. All rights reserved.
+                            © 2026 Seeker Tracker. All rights reserved.
                         </p>
                         <p>
                             The content, design, graphics, and other materials on this website are protected

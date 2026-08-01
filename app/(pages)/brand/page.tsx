@@ -12,10 +12,10 @@ export const metadata: Metadata = {
     title: "Brand — Seeker Tracker",
     description:
       "Seeker Cyan palette, JetBrains Mono, and usage guidelines for seekertracker.com.",
-    url: "https://www.seekertracker.com/brand",
+    url: "https://seekertracker.com/brand",
   },
   alternates: {
-    canonical: "https://www.seekertracker.com/brand",
+    canonical: "https://seekertracker.com/brand",
   },
 };
 
@@ -62,7 +62,37 @@ const COLORS = [
   },
 ] as const;
 
-export default function BrandPage() {
+export const dynamic = "force-dynamic";
+
+async function getLiveCounts() {
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://seekertracker.com";
+  let seekerIds = 0;
+  let apps = 0;
+  try {
+    const [h, d] = await Promise.all([
+      fetch(`${base}/api/health`, { next: { revalidate: 300 } }),
+      fetch(`${base}/api/dappstore`, { next: { revalidate: 300 } }),
+    ]);
+    if (h.ok) {
+      const j = await h.json();
+      seekerIds = Number(j.domains || 0);
+    }
+    if (d.ok) {
+      const j = await d.json();
+      apps = Number(j.activeCount || j.totalApps || 0);
+    }
+  } catch {
+    /* soft */
+  }
+  return { seekerIds, apps };
+}
+
+export default async function BrandPage() {
+  const { seekerIds, apps } = await getLiveCounts();
+  const idLabel = seekerIds > 0 ? seekerIds.toLocaleString() : "—";
+  const appLabel = apps > 0 ? apps.toLocaleString() : "—";
+
   return (
     <div className={styles.main}>
       <Backbutton />
@@ -168,20 +198,23 @@ export default function BrandPage() {
             you can trust.
           </p>
           <p className={styles.typeCaption}>Section label · uppercase · cyan</p>
-          <p className={styles.typeMono}>Rank #120,482 · Total 120,482</p>
+          <p className={styles.typeMono}>
+            Rank #{idLabel} · Total {idLabel}
+          </p>
         </div>
       </section>
 
       <section className={styles.section} aria-labelledby="ui-heading">
         <h2 id="ui-heading">UI sample</h2>
         <p className={styles.sectionLead}>
-          Same language as email, unsubscribe, and product dashboards.
+          Same language as email, unsubscribe, and product dashboards. Counts
+          pull live from health + dApp catalog.
         </p>
         <div className={styles.uiPreview}>
           <div className={styles.card}>
             <p className={styles.cardLabel}>Indexed SeekerIDs</p>
-            <p className={styles.cardValue}>120,482</p>
-            <p className={styles.cardSub}>max(row count, max rank) · Turso</p>
+            <p className={styles.cardValue}>{idLabel}</p>
+            <p className={styles.cardSub}>Turso · /api/health</p>
             <div className={styles.btnRow}>
               <span className={styles.btnPrimary}>Explore apps</span>
               <span className={styles.btnSecondary}>Lookup .skr</span>
@@ -189,7 +222,7 @@ export default function BrandPage() {
           </div>
           <div className={styles.card}>
             <p className={styles.cardLabel}>Active dApps</p>
-            <p className={styles.cardValue}>1,173</p>
+            <p className={styles.cardValue}>{appLabel}</p>
             <p className={styles.cardSub}>Solana Mobile store catalog</p>
           </div>
         </div>
