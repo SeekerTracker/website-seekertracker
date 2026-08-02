@@ -46,6 +46,14 @@ export const metadata: Metadata = {
     siteName: "SeekerTracker",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "https://seekertracker.com/og/home.png",
+        width: 1200,
+        height: 630,
+        alt: OG_TITLE,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -53,6 +61,7 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     site: "@Seeker_Tracker",
     creator: "@seeker_tracker",
+    images: ["https://seekertracker.com/og/home.png"],
   },
   alternates: {
     canonical: "https://seekertracker.com",

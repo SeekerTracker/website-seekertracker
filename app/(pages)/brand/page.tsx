@@ -13,6 +13,21 @@ export const metadata: Metadata = {
     description:
       "Seeker Cyan palette, JetBrains Mono, and usage guidelines for seekertracker.com.",
     url: "https://seekertracker.com/brand",
+    images: [
+      {
+        url: "https://seekertracker.com/og/brand.png",
+        width: 1200,
+        height: 630,
+        alt: "SeekerTracker Brand",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Brand — Seeker Tracker",
+    description:
+      "Seeker Cyan palette, JetBrains Mono, and usage guidelines for seekertracker.com.",
+    images: ["https://seekertracker.com/og/brand.png"],
   },
   alternates: {
     canonical: "https://seekertracker.com/brand",

@@ -62,21 +62,51 @@ const Footer = () => {
         <div className={styles.downloadInner}>
           <div className={styles.downloadCopy}>
             <span className={styles.downloadEyebrow}>Seeker Tracker</span>
-            <p className={styles.downloadTitle}>Android app on the Solana dApp Store</p>
+            <p className={styles.downloadTitle}>Get the app</p>
           </div>
-          <Link
-            href="/dapps/com.seekertracker"
-            className={styles.downloadBadge}
-            aria-label="Get Seeker Tracker on Solana dApp Store"
-          >
-            <Image
-              src="/sds-badge.svg"
-              alt="Get it on Solana dApp Store"
-              width={180}
-              height={70}
-              priority={false}
-            />
-          </Link>
+          <div className={styles.badgeRow}>
+            <Link
+              href="/dapps/com.seekertracker"
+              className={styles.downloadBadge}
+              aria-label="Get Seeker Tracker on Solana dApp Store"
+            >
+              <Image
+                src="/sds-badge.svg"
+                alt="Get it on Solana dApp Store"
+                width={160}
+                height={62}
+                priority={false}
+              />
+            </Link>
+            <a
+              href="https://play.google.com/store/search?q=Seeker%20Tracker%20Solana&c=apps"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.downloadBadge}
+              aria-label="Get it on Google Play"
+            >
+              <Image
+                src="/badges/google-play.svg"
+                alt="Get it on Google Play"
+                width={160}
+                height={48}
+              />
+            </a>
+            <a
+              href="https://apps.apple.com/us/search?term=Solana%20Mobile%20Seeker"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.downloadBadge}
+              aria-label="Download on the App Store"
+            >
+              <Image
+                src="/badges/app-store.svg"
+                alt="Download on the App Store"
+                width={160}
+                height={48}
+              />
+            </a>
+          </div>
         </div>
       </div>
 
