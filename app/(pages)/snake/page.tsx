@@ -1,447 +1,513 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import styles from './page.module.css'
-import Image from 'next/image'
-import Link from 'next/link'
-import Backbutton from 'app/(components)/shared/Backbutton'
-import { useWalletContext } from 'app/(utils)/context/walletProvider'
-import { useAccount, useConnector } from '@solana/connector/react'
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import styles from "./page.module.css";
+import Image from "next/image";
+import Link from "next/link";
+import Backbutton from "app/(components)/shared/Backbutton";
+import { useWalletContext } from "app/(utils)/context/walletProvider";
+import { useAccount, useConnector } from "@solana/connector/react";
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 const TRACKER_MINT = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
 const DEFAULT_REQUIRED_TRACKER = 1_000_000;
 const SNAKE_DAPP = "com.snakeseeker";
-const SNAKE_DAPP_URL = `https://seekertracker.com/dapps/${SNAKE_DAPP}`;
+const SNAKE_DAPP_URL = `/dapps/${SNAKE_DAPP}`;
+const APK_URL =
+  "https://arweave.net/H9PSe13l-zFtQdsW9IEFBzjrJywIH5xiYadPtf1PWlA";
 
 type LeaderboardEntry = {
-    wallet: string;
-    username: string | null;
-    skrId: string | null;
-    high_score: number;
-    total_plays: number;
-    total_score: number;
-    trackerBalance?: number;
-    eligible?: boolean;
+  wallet: string;
+  username: string | null;
+  skrId: string | null;
+  high_score: number;
+  total_plays: number;
+  total_score: number;
+  trackerBalance?: number;
+  eligible?: boolean;
+};
+
+type GameConfig = {
+  min_tracker_balance?: number;
+  tokens_per_pill?: number;
+  airdrop_enabled?: boolean;
+  airdrop_multiplier?: number;
+  maintenance_mode?: boolean;
+  leaderboard_limit?: number;
 };
 
 function displaySkr(entry: LeaderboardEntry): string | null {
-    const raw = (entry.skrId || entry.username || "").trim();
-    if (!raw) return null;
-    const base = raw.replace(/\.skr$/i, "");
-    return base ? `${base}.skr` : null;
+  const raw = (entry.skrId || entry.username || "").trim();
+  if (!raw) return null;
+  const base = raw.replace(/\.skr$/i, "");
+  return base ? `${base}.skr` : null;
 }
 
-const SnakePage = () => {
-    const [prizePool, setPrizePool] = useState<{ trackerBalance: number; solBalance: number } | null>(null);
-    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-    const [gameStats, setGameStats] = useState<{ totalPlayers: number; totalGames: number } | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [leaderboardLoading, setLeaderboardLoading] = useState(true);
-    const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
-    const [trackerPrice, setTrackerPrice] = useState<number | null>(null);
-    const [requiredTracker, setRequiredTracker] = useState<number>(DEFAULT_REQUIRED_TRACKER);
+function formatTracker(num: number) {
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
+  return Math.floor(num).toLocaleString();
+}
 
-    const { trackerBalance, isLoadingBalance, openWalletModal } = useWalletContext();
-    const { connected } = useConnector();
-    const { address } = useAccount();
+function shortWallet(w: string) {
+  return `${w.slice(0, 4)}…${w.slice(-4)}`;
+}
 
-    useEffect(() => {
-        async function fetchPrizePool() {
-            try {
-                const res = await fetch('/api/snake/prize');
-                const data = await res.json();
-                setPrizePool(data);
-            } catch (err) {
-                console.error('Failed to fetch prize pool:', err);
-            } finally {
-                setLoading(false);
-            }
+export default function SnakePage() {
+  const [prizePool, setPrizePool] = useState<{
+    trackerBalance: number;
+    solBalance: number;
+  } | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [gameStats, setGameStats] = useState<{
+    totalPlayers: number;
+    totalGames: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+  const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
+  const [trackerPrice, setTrackerPrice] = useState<number | null>(null);
+  const [requiredTracker, setRequiredTracker] = useState(
+    DEFAULT_REQUIRED_TRACKER
+  );
+  const [config, setConfig] = useState<GameConfig | null>(null);
+
+  const { trackerBalance, isLoadingBalance, openWalletModal } =
+    useWalletContext();
+  const { connected } = useConnector();
+  const { address } = useAccount();
+
+  const loadPrize = useCallback(async () => {
+    try {
+      const res = await fetch("/api/snake/prize", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      setPrizePool({
+        trackerBalance: Number(data.trackerBalance) || 0,
+        solBalance: Number(data.solBalance) || 0,
+      });
+    } catch {
+      /* soft */
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadLeaderboard = useCallback(async () => {
+    setLeaderboardLoading(true);
+    try {
+      const res = await fetch("/api/snake/leaderboard", { cache: "no-store" });
+      const data = await res.json();
+      if (res.status === 401) {
+        setLeaderboardError("Leaderboard temporarily unavailable");
+        return;
+      }
+      if (data.success) {
+        setLeaderboard(data.leaderboard || []);
+        setGameStats(data.stats || null);
+        if (data.minRewardTracker) {
+          setRequiredTracker(Number(data.minRewardTracker));
         }
+        setLeaderboardError(null);
+      } else {
+        setLeaderboardError("Failed to load leaderboard");
+      }
+    } catch {
+      setLeaderboardError("Failed to load leaderboard");
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  }, []);
 
-        async function fetchLeaderboard() {
-            try {
-                const res = await fetch('/api/snake/leaderboard');
-                const data = await res.json();
-                if (res.status === 401) {
-                    setLeaderboardError('Leaderboard temporarily unavailable');
-                    return;
-                }
-                if (data.success) {
-                    setLeaderboard(data.leaderboard);
-                    setGameStats(data.stats);
-                    if (data.minRewardTracker) {
-                        setRequiredTracker(Number(data.minRewardTracker));
-                    }
-                    setLeaderboardError(null);
-                } else {
-                    setLeaderboardError('Failed to load leaderboard');
-                }
-            } catch (err) {
-                console.error('Failed to fetch leaderboard:', err);
-                setLeaderboardError('Failed to load leaderboard');
-            } finally {
-                setLeaderboardLoading(false);
-            }
+  const loadConfig = useCallback(async () => {
+    try {
+      const res = await fetch("/api/snake/config", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json();
+      const cfg = data.config as GameConfig | undefined;
+      if (cfg) {
+        setConfig(cfg);
+        if (cfg.min_tracker_balance) {
+          setRequiredTracker(Number(cfg.min_tracker_balance));
         }
+      }
+    } catch {
+      /* soft */
+    }
+  }, []);
 
-        async function fetchConfig() {
-            try {
-                const res = await fetch('/api/snake/config');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.config?.min_tracker_balance) {
-                        setRequiredTracker(Number(data.config.min_tracker_balance));
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to fetch game config:', err);
-            }
-        }
+  const loadPrice = useCallback(async () => {
+    try {
+      // Prefer site price API first
+      const local = await fetch("/api/price", { cache: "no-store" });
+      if (local.ok) {
+        const j = await local.json();
+        // TRACKER not always on /api/price — fall through to dexscreener
+      }
+      const res = await fetch(
+        `https://api.dexscreener.com/latest/dex/tokens/${TRACKER_MINT}`
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      const pairs = (data?.pairs || []) as Array<{
+        priceUsd?: string;
+        liquidity?: { usd?: number };
+      }>;
+      pairs.sort(
+        (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+      );
+      const p = Number(pairs[0]?.priceUsd || 0);
+      if (p > 0) setTrackerPrice(p);
+    } catch {
+      /* soft */
+    }
+  }, []);
 
-        async function fetchTrackerPrice() {
-            try {
-                const res = await fetch(
-                    `https://api.dexscreener.com/latest/dex/tokens/${TRACKER_MINT}`
-                );
-                if (res.ok) {
-                    const data = await res.json();
-                    const price = data?.pairs?.[0]?.priceUsd
-                        ? parseFloat(data.pairs[0].priceUsd)
-                        : null;
-                    setTrackerPrice(price);
-                }
-            } catch (err) {
-                console.error('Failed to fetch TRACKER price:', err);
-            }
-        }
-
-        fetchPrizePool();
-        fetchLeaderboard();
-        fetchTrackerPrice();
-        fetchConfig();
-
-        const prizePoolInterval = setInterval(fetchPrizePool, 20000);
-        const priceInterval = setInterval(fetchTrackerPrice, 60000);
-        const lbInterval = setInterval(fetchLeaderboard, 60000);
-
-        return () => {
-            clearInterval(prizePoolInterval);
-            clearInterval(priceInterval);
-            clearInterval(lbInterval);
-        };
-    }, []);
-
-    const formatNumber = (num: number) => {
-        if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
-        if (num >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
-        return num.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  useEffect(() => {
+    loadPrize();
+    loadLeaderboard();
+    loadConfig();
+    loadPrice();
+    const a = setInterval(loadPrize, 30_000);
+    const b = setInterval(loadLeaderboard, 60_000);
+    const c = setInterval(loadPrice, 60_000);
+    return () => {
+      clearInterval(a);
+      clearInterval(b);
+      clearInterval(c);
     };
+  }, [loadPrize, loadLeaderboard, loadConfig, loadPrice]);
 
-    const truncateWallet = (wallet: string) => {
-        return `${wallet.slice(0, 4)}...${wallet.slice(-4)}`;
-    };
+  const userEligible = trackerBalance >= requiredTracker;
+  const airdropOn = config?.airdrop_enabled !== false;
+  const tokensPerPill = config?.tokens_per_pill ?? 10;
+  const maintenance = !!config?.maintenance_mode;
 
-    const userEligible = trackerBalance >= requiredTracker;
+  const youRank = useMemo(() => {
+    if (!address) return null;
+    const i = leaderboard.findIndex((e) => e.wallet === address);
+    return i >= 0 ? i + 1 : null;
+  }, [address, leaderboard]);
 
-    return (
-        <div className={styles.main}>
-            <Backbutton />
+  return (
+    <div className={styles.main}>
+      <Backbutton />
 
-            {/* Hero Section */}
-            <div className={styles.hero}>
-                <Image
-                    src="/snake/icon.png"
-                    alt="Snake Game"
-                    width={120}
-                    height={120}
-                    className={styles.appIcon}
-                />
-                <h1 className={styles.title}>SNAKE</h1>
-                <p className={styles.subtitle}>for Solana Seeker</p>
-                <p className={styles.tagline}>
-                    Classic snake · global leaderboard · TRACKER airdrops for holders
-                </p>
-                <p className={styles.rewardRequirement}>
-                    Hold at least{" "}
-                    <strong>{requiredTracker.toLocaleString()} TRACKER</strong> to
-                    earn in-game rewards
-                </p>
+      <header className={styles.hero}>
+        <div className={styles.heroTop}>
+          <div className={styles.brandBlock}>
+            <div className={styles.brandRow}>
+              <Image
+                src="/snake/icon.png"
+                alt=""
+                width={64}
+                height={64}
+                className={styles.appIcon}
+                priority
+              />
+              <div>
+                <p className={styles.eyebrow}>$TRACKER · Seeker game</p>
+                <h1 className={styles.title}>Snake</h1>
+              </div>
             </div>
-
-            {/* Connected wallet TRACKER balance */}
-            <div className={styles.userBalanceCard}>
-                <span className={styles.userBalanceLabel}>Your TRACKER balance</span>
-                {connected && address ? (
-                    <>
-                        <span className={styles.userBalanceAmount}>
-                            {isLoadingBalance ? '…' : formatNumber(trackerBalance)}{' '}
-                            <span className={styles.userBalanceUnit}>TRACKER</span>
-                        </span>
-                        <span
-                            className={
-                                userEligible ? styles.userEligible : styles.userIneligible
-                            }
-                        >
-                            {userEligible
-                                ? '✓ Eligible for rewards'
-                                : `Need ${formatNumber(Math.max(0, requiredTracker - trackerBalance))} more for rewards`}
-                        </span>
-                        <span className={styles.userWallet}>{truncateWallet(address)}</span>
-                    </>
-                ) : (
-                    <>
-                        <span className={styles.userBalanceHint}>
-                            Connect wallet to see your balance & reward eligibility
-                        </span>
-                        <button
-                            type="button"
-                            className={styles.connectBtn}
-                            onClick={openWalletModal}
-                        >
-                            Connect wallet
-                        </button>
-                    </>
-                )}
+            <p className={styles.slogan}>
+              Classic snake on Solana Seeker. Global leaderboard. TRACKER
+              airdrops while you play if you hold the minimum.
+            </p>
+            {maintenance && (
+              <p className={styles.maintBanner}>Maintenance mode — scores may pause</p>
+            )}
+          </div>
+          <div className={styles.heroAside}>
+            <div className={styles.heroActions}>
+              <Link href={SNAKE_DAPP_URL} className={styles.ctaPrimary}>
+                Open on dApp Store
+              </Link>
+              <a href="snakeseeker://" className={styles.ctaGhost}>
+                Open app
+              </a>
+              <button
+                type="button"
+                className={styles.ctaGhost}
+                onClick={() => {
+                  loadLeaderboard();
+                  loadPrize();
+                }}
+              >
+                Refresh
+              </button>
             </div>
-
-            {/* Prize Pool */}
-            <div className={styles.prizePool}>
-                <span className={styles.prizeLabel}>Reward treasury</span>
-                <div className={styles.prizeAmount}>
-                    {loading ? (
-                        <span className={styles.loading}>Loading...</span>
-                    ) : (
-                        <>
-                            <span className={styles.trackerAmount}>
-                                {formatNumber(prizePool?.trackerBalance || 0)} TRACKER
-                            </span>
-                            {prizePool?.solBalance ? (
-                                <span className={styles.solAmount}>
-                                    + {prizePool.solBalance.toFixed(4)} SOL
-                                </span>
-                            ) : null}
-                        </>
-                    )}
-                </div>
-                <Link
-                    href={`https://solscan.io/account/${PRIZE_WALLET}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.walletLink}
-                >
-                    View treasury wallet
-                </Link>
-            </div>
-
-            {/* Eligibility */}
-            <div className={styles.eligibility}>
-                <span className={styles.eligibilityIcon}>🎫</span>
-                <span className={styles.eligibilityTitle}>Reward requirement</span>
-                <span className={styles.eligibilityDesc}>
-                    Hold ≥ <strong>{requiredTracker.toLocaleString()} TRACKER</strong> to
-                    earn airdrops while playing
-                    {trackerPrice !== null && (
-                        <span className={styles.eligibilityUsd}>
-                            {" "}
-                            (≈ ${(requiredTracker * trackerPrice).toFixed(2)} USD)
-                        </span>
-                    )}
-                </span>
-            </div>
-
-            {/* Leaderboard */}
-            <div className={styles.leaderboardSection}>
-                <h2 className={styles.sectionTitle}>Leaderboard</h2>
-                {gameStats && (
-                    <div className={styles.gameStats}>
-                        <span>{gameStats.totalPlayers} Players</span>
-                        <span>•</span>
-                        <span>{gameStats.totalGames} Games Played</span>
-                    </div>
-                )}
-                {leaderboardLoading ? (
-                    <div className={styles.leaderboardLoading}>Loading leaderboard...</div>
-                ) : leaderboardError ? (
-                    <div className={styles.noScores}>{leaderboardError}</div>
-                ) : leaderboard.length > 0 ? (
-                    <div className={styles.leaderboard}>
-                        <div className={styles.leaderboardHeader}>
-                            <span className={styles.rank}>#</span>
-                            <span className={styles.player}>Player</span>
-                            <span className={styles.trackerCol}>TRACKER</span>
-                            <span className={styles.score}>High Score</span>
-                            <span className={styles.plays}>Games</span>
-                        </div>
-                        {leaderboard.map((entry, index) => {
-                            const bal = entry.trackerBalance ?? 0;
-                            const ok = entry.eligible ?? bal >= requiredTracker;
-                            const skrLabel = displaySkr(entry);
-                            return (
-                                <div
-                                    key={entry.wallet}
-                                    className={`${styles.leaderboardRow} ${
-                                        ok ? styles.rowEligible : styles.rowIneligible
-                                    }`}
-                                >
-                                    <span className={styles.rank}>
-                                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                                    </span>
-                                    <span className={styles.player}>
-                                        {skrLabel && (
-                                            <span className={styles.skrId}>{skrLabel}</span>
-                                        )}
-                                        <Link
-                                            href={`https://solscan.io/account/${entry.wallet}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className={styles.playerLink}
-                                        >
-                                            {truncateWallet(entry.wallet)}
-                                        </Link>
-                                    </span>
-                                    <span
-                                        className={`${styles.trackerCol} ${
-                                            ok ? styles.trackerOk : styles.trackerLow
-                                        }`}
-                                        title={
-                                            ok
-                                                ? `Eligible for rewards (≥${requiredTracker.toLocaleString()} TRACKER)`
-                                                : `Below ${requiredTracker.toLocaleString()} TRACKER — not eligible`
-                                        }
-                                    >
-                                        {formatNumber(bal)}
-                                        <span className={styles.eligDot}>{ok ? '✓' : '·'}</span>
-                                    </span>
-                                    <span className={styles.score}>{entry.high_score}</span>
-                                    <span className={styles.plays}>{entry.total_plays}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div className={styles.noScores}>No scores yet. Be the first to play!</div>
-                )}
-                <p className={styles.lbNote}>
-                    ✓ = holds ≥ {requiredTracker.toLocaleString()} TRACKER (reward eligible)
-                </p>
-            </div>
-
-            {/* Features */}
-            <div className={styles.features}>
-                <div className={styles.feature}>
-                    <span className={styles.featureIcon}>🎮</span>
-                    <span className={styles.featureTitle}>Classic Gameplay</span>
-                    <span className={styles.featureDesc}>Swipe to control your snake and eat to grow</span>
-                </div>
-                <div className={styles.feature}>
-                    <span className={styles.featureIcon}>🏆</span>
-                    <span className={styles.featureTitle}>Global Leaderboard</span>
-                    <span className={styles.featureDesc}>Connect wallet to save your high scores</span>
-                </div>
-                <div className={styles.feature}>
-                    <span className={styles.featureIcon}>📱</span>
-                    <span className={styles.featureTitle}>Built for Seeker</span>
-                    <span className={styles.featureDesc}>Optimized for Solana Mobile Seeker device</span>
-                </div>
-            </div>
-
-            {/* Screenshots */}
-            <div className={styles.screenshotsSection}>
-                <h2 className={styles.sectionTitle}>Screenshots</h2>
-                <div className={styles.screenshots}>
-                    <div className={styles.screenshotWrapper}>
-                        <Image
-                            src="/snake/screenshot-home.jpg"
-                            alt="Snake Home Screen"
-                            width={280}
-                            height={560}
-                            className={styles.screenshot}
-                        />
-                    </div>
-                    <div className={styles.screenshotWrapper}>
-                        <Image
-                            src="/snake/screenshot-gameplay.jpg"
-                            alt="Snake Gameplay"
-                            width={280}
-                            height={560}
-                            className={styles.screenshot}
-                        />
-                    </div>
-                    <div className={styles.screenshotWrapper}>
-                        <Image
-                            src="/snake/screenshot-leaderboard.jpg"
-                            alt="Snake Leaderboard"
-                            width={280}
-                            height={560}
-                            className={styles.screenshot}
-                        />
-                    </div>
-                    <div className={styles.screenshotWrapper}>
-                        <Image
-                            src="/snake/screenshot-gameover.jpg"
-                            alt="Snake Game Over"
-                            width={280}
-                            height={560}
-                            className={styles.screenshot}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Banner */}
-            <div className={styles.bannerSection}>
-                <Image
-                    src="/snake/banner.png"
-                    alt="Snake Banner"
-                    width={1024}
-                    height={500}
-                    className={styles.banner}
-                />
-            </div>
-
-            {/* Download */}
-            <div className={styles.downloadSection}>
-                <Link
-                    href={SNAKE_DAPP_URL}
-                    className={styles.downloadButton}
-                >
-                    View on Seeker dApp Store
-                </Link>
-                <Link
-                    href="snakeseeker://"
-                    className={styles.secondaryButton}
-                >
-                    Open in App
-                </Link>
-                <Link
-                    href="https://arweave.net/H9PSe13l-zFtQdsW9IEFBzjrJywIH5xiYadPtf1PWlA"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.secondaryButton}
-                >
-                    Download APK
-                </Link>
-                <span className={styles.downloadNote}>
-                    Live on Solana dApp Store · package {SNAKE_DAPP} · Android / Seeker
-                </span>
-            </div>
-
-            {/* CTA */}
-            <div className={styles.cta}>
-                <span className={styles.ctaLabel}>Live on Seeker dApp Store</span>
-                <span className={styles.ctaHighlight}>
-                    TRACKER airdrops while you play · min{" "}
-                    {requiredTracker.toLocaleString()} TRACKER
-                </span>
-            </div>
-
-            {/* Footer */}
-            <div className={styles.footer}>
-                <span>Powered by Solana</span>
-            </div>
+          </div>
         </div>
-    )
-}
+      </header>
 
-export default SnakePage
+      {/* Metrics */}
+      <section className={styles.metrics} aria-label="Snake stats">
+        <div className={styles.metric}>
+          <span className={styles.metricLabel}>Min hold</span>
+          <span className={styles.metricValue}>
+            {formatTracker(requiredTracker)}
+          </span>
+        </div>
+        <div className={styles.metric}>
+          <span className={styles.metricLabel}>Treasury</span>
+          <span className={styles.metricValue}>
+            {loading
+              ? "…"
+              : formatTracker(prizePool?.trackerBalance || 0)}
+          </span>
+        </div>
+        <div className={styles.metric}>
+          <span className={styles.metricLabel}>Players</span>
+          <span className={styles.metricValue}>
+            {gameStats ? gameStats.totalPlayers.toLocaleString() : "…"}
+          </span>
+        </div>
+        <div className={styles.metric}>
+          <span className={styles.metricLabel}>Games</span>
+          <span className={styles.metricValue}>
+            {gameStats ? gameStats.totalGames.toLocaleString() : "…"}
+          </span>
+        </div>
+      </section>
+
+      {/* You */}
+      <section className={styles.youPanel}>
+        {!connected || !address ? (
+          <div className={styles.youInner}>
+            <div>
+              <p className={styles.youLabel}>Your eligibility</p>
+              <p className={styles.youCopy}>
+                Connect a wallet holding ≥{formatTracker(requiredTracker)}{" "}
+                TRACKER to earn airdrops in-game.
+              </p>
+            </div>
+            <button
+              type="button"
+              className={styles.ctaPrimary}
+              onClick={openWalletModal}
+            >
+              Connect wallet
+            </button>
+          </div>
+        ) : (
+          <div className={styles.youInner}>
+            <div className={styles.youMeta}>
+              <p className={styles.youLabel}>Your wallet</p>
+              <p className={styles.youAddr}>{shortWallet(address)}</p>
+            </div>
+            <div className={styles.youStats}>
+              <div>
+                <span className={styles.youStatLabel}>TRACKER</span>
+                <span className={styles.youStatValue}>
+                  {isLoadingBalance ? "…" : formatTracker(trackerBalance)}
+                </span>
+              </div>
+              {youRank != null && (
+                <div>
+                  <span className={styles.youStatLabel}>Rank</span>
+                  <span className={styles.youStatValue}>#{youRank}</span>
+                </div>
+              )}
+            </div>
+            <span className={userEligible ? styles.badgeOk : styles.badgeNo}>
+              {userEligible
+                ? "Eligible for airdrops"
+                : `Need ${formatTracker(Math.max(0, requiredTracker - trackerBalance))} more`}
+            </span>
+          </div>
+        )}
+      </section>
+
+      {/* Rules + treasury */}
+      <section className={styles.midGrid}>
+        <div className={styles.panel}>
+          <h2 className={styles.panelTitle}>How rewards work</h2>
+          <ul className={styles.bullets}>
+            <li>
+              Hold ≥ <strong>{requiredTracker.toLocaleString()} TRACKER</strong>
+            </li>
+            <li>
+              Airdrops:{" "}
+              <strong>{airdropOn ? "on" : "off"}</strong>
+              {tokensPerPill > 0 && (
+                <>
+                  {" "}
+                  · ~{tokensPerPill} TRACKER base per pill
+                </>
+              )}
+            </li>
+            <li>Connect wallet in-app to save scores & receive drops</li>
+            <li>Package: <code>{SNAKE_DAPP}</code></li>
+          </ul>
+          {trackerPrice != null && (
+            <p className={styles.panelSub}>
+              Min hold ≈ ${(requiredTracker * trackerPrice).toFixed(2)} USD
+            </p>
+          )}
+        </div>
+        <div className={styles.panel}>
+          <h2 className={styles.panelTitle}>Reward treasury</h2>
+          <p className={styles.treasuryBig}>
+            {loading
+              ? "…"
+              : `${formatTracker(prizePool?.trackerBalance || 0)} TRACKER`}
+          </p>
+          {prizePool && prizePool.solBalance > 0 && (
+            <p className={styles.panelSub}>
+              + {prizePool.solBalance.toFixed(4)} SOL
+            </p>
+          )}
+          <a
+            href={`https://solscan.io/account/${PRIZE_WALLET}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.inlineLink}
+          >
+            {shortWallet(PRIZE_WALLET)} on Solscan →
+          </a>
+        </div>
+      </section>
+
+      {/* Leaderboard */}
+      <section className={styles.panel}>
+        <div className={styles.panelHead}>
+          <div>
+            <h2 className={styles.panelTitle}>Leaderboard</h2>
+            <p className={styles.panelSub}>
+              {gameStats
+                ? `${gameStats.totalPlayers.toLocaleString()} players · ${gameStats.totalGames.toLocaleString()} games`
+                : "Top scores"}
+              {" · "}✓ = ≥{formatTracker(requiredTracker)} TRACKER
+            </p>
+          </div>
+        </div>
+
+        {leaderboardLoading && leaderboard.length === 0 ? (
+          <div className={styles.skeletonList} aria-hidden>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className={styles.skeletonRow} />
+            ))}
+          </div>
+        ) : leaderboardError ? (
+          <p className={styles.empty}>{leaderboardError}</p>
+        ) : leaderboard.length === 0 ? (
+          <p className={styles.empty}>No scores yet. Be the first to play.</p>
+        ) : (
+          <div className={styles.table} role="table">
+            <div className={styles.thead} role="row">
+              <span role="columnheader">#</span>
+              <span role="columnheader">Player</span>
+              <span role="columnheader" className={styles.num}>
+                TRACKER
+              </span>
+              <span role="columnheader" className={styles.num}>
+                High
+              </span>
+              <span role="columnheader" className={styles.num}>
+                Games
+              </span>
+            </div>
+            {leaderboard.map((entry, index) => {
+              const bal = entry.trackerBalance ?? 0;
+              const ok = entry.eligible ?? bal >= requiredTracker;
+              const skrLabel = displaySkr(entry);
+              const isYou = !!address && entry.wallet === address;
+              return (
+                <div
+                  key={entry.wallet}
+                  className={`${styles.trow} ${isYou ? styles.trowYou : ""} ${
+                    ok ? "" : styles.trowInelig
+                  }`}
+                  role="row"
+                >
+                  <span className={styles.rank} role="cell">
+                    {index + 1}
+                  </span>
+                  <span className={styles.player} role="cell">
+                    {skrLabel && (
+                      <span className={styles.skrId}>{skrLabel}</span>
+                    )}
+                    <a
+                      href={`https://solscan.io/account/${entry.wallet}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.walletLink}
+                    >
+                      {shortWallet(entry.wallet)}
+                    </a>
+                    {isYou && <span className={styles.youChip}>you</span>}
+                    {ok && <span className={styles.okChip}>✓</span>}
+                  </span>
+                  <span
+                    className={`${styles.num} ${ok ? styles.balOk : styles.balLow}`}
+                    role="cell"
+                  >
+                    {formatTracker(bal)}
+                  </span>
+                  <span className={`${styles.num} ${styles.score}`} role="cell">
+                    {entry.high_score.toLocaleString()}
+                  </span>
+                  <span className={`${styles.num} ${styles.plays}`} role="cell">
+                    {entry.total_plays.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Get the game */}
+      <section className={styles.panel}>
+        <h2 className={styles.panelTitle}>Get the game</h2>
+        <div className={styles.downloadRow}>
+          <Link href={SNAKE_DAPP_URL} className={styles.ctaPrimary}>
+            Seeker dApp Store
+          </Link>
+          <a href="snakeseeker://" className={styles.ctaGhost}>
+            Open app
+          </a>
+          <a
+            href={APK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaGhost}
+          >
+            Download APK
+          </a>
+        </div>
+        <p className={styles.panelSub}>
+          Live package <code>{SNAKE_DAPP}</code> · Android / Seeker
+        </p>
+      </section>
+
+      {/* Screenshots */}
+      <section className={styles.panel}>
+        <h2 className={styles.panelTitle}>Screenshots</h2>
+        <div className={styles.screenshots}>
+          {[
+            ["screenshot-home.jpg", "Home"],
+            ["screenshot-gameplay.jpg", "Gameplay"],
+            ["screenshot-leaderboard.jpg", "Leaderboard"],
+            ["screenshot-gameover.jpg", "Game over"],
+          ].map(([file, alt]) => (
+            <div key={file} className={styles.shot}>
+              <Image
+                src={`/snake/${file}`}
+                alt={alt}
+                width={220}
+                height={440}
+                className={styles.shotImg}
+              />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <p className={styles.disclaimer}>
+        Unofficial Seeker game · airdrop rules can change · not financial advice
+      </p>
+    </div>
+  );
+}
