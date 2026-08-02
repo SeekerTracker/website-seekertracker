@@ -1,18 +1,18 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 
-const TITLE = "Snake | SeekerTracker";
+const TITLE = "Seeker Phone Awards | SeekerTracker";
 const DESCRIPTION =
-  "Play Snake on Solana Seeker (com.snakeseeker). Hold ≥1M TRACKER to earn airdrops. Live on the dApp Store.";
-const OG = "https://seekertracker.com/og/snake.png";
+  "Community Seeker phone giveaway winners. For TRACKER hourly drips see /sweep.";
+const OG = "https://seekertracker.com/og/winners.png";
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
-  alternates: { canonical: "https://seekertracker.com/snake" },
+  alternates: { canonical: "https://seekertracker.com/winners" },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    url: "https://seekertracker.com/snake",
+    url: "https://seekertracker.com/winners",
     images: [{ url: OG, width: 1200, height: 630, alt: TITLE }],
     type: "website",
     siteName: "SeekerTracker",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SnakeLayout({
+export default function WinnersLayout({
   children,
 }: {
   children: React.ReactNode;

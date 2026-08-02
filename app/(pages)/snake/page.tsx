@@ -7,14 +7,27 @@ import Link from "next/link";
 import Backbutton from "app/(components)/shared/Backbutton";
 import { useWalletContext } from "app/(utils)/context/walletProvider";
 import { useAccount, useConnector } from "@solana/connector/react";
+import { useJupiter } from "app/(utils)/context/jupiterProvider";
+import {
+  SEEKER_TOKEN_ADDRESS,
+  JUP_REFERRAL,
+} from "app/(utils)/constant";
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
-const TRACKER_MINT = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
+const TRACKER_MINT = SEEKER_TOKEN_ADDRESS;
 const DEFAULT_REQUIRED_TRACKER = 1_000_000;
 const SNAKE_DAPP = "com.snakeseeker";
 const SNAKE_DAPP_URL = `/dapps/${SNAKE_DAPP}`;
+const SNAKE_SDS_URL =
+  "https://solanamobiledappstore.com/09P8VQ98WIf4Xb2-5f2kGX2TjEj2XthTgHoAEZY2puk";
 const APK_URL =
   "https://arweave.net/H9PSe13l-zFtQdsW9IEFBzjrJywIH5xiYadPtf1PWlA";
+const JUP_BUY_URL = `https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=${JUP_REFERRAL}`;
+/** Placeholder / search until native listings exist */
+const PLAY_STORE_URL =
+  "https://play.google.com/store/search?q=Snake%20Seeker%20Solana&c=apps";
+const APP_STORE_URL =
+  "https://apps.apple.com/us/search?term=Solana%20Mobile%20Seeker";
 
 type LeaderboardEntry = {
   wallet: string;
@@ -43,8 +56,15 @@ function displaySkr(entry: LeaderboardEntry): string | null {
   return base ? `${base}.skr` : null;
 }
 
-function formatTracker(num: number) {
-  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
+/** Compact for balances; exact "1M" for thresholds when whole millions */
+function formatTracker(num: number, exactMillions = false) {
+  if (exactMillions && num >= 1_000_000 && num % 1_000_000 === 0) {
+    return `${num / 1_000_000}M`;
+  }
+  if (num >= 1_000_000) {
+    const m = num / 1_000_000;
+    return `${m >= 10 ? m.toFixed(1) : m.toFixed(2)}M`.replace(/\.00M$/, "M");
+  }
   if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
   return Math.floor(num).toLocaleString();
 }
@@ -76,6 +96,9 @@ export default function SnakePage() {
     useWalletContext();
   const { connected } = useConnector();
   const { address } = useAccount();
+  const { openJupiter, isJupiterReady } = useJupiter();
+
+  const minHoldLabel = formatTracker(requiredTracker, true);
 
   const loadPrize = useCallback(async () => {
     try {
@@ -223,8 +246,21 @@ export default function SnakePage() {
               <Link href={SNAKE_DAPP_URL} className={styles.ctaPrimary}>
                 Open on dApp Store
               </Link>
-              <a href="snakeseeker://" className={styles.ctaGhost}>
-                Open app
+              <button
+                type="button"
+                className={styles.ctaBuy}
+                onClick={openJupiter}
+                disabled={!isJupiterReady}
+              >
+                {isJupiterReady ? "Buy $TRACKER" : "Buy $TRACKER…"}
+              </button>
+              <a
+                href={JUP_BUY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.ctaGhost}
+              >
+                Buy on Jupiter
               </a>
               <button
                 type="button"
@@ -246,7 +282,8 @@ export default function SnakePage() {
         <div className={styles.metric}>
           <span className={styles.metricLabel}>Min hold</span>
           <span className={styles.metricValue}>
-            {formatTracker(requiredTracker)}
+            {minHoldLabel}
+            <em> TRACKER</em>
           </span>
         </div>
         <div className={styles.metric}>
@@ -278,17 +315,27 @@ export default function SnakePage() {
             <div>
               <p className={styles.youLabel}>Your eligibility</p>
               <p className={styles.youCopy}>
-                Connect a wallet holding ≥{formatTracker(requiredTracker)}{" "}
-                TRACKER to earn airdrops in-game.
+                Hold ≥{minHoldLabel} TRACKER to earn airdrops in-game. Connect
+                wallet to check.
               </p>
             </div>
-            <button
-              type="button"
-              className={styles.ctaPrimary}
-              onClick={openWalletModal}
-            >
-              Connect wallet
-            </button>
+            <div className={styles.youActions}>
+              <button
+                type="button"
+                className={styles.ctaPrimary}
+                onClick={openWalletModal}
+              >
+                Connect wallet
+              </button>
+              <button
+                type="button"
+                className={styles.ctaBuy}
+                onClick={openJupiter}
+                disabled={!isJupiterReady}
+              >
+                Buy $TRACKER
+              </button>
+            </div>
           </div>
         ) : (
           <div className={styles.youInner}>
@@ -303,6 +350,10 @@ export default function SnakePage() {
                   {isLoadingBalance ? "…" : formatTracker(trackerBalance)}
                 </span>
               </div>
+              <div>
+                <span className={styles.youStatLabel}>Min hold</span>
+                <span className={styles.youStatValue}>{minHoldLabel}</span>
+              </div>
               {youRank != null && (
                 <div>
                   <span className={styles.youStatLabel}>Rank</span>
@@ -310,11 +361,23 @@ export default function SnakePage() {
                 </div>
               )}
             </div>
-            <span className={userEligible ? styles.badgeOk : styles.badgeNo}>
-              {userEligible
-                ? "Eligible for airdrops"
-                : `Need ${formatTracker(Math.max(0, requiredTracker - trackerBalance))} more`}
-            </span>
+            <div className={styles.youActions}>
+              <span className={userEligible ? styles.badgeOk : styles.badgeNo}>
+                {userEligible
+                  ? "Eligible for airdrops"
+                  : `Need ${formatTracker(Math.max(0, requiredTracker - trackerBalance))} more`}
+              </span>
+              {!userEligible && (
+                <button
+                  type="button"
+                  className={styles.ctaBuy}
+                  onClick={openJupiter}
+                  disabled={!isJupiterReady}
+                >
+                  Buy $TRACKER
+                </button>
+              )}
+            </div>
           </div>
         )}
       </section>
@@ -325,7 +388,8 @@ export default function SnakePage() {
           <h2 className={styles.panelTitle}>How rewards work</h2>
           <ul className={styles.bullets}>
             <li>
-              Hold ≥ <strong>{requiredTracker.toLocaleString()} TRACKER</strong>
+              Hold ≥ <strong>{minHoldLabel} TRACKER</strong>{" "}
+              ({requiredTracker.toLocaleString()})
             </li>
             <li>
               Airdrops:{" "}
@@ -378,7 +442,7 @@ export default function SnakePage() {
               {gameStats
                 ? `${gameStats.totalPlayers.toLocaleString()} players · ${gameStats.totalGames.toLocaleString()} games`
                 : "Top scores"}
-              {" · "}✓ = ≥{formatTracker(requiredTracker)} TRACKER
+              {" · "}✓ = ≥{minHoldLabel} TRACKER
             </p>
           </div>
         </div>
@@ -461,9 +525,53 @@ export default function SnakePage() {
       {/* Get the game */}
       <section className={styles.panel}>
         <h2 className={styles.panelTitle}>Get the game</h2>
+        <div className={styles.badgeRow}>
+          <a
+            href={SNAKE_SDS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.storeBadge}
+            aria-label="Get it on Solana dApp Store"
+          >
+            <Image
+              src="/sds-badge.svg"
+              alt="Get it on Solana dApp Store"
+              width={180}
+              height={70}
+            />
+          </a>
+          <a
+            href={PLAY_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.storeBadge}
+            aria-label="Get it on Google Play"
+          >
+            <Image
+              src="/badges/google-play.svg"
+              alt="Get it on Google Play"
+              width={180}
+              height={54}
+            />
+          </a>
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.storeBadge}
+            aria-label="Download on the App Store"
+          >
+            <Image
+              src="/badges/app-store.svg"
+              alt="Download on the App Store"
+              width={180}
+              height={54}
+            />
+          </a>
+        </div>
         <div className={styles.downloadRow}>
-          <Link href={SNAKE_DAPP_URL} className={styles.ctaPrimary}>
-            Seeker dApp Store
+          <Link href={SNAKE_DAPP_URL} className={styles.ctaGhost}>
+            Listing on SeekerTracker
           </Link>
           <a href="snakeseeker://" className={styles.ctaGhost}>
             Open app
@@ -476,9 +584,26 @@ export default function SnakePage() {
           >
             Download APK
           </a>
+          <button
+            type="button"
+            className={styles.ctaBuy}
+            onClick={openJupiter}
+            disabled={!isJupiterReady}
+          >
+            Buy $TRACKER
+          </button>
+          <a
+            href={JUP_BUY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaGhost}
+          >
+            Jupiter
+          </a>
         </div>
         <p className={styles.panelSub}>
-          Live package <code>{SNAKE_DAPP}</code> · Android / Seeker
+          Live package <code>{SNAKE_DAPP}</code> · Seeker / Android · min hold{" "}
+          <strong>{minHoldLabel} TRACKER</strong>
         </p>
       </section>
 

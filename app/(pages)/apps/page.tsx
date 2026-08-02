@@ -2,10 +2,9 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import AppsClient from './AppsClient'
 
-const BASE_URL = 'https://www.seekertracker.com'
-// Rich store card (app icons + logo + CTA), served from /api so it never
-// collides with the /apps/[package] dynamic route.
-const OG_IMAGE = `${BASE_URL}/api/apps/og`
+const BASE_URL = 'https://seekertracker.com'
+// Static OG — OpenNext/CF is flaky with dynamic ImageResponse
+const OG_IMAGE = `${BASE_URL}/og/dapps.png`
 
 export const metadata: Metadata = {
     title: 'Seeker dApp Store – Browse Apps for Solana Seeker | SeekerTracker',

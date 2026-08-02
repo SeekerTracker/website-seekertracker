@@ -11,8 +11,7 @@ const TITLE = "Seeker Tracker API for agents";
 const DESCRIPTION =
   "Public JSON APIs for .skr domains, Seeker dApps, SKR stats, and prices. llms.txt, OpenAPI, open CORS. No auth for reads.";
 const URL = `${SITE_ORIGIN}/developers`;
-// Absolute /api OG URL — never collides with /image/{domain} or dynamic routes
-const OG_IMAGE = `${SITE_ORIGIN}/api/og/developers`;
+const OG_IMAGE = `${SITE_ORIGIN}/og/developers.png`;
 
 export const metadata: Metadata = {
   // absolute: avoid layout template lengthening the share title
