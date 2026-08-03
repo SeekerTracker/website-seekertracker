@@ -79,11 +79,11 @@ const Footer = () => {
               />
             </Link>
             <a
-              href="https://play.google.com/store/search?q=Seeker%20Tracker%20Solana&c=apps"
+              href="https://play.google.com/store/apps/details?id=com.seekertracker"
               target="_blank"
               rel="noopener noreferrer"
               className={styles.downloadBadge}
-              aria-label="Get it on Google Play"
+              aria-label="Get Seeker Tracker on Google Play"
             >
               <Image
                 src="/badges/google-play.svg"

@@ -23,11 +23,13 @@ const SNAKE_SDS_URL =
 const APK_URL =
   "https://arweave.net/H9PSe13l-zFtQdsW9IEFBzjrJywIH5xiYadPtf1PWlA";
 const JUP_BUY_URL = `https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=${JUP_REFERRAL}`;
-/** Placeholder / search until native listings exist */
-const PLAY_STORE_URL =
-  "https://play.google.com/store/search?q=Snake%20Seeker%20Solana&c=apps";
-const APP_STORE_URL =
-  "https://apps.apple.com/us/search?term=Solana%20Mobile%20Seeker";
+/** Official iOS listing */
+const APP_STORE_URL = "https://apps.apple.com/app/snake-seeker/id6759360443";
+/**
+ * No Google Play listing for Snake Seeker yet — Play badge falls back to APK.
+ * When listed, set e.g. https://play.google.com/store/apps/details?id=...
+ */
+const PLAY_STORE_URL = APK_URL;
 
 type LeaderboardEntry = {
   wallet: string;
@@ -545,11 +547,12 @@ export default function SnakePage() {
             target="_blank"
             rel="noopener noreferrer"
             className={styles.storeBadge}
-            aria-label="Get it on Google Play"
+            aria-label="Download Android APK (not on Google Play yet)"
+            title="Android APK — not on Google Play yet"
           >
             <Image
               src="/badges/google-play.svg"
-              alt="Get it on Google Play"
+              alt="Download Android APK"
               width={180}
               height={54}
             />
@@ -559,7 +562,7 @@ export default function SnakePage() {
             target="_blank"
             rel="noopener noreferrer"
             className={styles.storeBadge}
-            aria-label="Download on the App Store"
+            aria-label="Download Snake Seeker on the App Store"
           >
             <Image
               src="/badges/app-store.svg"
@@ -584,6 +587,14 @@ export default function SnakePage() {
           >
             Download APK
           </a>
+          <a
+            href={APP_STORE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaGhost}
+          >
+            App Store
+          </a>
           <button
             type="button"
             className={styles.ctaBuy}
@@ -602,7 +613,8 @@ export default function SnakePage() {
           </a>
         </div>
         <p className={styles.panelSub}>
-          Live package <code>{SNAKE_DAPP}</code> · Seeker / Android · min hold{" "}
+          iOS App Store · Android APK / Seeker dApp Store · package{" "}
+          <code>{SNAKE_DAPP}</code> · min hold{" "}
           <strong>{minHoldLabel} TRACKER</strong>
         </p>
       </section>
