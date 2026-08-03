@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 const TITLE = "Snake | SeekerTracker";
 const DESCRIPTION =
-  "Play Snake on Solana Seeker (com.snakeseeker). Hold ≥1M TRACKER to earn airdrops. Live on the dApp Store.";
+  "Play Snake Seeker on iOS & Android. Hold ≥1M TRACKER to earn airdrops. App Store + Seeker dApp Store.";
 const OG = "https://seekertracker.com/og/snake.png";
 
 export const metadata: Metadata = {
