@@ -40,7 +40,7 @@ export default function TermsPage() {
                     <section>
                         <h2>Who We Are</h2>
                         <p>
-                            The Services are operated by Seeker Tracker / Milysec (&quot;we&quot;,
+                            The Services are operated by Seeker Tracker (&quot;we&quot;,
                             &quot;us&quot;, or &quot;our&quot;). Contact:{" "}
                             <a href="mailto:snake@seekertracker.com">snake@seekertracker.com</a>{" "}
                             or{" "}
