@@ -29,6 +29,7 @@ const STATIC_PATHS: {
   { path: "/openapi.json", changeFrequency: "weekly", priority: 0.7 },
   { path: "/api", changeFrequency: "weekly", priority: 0.7 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
+  { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
   { path: "/license", changeFrequency: "yearly", priority: 0.3 },
   { path: "/copyright", changeFrequency: "yearly", priority: 0.3 },
 ];

@@ -31,6 +31,7 @@ const PARTNERS = [
 const LEGAL = [
   { href: "/whitepaper", label: "Whitepaper" },
   { href: "/brand", label: "Brand" },
+  { href: "/terms", label: "Terms" },
   { href: "/privacy", label: "Privacy" },
   { href: "/license", label: "License" },
   { href: "/copyright", label: "Copyright" },
