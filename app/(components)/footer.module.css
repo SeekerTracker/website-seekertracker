@@ -149,6 +149,13 @@
   border-radius: 4px;
 }
 
+.partnerLogoWide {
+  width: 3.4rem !important;
+  height: 0.85rem !important;
+  border-radius: 0 !important;
+  opacity: 0.9 !important;
+}
+
 /* Social — always visible, quiet chips */
 
 .social {

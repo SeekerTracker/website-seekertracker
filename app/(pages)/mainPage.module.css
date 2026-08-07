@@ -533,6 +533,13 @@ a.metric:focus-visible {
   opacity: 0.9;
 }
 
+.chipLogoWide {
+  width: 2.1rem !important;
+  height: 0.7rem !important;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
 .chip:hover {
   background: rgba(0, 255, 217, 0.1);
   border-color: rgba(0, 255, 217, 0.35);
@@ -554,6 +561,18 @@ a.metric:focus-visible {
 .earnedNote strong {
   color: #00ffd9;
   font-variant-numeric: tabular-nums;
+}
+
+.partnerInline {
+  color: #00ffd9;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 255, 217, 0.35);
+}
+
+.partnerInline:hover {
+  color: #66ffe8;
+  border-bottom-color: rgba(0, 255, 217, 0.7);
 }
 
 /* ── dApps spotlight ──────────────────────────────────────── */

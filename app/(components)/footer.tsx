@@ -26,6 +26,13 @@ const PARTNERS = [
     src: "/icons/alldomain.webp",
     alt: "AllDomains",
   },
+  {
+    label: "Cases by",
+    href: "https://solyd.store/?ref=tracker",
+    src: "/icons/solyd.png",
+    alt: "Solyd",
+    wide: true,
+  },
 ] as const;
 
 const LEGAL = [
@@ -119,11 +126,28 @@ const Footer = () => {
               <Link
                 href={p.href}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel={
+                  p.alt === "Solyd"
+                    ? "noopener noreferrer sponsored"
+                    : "noopener noreferrer"
+                }
                 className={styles.partner}
+                title={
+                  p.alt === "Solyd"
+                    ? "Seeker cases — Solyd partner"
+                    : undefined
+                }
               >
                 <span className={styles.partnerLabel}>{p.label}</span>
-                <Image src={p.src} alt={p.alt} width={28} height={28} />
+                <Image
+                  src={p.src}
+                  alt={p.alt}
+                  width={"wide" in p && p.wide ? 72 : 28}
+                  height={"wide" in p && p.wide ? 16 : 28}
+                  className={
+                    "wide" in p && p.wide ? styles.partnerLogoWide : undefined
+                  }
+                />
               </Link>
             </li>
           ))}

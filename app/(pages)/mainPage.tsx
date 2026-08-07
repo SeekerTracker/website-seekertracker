@@ -652,15 +652,32 @@ const MainPage = () => {
             <a
               href="https://solyd.store/?ref=tracker"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer sponsored"
               className={style.chip}
+              title="Official Seeker cases — Solyd partner"
+              aria-label="Shop Seeker cases at Solyd (partner)"
             >
-              <Image src="/icons/seeker.png" alt="" width={14} height={14} />
-              Case
+              <Image
+                src="/icons/solyd.png"
+                alt=""
+                width={36}
+                height={12}
+                className={style.chipLogoWide}
+              />
+              Solyd Case
             </a>
           </div>
           <p className={style.earnedNote}>
             <strong>15</strong> Seekers earned via the tracker community
+            {" · "}
+            <a
+              href="https://solyd.store/?ref=tracker"
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className={style.partnerInline}
+            >
+              Cases by Solyd
+            </a>
           </p>
         </section>
       </div>
