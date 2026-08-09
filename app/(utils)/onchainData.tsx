@@ -37,7 +37,7 @@ export const getOnchainDomainData = async (domain: string, subDomain: string): P
 
 
     const firstTxHash = await getFirstTxHash(subDomain_NA_Pkey)
-    if (!firstTxHash) {
+    if (!firstTxHash?.hash) {
         console.error("No transaction found for this domain")
     }
 
@@ -45,8 +45,8 @@ export const getOnchainDomainData = async (domain: string, subDomain: string): P
         domain: domain,
         subdomain: subDomain,
         created_at: new Date(createdAt * 1000).toISOString(),
-        subdomain_tx: firstTxHash.hash || "",
-        subdomain_tx_blocktime: new Date(firstTxHash.blockTime * 1000).toISOString(),
+        subdomain_tx: firstTxHash?.hash || "",
+        subdomain_tx_blocktime: new Date((firstTxHash?.blockTime || createdAt) * 1000).toISOString(),
         name_account: subDomain_NA_Pkey.toBase58(),
         tld_account: subDomain_TLD_Pkey.toBase58(),
         non_transferable: nonTransferable,

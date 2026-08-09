@@ -1,6 +1,7 @@
 /**
  * Domain index: Turso-first, snapshot fallback.
  * Turso is the source of truth after seed + on-chain indexer.
+ * Missing rows (index lag) fall back to live ANS on-chain resolve + upsert.
  */
 import type { DomainInfo } from "../constantTypes";
 import {
@@ -10,6 +11,7 @@ import {
   rowToDomainInfo,
   type SeekerDomainRow,
 } from "./turso";
+import { getOnchainDomainData } from "../onchainData";
 
 export type DomainRecord = {
   rank: number;
@@ -258,6 +260,115 @@ export async function listDomains(params: ListParams = {}) {
   return listFromIndex(idx, params);
 }
 
+/** Strip .skr / leading dots so "arbitrum.skr" matches subdomain "arbitrum". */
+export function normalizeSubdomainQuery(input: string): string {
+  let raw = (input || "").trim().toLowerCase();
+  if (raw.endsWith(".skr")) raw = raw.slice(0, -4);
+  if (raw.startsWith(".")) raw = raw.slice(1);
+  return raw.trim();
+}
+
+const SIMPLE_SUB_RE = /^[a-z0-9][a-z0-9_-]{0,62}$/;
+
+/**
+ * Live ANS resolve when Turso is missing a name (indexer lag).
+ * Upserts into Turso so subsequent web search hits.
+ */
+export async function resolveAndCacheDomain(
+  name: string
+): Promise<DomainRecord | null> {
+  const raw = normalizeSubdomainQuery(name);
+  if (!raw || !SIMPLE_SUB_RE.test(raw)) return null;
+
+  let onchain: DomainInfo | undefined;
+  try {
+    onchain = await getOnchainDomainData(".skr", raw);
+  } catch (e) {
+    console.error("on-chain resolve failed", raw, e);
+    return null;
+  }
+  if (!onchain?.owner) return null;
+
+  const record: DomainRecord = {
+    rank: 0,
+    domain: ".skr",
+    subdomain: raw,
+    owner: onchain.owner,
+    created_at: onchain.created_at || new Date().toISOString(),
+    name_account: onchain.name_account || null,
+    tld_account: onchain.tld_account || null,
+    subdomain_tx: onchain.subdomain_tx || null,
+    subdomain_tx_blocktime:
+      onchain.subdomain_tx_blocktime || onchain.created_at || null,
+    non_transferable: onchain.non_transferable ? 1 : 0,
+  };
+
+  if (!hasTurso()) return record;
+
+  try {
+    const db = getTurso();
+    await ensureDomainSchema(db);
+    const existing = await db.execute({
+      sql: `SELECT rank FROM seeker_domains WHERE LOWER(subdomain) = ? LIMIT 1`,
+      args: [raw],
+    });
+    if (existing.rows[0]) {
+      const rank = Number(existing.rows[0].rank);
+      await db.execute({
+        sql: `UPDATE seeker_domains SET
+              owner = ?,
+              created_at = ?,
+              name_account = ?,
+              tld_account = ?,
+              subdomain_tx = COALESCE(?, subdomain_tx),
+              subdomain_tx_blocktime = COALESCE(?, subdomain_tx_blocktime),
+              non_transferable = ?
+              WHERE LOWER(subdomain) = ?`,
+        args: [
+          record.owner,
+          record.created_at,
+          record.name_account,
+          record.tld_account,
+          record.subdomain_tx,
+          record.subdomain_tx_blocktime,
+          record.non_transferable ? 1 : 0,
+          raw,
+        ],
+      });
+      record.rank = rank;
+    } else {
+      const maxRes = await db.execute(
+        "SELECT COALESCE(MAX(rank), 0) AS m FROM seeker_domains"
+      );
+      const rank = Number(maxRes.rows[0]?.m ?? 0) + 1;
+      await db.execute({
+        sql: `INSERT INTO seeker_domains
+          (rank, domain, subdomain, owner, created_at, name_account, tld_account,
+           subdomain_tx, subdomain_tx_blocktime, non_transferable)
+          VALUES (?, '.skr', ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          rank,
+          raw,
+          record.owner,
+          record.created_at,
+          record.name_account,
+          record.tld_account,
+          record.subdomain_tx,
+          record.subdomain_tx_blocktime,
+          record.non_transferable ? 1 : 0,
+        ],
+      });
+      record.rank = rank;
+    }
+    // Drop in-memory index so next list sees the upsert
+    index = null;
+  } catch (e) {
+    console.error("Turso upsert after on-chain resolve failed", raw, e);
+  }
+
+  return record;
+}
+
 async function listDomainsFromTurso(params: ListParams) {
   const db = getTurso();
   await ensureDomainSchema(db);
@@ -267,7 +378,7 @@ async function listDomainsFromTurso(params: ListParams) {
   const page = Math.max(1, params.page ?? 1);
   const pageSize = Math.min(200_000, Math.max(1, params.pageSize ?? 50));
   const sortBy = params.sortBy ?? "newest";
-  const query = (params.query || "").trim().toLowerCase();
+  const query = normalizeSubdomainQuery(params.query || "");
   const rank = params.rank;
   const before = params.beforeTimestamp;
 
@@ -338,19 +449,38 @@ async function listDomainsFromTurso(params: ListParams) {
   const maxRank = Number(totalAll.rows[0]?.max_rank ?? 0);
   const totalDomains = Math.max(indexedCount, maxRank);
 
+  let rows = (listRes.rows as unknown as SeekerDomainRow[]).map(rowToDomainInfo);
+  let matchTotal = total;
+
+  // Index lag: exact name search with 0 Turso hits → live ANS + cache
+  if (
+    query &&
+    matchTotal === 0 &&
+    page === 1 &&
+    !rank &&
+    !before &&
+    SIMPLE_SUB_RE.test(query)
+  ) {
+    const resolved = await resolveAndCacheDomain(query);
+    if (resolved) {
+      rows = [recordToDomainInfo(resolved)];
+      matchTotal = 1;
+    }
+  }
+
   return {
     success: true as const,
     message: "Fetched domains successfully",
     pagination: {
-      total,
+      total: matchTotal,
       page,
       pageSize,
-      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      totalPages: Math.max(1, Math.ceil(matchTotal / pageSize)),
     },
     totalDomains,
-    indexedCount,
+    indexedCount: Math.max(indexedCount, matchTotal > total ? indexedCount + 1 : indexedCount),
     maxRank,
-    matchCount: total,
+    matchCount: matchTotal,
     domainsByDate,
     domainsByTimeRange: {
       "0-6": sum(0, 6),
@@ -358,7 +488,7 @@ async function listDomainsFromTurso(params: ListParams) {
       "12-18": sum(12, 18),
       "18-24": sum(18, 24),
     },
-    data: (listRes.rows as unknown as SeekerDomainRow[]).map(rowToDomainInfo),
+    data: rows,
     source: "turso" as const,
   };
 }
@@ -367,7 +497,7 @@ function listFromIndex(idx: Index, params: ListParams) {
   const page = Math.max(1, params.page ?? 1);
   const pageSize = Math.min(200_000, Math.max(1, params.pageSize ?? 50));
   const sortBy = params.sortBy ?? "newest";
-  const query = (params.query || "").trim().toLowerCase();
+  const query = normalizeSubdomainQuery(params.query || "");
   const rank = params.rank;
   const before = params.beforeTimestamp;
 
@@ -433,9 +563,8 @@ function listFromIndex(idx: Index, params: ListParams) {
 }
 
 export async function getDomainByName(name: string): Promise<DomainRecord | null> {
-  let raw = name.trim().toLowerCase();
-  if (raw.endsWith(".skr")) raw = raw.slice(0, -4);
-  if (raw.startsWith(".")) raw = raw.slice(1);
+  const raw = normalizeSubdomainQuery(name);
+  if (!raw) return null;
 
   if (hasTurso()) {
     try {
@@ -464,13 +593,17 @@ export async function getDomainByName(name: string): Promise<DomainRecord | null
           non_transferable: Number(r.non_transferable || 0),
         };
       }
-      return null;
     } catch {
       /* fall through */
     }
+  } else {
+    const idx = await ensureIndex();
+    const hit = idx.bySubdomain.get(raw);
+    if (hit) return hit;
   }
-  const idx = await ensureIndex();
-  return idx.bySubdomain.get(raw) || null;
+
+  // Missing from index (or snapshot) — Android-style on-chain path
+  return resolveAndCacheDomain(raw);
 }
 
 export async function getDomainsByOwner(wallet: string): Promise<DomainRecord[]> {
