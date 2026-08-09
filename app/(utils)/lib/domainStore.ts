@@ -312,11 +312,14 @@ export async function resolveAndCacheDomain(
       sql: `SELECT rank FROM seeker_domains WHERE LOWER(subdomain) = ? LIMIT 1`,
       args: [raw],
     });
+<<<<<<< HEAD
     const nameAccount = record.name_account || "";
     const tldAccount = record.tld_account || "";
     const subTx = record.subdomain_tx || "";
     const subTxBt = record.subdomain_tx_blocktime || "";
     const nonXfer = record.non_transferable ? 1 : 0;
+=======
+>>>>>>> be22ef2 (fix: web search miss for on-chain .skr names)
     if (existing.rows[0]) {
       const rank = Number(existing.rows[0].rank);
       await db.execute({
@@ -332,11 +335,19 @@ export async function resolveAndCacheDomain(
         args: [
           record.owner,
           record.created_at,
+<<<<<<< HEAD
           nameAccount,
           tldAccount,
           subTx,
           subTxBt,
           nonXfer,
+=======
+          record.name_account,
+          record.tld_account,
+          record.subdomain_tx,
+          record.subdomain_tx_blocktime,
+          record.non_transferable ? 1 : 0,
+>>>>>>> be22ef2 (fix: web search miss for on-chain .skr names)
           raw,
         ],
       });
@@ -356,11 +367,19 @@ export async function resolveAndCacheDomain(
           raw,
           record.owner,
           record.created_at,
+<<<<<<< HEAD
           nameAccount,
           tldAccount,
           subTx,
           subTxBt,
           nonXfer,
+=======
+          record.name_account,
+          record.tld_account,
+          record.subdomain_tx,
+          record.subdomain_tx_blocktime,
+          record.non_transferable ? 1 : 0,
+>>>>>>> be22ef2 (fix: web search miss for on-chain .skr names)
         ],
       });
       record.rank = rank;
@@ -468,6 +487,7 @@ async function listDomainsFromTurso(params: ListParams) {
   ) {
     const resolved = await resolveAndCacheDomain(query);
     if (resolved) {
+<<<<<<< HEAD
       rows = [
         rowToDomainInfo({
           rank: resolved.rank,
@@ -482,6 +502,9 @@ async function listDomainsFromTurso(params: ListParams) {
           non_transferable: resolved.non_transferable ? 1 : 0,
         }),
       ];
+=======
+      rows = [recordToDomainInfo(resolved)];
+>>>>>>> be22ef2 (fix: web search miss for on-chain .skr names)
       matchTotal = 1;
     }
   }
