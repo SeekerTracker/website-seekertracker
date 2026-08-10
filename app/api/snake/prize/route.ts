@@ -2,57 +2,74 @@ import { NextResponse } from "next/server";
 import { CONN_RPC_URL } from "../../../(utils)/constant";
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
+/** Win / airdrop mint (Seeker SKR) */
+const SKR_TOKEN = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
+/** Hold gate mint — returned only for eligibility UI, not the prize pool */
 const TRACKER_TOKEN = "ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS";
+const AIRDROP_API = "https://snake-airdrop-api.gm-4e8.workers.dev";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
+  try {
+    // Prefer live airdrop worker (already SKR)
     try {
-        const response = await fetch(CONN_RPC_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                jsonrpc: "2.0",
-                id: "snake-prize",
-                method: "getAssetsByOwner",
-                params: {
-                    ownerAddress: PRIZE_WALLET,
-                    displayOptions: {
-                        showFungible: true,
-                        showNativeBalance: true,
-                    },
-                },
-            }),
-            next: { revalidate: 60 },
-        });
-
-        const data = await response.json();
-
-        if (!data.result) {
-            return NextResponse.json({ trackerBalance: 0, solBalance: 0 });
-        }
-
-        const { items, nativeBalance } = data.result;
-        const solBalance = (nativeBalance?.lamports || 0) / 1e9;
-
-        // Find TRACKER token
-        const trackerToken = items?.find(
-            (item: { id: string; token_info?: { balance: number; decimals: number } }) =>
-                item.id === TRACKER_TOKEN
-        );
-
-        const trackerBalance = trackerToken?.token_info
-            ? trackerToken.token_info.balance / Math.pow(10, trackerToken.token_info.decimals)
-            : 0;
-
-        return NextResponse.json({
-            trackerBalance,
-            solBalance,
+      const apiRes = await fetch(AIRDROP_API + "/", { cache: "no-store" });
+      if (apiRes.ok) {
+        const api = await apiRes.json();
+        if (typeof api.rewardPool === "number") {
+          return NextResponse.json({
+            skrBalance: api.rewardPool,
+            trackerBalance: api.rewardPool, // legacy field — same SKR value for old clients
+            rewardMint: SKR_TOKEN,
+            rewardSymbol: "SKR",
+            solBalance: 0,
             wallet: PRIZE_WALLET,
-        });
-    } catch (error) {
-        console.error("Snake prize API error:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch prize pool" },
-            { status: 500 }
-        );
+          });
+        }
+      }
+    } catch {
+      /* fall through to RPC */
     }
+
+    const response = await fetch(CONN_RPC_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "snake-prize",
+        method: "getTokenAccountsByOwner",
+        params: [
+          PRIZE_WALLET,
+          { mint: SKR_TOKEN },
+          { encoding: "jsonParsed" },
+        ],
+      }),
+      cache: "no-store",
+    });
+
+    const data = await response.json();
+    const values = data?.result?.value || [];
+    let skrBalance = 0;
+    for (const v of values) {
+      const ui = v?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
+      if (typeof ui === "number") skrBalance += ui;
+    }
+
+    return NextResponse.json({
+      skrBalance,
+      trackerBalance: skrBalance, // legacy alias — now SKR
+      rewardMint: SKR_TOKEN,
+      rewardSymbol: "SKR",
+      holdMint: TRACKER_TOKEN,
+      solBalance: 0,
+      wallet: PRIZE_WALLET,
+    });
+  } catch (error) {
+    console.error("Snake prize API error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch prize pool" },
+      { status: 500 }
+    );
+  }
 }

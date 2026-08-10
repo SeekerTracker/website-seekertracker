@@ -77,7 +77,7 @@ function shortWallet(w: string) {
 
 export default function SnakePage() {
   const [prizePool, setPrizePool] = useState<{
-    trackerBalance: number;
+    skrBalance: number;
     solBalance: number;
   } | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -108,7 +108,7 @@ export default function SnakePage() {
       if (!res.ok) return;
       const data = await res.json();
       setPrizePool({
-        trackerBalance: Number(data.trackerBalance) || 0,
+        skrBalance: Number(data.skrBalance ?? data.trackerBalance) || 0,
         solBalance: Number(data.solBalance) || 0,
       });
     } catch {
@@ -293,7 +293,7 @@ export default function SnakePage() {
           <span className={styles.metricValue}>
             {loading
               ? "…"
-              : formatTracker(prizePool?.trackerBalance || 0)}
+              : `${formatTracker(prizePool?.skrBalance || 0)} SKR`}
           </span>
         </div>
         <div className={styles.metric}>
@@ -417,7 +417,7 @@ export default function SnakePage() {
           <p className={styles.treasuryBig}>
             {loading
               ? "…"
-              : `${formatTracker(prizePool?.trackerBalance || 0)} TRACKER`}
+              : `${formatTracker(prizePool?.skrBalance || 0)} SKR`}
           </p>
           {prizePool && prizePool.solBalance > 0 && (
             <p className={styles.panelSub}>
