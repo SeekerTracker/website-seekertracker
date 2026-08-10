@@ -52,13 +52,17 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
         }
     };
 
+    const JUPITER_WALLET_URL = "https://jupiter.go.link/l6gxn";
+
     const getInstallUrl = (walletName: string) => {
         const name = walletName.toLowerCase();
+        if (name.includes("jupiter") || name.includes("jup")) return JUPITER_WALLET_URL;
         if (name.includes("phantom")) return "https://phantom.app";
         if (name.includes("solflare")) return "https://solflare.com";
         if (name.includes("backpack")) return "https://backpack.app";
         if (name.includes("glow")) return "https://glow.app";
-        return "https://phantom.app";
+        // Prefer Jupiter Mobile for generic “get a wallet”
+        return JUPITER_WALLET_URL;
     };
 
     // Filter and sort wallets
@@ -223,7 +227,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                             <div className={styles.installButtons}>
                                 <button
                                     className={styles.primaryButton}
-                                    onClick={() => window.open("https://sal.fun/jup", "_blank")}
+                                    onClick={() => window.open(JUPITER_WALLET_URL, "_blank")}
                                 >
                                     Get Jupiter
                                 </button>
