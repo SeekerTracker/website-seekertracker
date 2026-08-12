@@ -242,7 +242,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                                 label="Owner"
                                 mono
                                 value={shortAddr(domainData.owner)}
-                                href={`https://solscan.io/account/${domainData.owner}`}
+                                href={`https://sol.new/address/${domainData.owner}`}
                                 onCopy={() => copyText('owner', domainData.owner)}
                                 copied={copied === 'owner'}
                             />
@@ -269,7 +269,7 @@ const UserDomain = ({ userDomain }: { userDomain: string }) => {
                                 label="Domain address"
                                 mono
                                 value={shortAddr(domainData.name_account)}
-                                href={`https://solscan.io/account/${domainData.name_account}`}
+                                href={`https://sol.new/address/${domainData.name_account}`}
                             />
                         </dl>
                         <Link href={`/skr?q=${userDomain}`} className={styles.skrButton}>

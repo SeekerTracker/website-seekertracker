@@ -3,21 +3,22 @@ import React, { useEffect, useState } from 'react'
 import styles from './seekerCard.module.css'
 import { DomainInfo } from 'app/(utils)/constantTypes'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 const SeekerCard = ({ domainInfo, showRank }: { domainInfo: DomainInfo, showRank: boolean }) => {
-    const router = useRouter()
-
-
-
     const handleCardClick = (e: React.MouseEvent) => {
         // Prevent navigation if user clicked a link inside the card
         const target = e.target as HTMLElement
         if (target.closest('a')) return
 
-        // Navigate to internal domain route
-        router.push(`/id/${domainInfo.subdomain}${domainInfo.domain}`)
+        // External SeekerID profile on MySeeker
+        const base = domainInfo.subdomain
+        window.open(
+            `https://myseeker.id/${encodeURIComponent(base)}`,
+            '_blank',
+            'noopener,noreferrer'
+        )
     }
+
     return (
         <div
             className={styles.seekerCard}
@@ -37,7 +38,9 @@ const SeekerCard = ({ domainInfo, showRank }: { domainInfo: DomainInfo, showRank
                 {isNew(domainInfo.created_at) && <span className={styles.nameTag}>New</span>}
                 {showRank && <span className={styles.rankTag}>#{domainInfo.rank}</span>}
             </div>
-            <span className={styles.domainName}>{domainInfo.subdomain}{domainInfo.domain}</span>
+            <span className={styles.domainName}>
+                {domainInfo.subdomain}{domainInfo.domain}
+            </span>
             <div className={styles.domainInfo}>
                 <div className={styles.eachInfo}>
                     <span>Activated</span>
@@ -59,19 +62,26 @@ const SeekerCard = ({ domainInfo, showRank }: { domainInfo: DomainInfo, showRank
                 <div className={styles.eachInfo}>
                     <span>Owner</span>
                     <Link
-                        href={`https://solscan.io/account/${domainInfo.owner}`}
-                        target='_blank'
+                        href={`https://sol.new/address/${domainInfo.owner}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                     >
-                        <span>{domainInfo.owner?.slice(0, 5)}...{domainInfo.owner?.slice(-5)}</span>
+                        <span>
+                            {domainInfo.owner?.slice(0, 5)}...{domainInfo.owner?.slice(-5)}
+                        </span>
                     </Link>
                 </div>
                 <div className={styles.eachInfo}>
                     <span>Transaction</span>
                     <Link
                         href={`https://solscan.io/tx/${domainInfo.subdomain_tx}`}
-                        target='_blank'
+                        target="_blank"
+                        rel="noopener noreferrer"
                     >
-                        <span>{domainInfo.subdomain_tx?.slice(0, 5)}...{domainInfo.subdomain_tx?.slice(-5)}</span>
+                        <span>
+                            {domainInfo.subdomain_tx?.slice(0, 5)}...
+                            {domainInfo.subdomain_tx?.slice(-5)}
+                        </span>
                     </Link>
                 </div>
                 <div className={styles.eachInfo}>
@@ -85,7 +95,6 @@ const SeekerCard = ({ domainInfo, showRank }: { domainInfo: DomainInfo, showRank
 
 export default SeekerCard
 
-
 export const TimeAgo = ({ time }: { time: string }) => {
     const [display, setDisplay] = useState("...");
 
@@ -98,32 +107,31 @@ export const TimeAgo = ({ time }: { time: string }) => {
             const secondsPast = Math.floor((now - timeStamp) / 1000);
 
             if (secondsPast < 60) {
-                setDisplay(`${secondsPast}s`);
+                setDisplay(`${secondsPast}s ago`);
             } else if (secondsPast < 3600) {
-                const minutes = Math.floor(secondsPast / 60);
-                setDisplay(`${minutes}m`);
+                setDisplay(`${Math.floor(secondsPast / 60)}m ago`);
             } else if (secondsPast < 86400) {
-                const hours = Math.floor(secondsPast / 3600);
-                setDisplay(`${hours}h`);
+                setDisplay(`${Math.floor(secondsPast / 3600)}h ago`);
+            } else if (secondsPast < 2592000) {
+                setDisplay(`${Math.floor(secondsPast / 86400)}d ago`);
+            } else if (secondsPast < 31536000) {
+                setDisplay(`${Math.floor(secondsPast / 2592000)}mo ago`);
             } else {
-                const days = Math.floor(secondsPast / 86400);
-                setDisplay(`${days}d`);
+                setDisplay(`${Math.floor(secondsPast / 31536000)}y ago`);
             }
         };
 
-        update(); // initial render
-
-        // ⏱ update more frequently at first, then slow down
-        const secondsPast = Math.floor((Date.now() - new Date(time).getTime()) / 1000);
-        const interval = secondsPast < 60 ? 1000 : 60_000;
-
-        const timer = setInterval(update, interval);
-        return () => clearInterval(timer);
+        update();
+        const id = setInterval(update, 30_000);
+        return () => clearInterval(id);
     }, [time]);
 
-    return <span>{display}</span>;
+    return <>{display}</>;
 };
 
-function isNew(createdAt: string | Date, minutes = 9): boolean {
-    return (Date.now() - new Date(createdAt).getTime()) / 60000 <= minutes;
+function isNew(created_at: string) {
+    if (!created_at) return false;
+    const t = new Date(created_at).getTime();
+    if (!Number.isFinite(t)) return false;
+    return Date.now() - t < 24 * 60 * 60 * 1000;
 }

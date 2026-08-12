@@ -487,6 +487,12 @@
   font-weight: 700;
   color: #9ed9cc;
   font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.skrId:hover {
+  color: #00ffd9;
+  text-decoration: underline;
 }
 
 .youChip,

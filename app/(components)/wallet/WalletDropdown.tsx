@@ -144,9 +144,9 @@ export default function WalletDropdown({
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            window.open(`https://solscan.io/account/${address}`, "_blank");
+                            window.open(`https://sol.new/address/${address}`, "_blank");
                         }}
-                        title="View on Solscan"
+                        title="View on sol.new"
                     >
                         ↗
                     </button>
