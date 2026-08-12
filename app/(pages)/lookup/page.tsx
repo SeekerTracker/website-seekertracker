@@ -107,7 +107,7 @@ const LookupPage = () => {
                     <div className={styles.resultHeader}>
                         <span className={styles.walletLabel}>Wallet:</span>
                         <Link
-                            href={`https://solscan.io/account/${result.wallet}`}
+                            href={`https://sol.new/address/${result.wallet}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className={styles.walletLink}
@@ -150,7 +150,9 @@ const LookupPage = () => {
                                     <div key={index} className={styles.domainCard}>
                                         <div className={styles.domainName}>
                                             <Link
-                                                href={`/id/${domain.subdomain}`}
+                                                href={`https://myseeker.id/${encodeURIComponent(domain.subdomain)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 className={styles.domainLink}
                                             >
                                                 {domain.subdomain}.skr

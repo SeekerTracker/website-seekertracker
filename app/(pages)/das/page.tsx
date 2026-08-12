@@ -753,7 +753,11 @@ export default function DasPage() {
                                                     </td>
                                                     <td>
                                                         <Link
-                                                            href={`/id/${skrId}`}
+                                                            href={`https://myseeker.id/${encodeURIComponent(
+                                                                String(skrId).replace(/\.skr$/i, "")
+                                                            )}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
                                                             className={styles.skrLink}
                                                         >
                                                             {skrId}
@@ -790,7 +794,7 @@ export default function DasPage() {
                                                     </td>
                                                     <td className={styles.tdWallet}>
                                                         <a
-                                                            href={`https://solscan.io/account/${row.owner}`}
+                                                            href={`https://sol.new/address/${row.owner}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className={styles.walletLink}

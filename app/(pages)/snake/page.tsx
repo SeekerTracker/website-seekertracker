@@ -55,8 +55,22 @@ type GameConfig = {
 function displaySkr(entry: LeaderboardEntry): string | null {
   const raw = (entry.skrId || entry.username || "").trim();
   if (!raw) return null;
+  // Only treat pure SeekerIDs as .skr (ignore junk like "foo.sol")
   const base = raw.replace(/\.skr$/i, "");
-  return base ? `${base}.skr` : null;
+  if (!base || /[^a-z0-9_-]/i.test(base)) return null;
+  if (/\.(sol|bonk|abc|poor|glow)$/i.test(raw) && !/\.skr$/i.test(raw)) {
+    return null;
+  }
+  return `${base}.skr`;
+}
+
+function skrProfileUrl(skrLabel: string): string {
+  const base = skrLabel.replace(/\.skr$/i, "");
+  return `https://myseeker.id/${encodeURIComponent(base)}`;
+}
+
+function addressUrl(wallet: string): string {
+  return `https://sol.new/address/${wallet}`;
 }
 
 /** Compact for balances; exact "1M" for thresholds when whole millions */
@@ -434,12 +448,12 @@ export default function SnakePage() {
             </p>
           )}
           <a
-            href={`https://solscan.io/account/${PRIZE_WALLET}`}
+            href={addressUrl(PRIZE_WALLET)}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.inlineLink}
           >
-            {shortWallet(PRIZE_WALLET)} on Solscan →
+            {shortWallet(PRIZE_WALLET)} on sol.new →
           </a>
         </div>
       </section>
@@ -505,13 +519,22 @@ export default function SnakePage() {
                   </span>
                   <span className={styles.player} role="cell">
                     {skrLabel && (
-                      <span className={styles.skrId}>{skrLabel}</span>
+                      <a
+                        href={skrProfileUrl(skrLabel)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.skrId}
+                        title={`${skrLabel} on MySeeker`}
+                      >
+                        {skrLabel}
+                      </a>
                     )}
                     <a
-                      href={`https://solscan.io/account/${entry.wallet}`}
+                      href={addressUrl(entry.wallet)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className={styles.walletLink}
+                      title="View on sol.new"
                     >
                       {shortWallet(entry.wallet)}
                     </a>
