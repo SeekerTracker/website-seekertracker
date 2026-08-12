@@ -39,6 +39,7 @@ type LeaderboardEntry = {
   total_plays: number;
   total_score: number;
   trackerBalance?: number;
+  skrBalance?: number;
   eligible?: boolean;
 };
 
@@ -59,7 +60,8 @@ function displaySkr(entry: LeaderboardEntry): string | null {
 }
 
 /** Compact for balances; exact "1M" for thresholds when whole millions */
-function formatTracker(num: number, exactMillions = false) {
+function formatToken(num: number, exactMillions = false) {
+  if (!Number.isFinite(num) || num <= 0) return "0";
   if (exactMillions && num >= 1_000_000 && num % 1_000_000 === 0) {
     return `${num / 1_000_000}M`;
   }
@@ -68,7 +70,14 @@ function formatTracker(num: number, exactMillions = false) {
     return `${m >= 10 ? m.toFixed(1) : m.toFixed(2)}M`.replace(/\.00M$/, "M");
   }
   if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
-  return Math.floor(num).toLocaleString();
+  if (num >= 100) return Math.floor(num).toLocaleString();
+  if (num >= 1) return num.toFixed(num >= 10 ? 1 : 2).replace(/\.0$/, "");
+  return num.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") || "0";
+}
+
+/** @deprecated alias */
+function formatTracker(num: number, exactMillions = false) {
+  return formatToken(num, exactMillions);
 }
 
 function shortWallet(w: string) {
@@ -468,6 +477,9 @@ export default function SnakePage() {
                 TRACKER
               </span>
               <span role="columnheader" className={styles.num}>
+                SKR
+              </span>
+              <span role="columnheader" className={styles.num}>
                 High
               </span>
               <span role="columnheader" className={styles.num}>
@@ -476,6 +488,7 @@ export default function SnakePage() {
             </div>
             {leaderboard.map((entry, index) => {
               const bal = entry.trackerBalance ?? 0;
+              const skrBal = entry.skrBalance ?? 0;
               const ok = entry.eligible ?? bal >= requiredTracker;
               const skrLabel = displaySkr(entry);
               const isYou = !!address && entry.wallet === address;
@@ -508,8 +521,16 @@ export default function SnakePage() {
                   <span
                     className={`${styles.num} ${ok ? styles.balOk : styles.balLow}`}
                     role="cell"
+                    title={`${bal.toLocaleString()} TRACKER`}
                   >
-                    {formatTracker(bal)}
+                    {formatToken(bal)}
+                  </span>
+                  <span
+                    className={`${styles.num} ${styles.skrBal}`}
+                    role="cell"
+                    title={`${skrBal.toLocaleString()} SKR`}
+                  >
+                    {formatToken(skrBal)}
                   </span>
                   <span className={`${styles.num} ${styles.score}`} role="cell">
                     {entry.high_score.toLocaleString()}

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  * Reads Snake Turso over HTTP pipeline (never @libsql/client on Workers).
  *
  * Prefers SNAKE_TURSO_* secrets; falls back to SNAKE_AIRDROP_API_URL worker.
- * Enriches each row with live TRACKER balance (for reward eligibility).
+ * Enriches each row with live TRACKER + SKR balances.
  */
 
 const SNAKE_API =
@@ -17,79 +17,126 @@ const SNAKE_API =
   "https://snake-airdrop-api.gm-4e8.workers.dev";
 
 const TRACKER_MINT = SEEKER_TOKEN_ADDRESS;
+/** Seeker SKR mint (reward token) */
+const SKR_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
 const MIN_REWARD_TRACKER = 1_000_000;
 
-/** Batch-fetch TRACKER balances for wallets via getTokenAccountsByOwner */
-async function fetchTrackerBalances(
-  wallets: string[]
-): Promise<Record<string, number>> {
-  const unique = [...new Set(wallets.filter(Boolean))];
-  if (unique.length === 0) return {};
+function rpcCandidates(): string[] {
+  const list: string[] = [];
+  if (process.env.SOLANA_RPC_URL) list.push(process.env.SOLANA_RPC_URL);
+  if (process.env.HELIUS_API_KEY) {
+    list.push(
+      `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
+    );
+  }
+  if (CONN_RPC_URL) list.push(CONN_RPC_URL);
+  list.push(
+    "https://solana-rpc.publicnode.com",
+    "https://api.mainnet-beta.solana.com"
+  );
+  return Array.from(new Set(list.filter(Boolean)));
+}
 
-  const body = unique.map((wallet, i) => ({
-    jsonrpc: "2.0",
-    id: `tb-${i}`,
-    method: "getTokenAccountsByOwner",
-    params: [
-      wallet,
-      { mint: TRACKER_MINT },
-      { encoding: "jsonParsed", commitment: "confirmed" },
-    ],
-  }));
+type RpcAccount = {
+  account?: {
+    data?: {
+      parsed?: {
+        info?: { tokenAmount?: { uiAmount?: number | null } };
+      };
+    };
+  };
+};
 
+async function fetchMintBalanceOne(
+  rpc: string,
+  wallet: string,
+  mint: string
+): Promise<number | null> {
   try {
-    const res = await fetch(CONN_RPC_URL, {
+    const res = await fetch(rpc, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "getTokenAccountsByOwner",
+        params: [
+          wallet,
+          { mint },
+          { encoding: "jsonParsed", commitment: "confirmed" },
+        ],
+      }),
       cache: "no-store",
     });
-    if (!res.ok) return Object.fromEntries(unique.map((w) => [w, 0]));
-
-    const data = (await res.json()) as Array<{
-      id?: string;
-      result?: {
-        value?: Array<{
-          account?: {
-            data?: {
-              parsed?: {
-                info?: { tokenAmount?: { uiAmount?: number | null } };
-              };
-            };
-          };
-        }>;
-      };
-    }>;
-
-    const out: Record<string, number> = {};
-    for (let i = 0; i < unique.length; i++) {
-      const wallet = unique[i];
-      const entry = Array.isArray(data)
-        ? data.find((d) => d.id === `tb-${i}`) || data[i]
-        : null;
-      const accounts = entry?.result?.value || [];
-      let bal = 0;
-      for (const acc of accounts) {
-        const ui = acc?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
-        if (typeof ui === "number" && Number.isFinite(ui)) bal += ui;
-      }
-      out[wallet] = bal;
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      error?: { message?: string };
+      result?: { value?: RpcAccount[] };
+    };
+    if (data.error) return null;
+    let bal = 0;
+    for (const acc of data.result?.value || []) {
+      const ui = acc?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
+      if (typeof ui === "number" && Number.isFinite(ui)) bal += ui;
     }
-    return out;
-  } catch (e) {
-    console.error("fetchTrackerBalances failed", e);
-    return Object.fromEntries(unique.map((w) => [w, 0]));
+    return bal;
+  } catch {
+    return null;
   }
 }
 
-function withBalances<
-  T extends { wallet: string; [k: string]: unknown },
->(rows: T[], balances: Record<string, number>) {
+/** Pick a working RPC once, then fetch all wallets (TRACKER or SKR). */
+async function fetchMintBalances(
+  wallets: string[],
+  mint: string
+): Promise<Record<string, number>> {
+  const unique = Array.from(new Set(wallets.filter(Boolean)));
+  const out: Record<string, number> = Object.fromEntries(
+    unique.map((w) => [w, 0])
+  );
+  if (unique.length === 0) return out;
+
+  const rpcs = rpcCandidates();
+  let rpc: string | null = null;
+  for (const candidate of rpcs) {
+    const probe = await fetchMintBalanceOne(candidate, unique[0], mint);
+    if (probe !== null) {
+      rpc = candidate;
+      out[unique[0]] = probe;
+      break;
+    }
+  }
+  if (!rpc) {
+    console.error("fetchMintBalances: all RPCs failed for mint", mint);
+    return out;
+  }
+
+  const rest = unique.slice(1);
+  const CONCURRENCY = 6;
+  for (let i = 0; i < rest.length; i += CONCURRENCY) {
+    const chunk = rest.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(
+      chunk.map((w) => fetchMintBalanceOne(rpc!, w, mint))
+    );
+    chunk.forEach((w, j) => {
+      out[w] = results[j] ?? 0;
+    });
+  }
+  return out;
+}
+
+function withBalances<T extends { wallet: string; [k: string]: unknown }>(
+  rows: T[],
+  trackerBalances: Record<string, number>,
+  skrBalances: Record<string, number>
+) {
   return rows.map((row) => {
-    const trackerBalance = balances[row.wallet] ?? 0;
+    const trackerBalance = trackerBalances[row.wallet] ?? 0;
+    const skrBalance = skrBalances[row.wallet] ?? 0;
     return {
       ...row,
       trackerBalance,
+      skrBalance,
       eligible: trackerBalance >= MIN_REWARD_TRACKER,
     };
   });
@@ -163,6 +210,25 @@ function cell(
   return row?.[i]?.value ?? "";
 }
 
+async function enrichLeaderboard(
+  baseBoard: Array<{
+    wallet: string;
+    username: string | null;
+    high_score: number;
+    total_plays: number;
+    total_score: number;
+    skrId: string | null;
+    rank: number;
+  }>
+) {
+  const wallets = baseBoard.map((r) => r.wallet);
+  const [trackerBalances, skrBalances] = await Promise.all([
+    fetchMintBalances(wallets, TRACKER_MINT),
+    fetchMintBalances(wallets, SKR_MINT),
+  ]);
+  return withBalances(baseBoard, trackerBalances, skrBalances);
+}
+
 export async function GET() {
   try {
     const base = snakeTursoBase();
@@ -200,18 +266,22 @@ export async function GET() {
         };
       });
 
-      const balances = await fetchTrackerBalances(baseBoard.map((r) => r.wallet));
-      const leaderboard = withBalances(baseBoard, balances);
+      const leaderboard = await enrichLeaderboard(baseBoard);
 
-      return NextResponse.json({
-        success: true,
-        leaderboard,
-        minRewardTracker: MIN_REWARD_TRACKER,
-        stats: {
-          totalPlayers: Number(playersRaw) || 0,
-          totalGames: Number(gamesRaw) || 0,
+      return NextResponse.json(
+        {
+          success: true,
+          leaderboard,
+          minRewardTracker: MIN_REWARD_TRACKER,
+          rewardMint: SKR_MINT,
+          holdMint: TRACKER_MINT,
+          stats: {
+            totalPlayers: Number(playersRaw) || 0,
+            totalGames: Number(gamesRaw) || 0,
+          },
         },
-      }, { headers: { "Cache-Control": "no-store" } });
+        { headers: { "Cache-Control": "no-store" } }
+      );
     }
 
     // Fallback: CF worker list + separate count queries via worker if present
@@ -247,7 +317,6 @@ export async function GET() {
       rank: i + 1,
     }));
 
-    // Prefer upstream stats; never fake with top-20 length
     let totalPlayers = Number(upstream.stats?.totalPlayers) || 0;
     let totalGames = Number(upstream.stats?.totalGames) || 0;
 
@@ -269,15 +338,19 @@ export async function GET() {
       }
     }
 
-    const balances = await fetchTrackerBalances(baseBoard.map((r) => r.wallet));
-    const leaderboard = withBalances(baseBoard, balances);
+    const leaderboard = await enrichLeaderboard(baseBoard);
 
-    return NextResponse.json({
-      success: true,
-      leaderboard,
-      minRewardTracker: MIN_REWARD_TRACKER,
-      stats: { totalPlayers, totalGames },
-    }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json(
+      {
+        success: true,
+        leaderboard,
+        minRewardTracker: MIN_REWARD_TRACKER,
+        rewardMint: SKR_MINT,
+        holdMint: TRACKER_MINT,
+        stats: { totalPlayers, totalGames },
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    );
   } catch (error) {
     console.error("Leaderboard API error:", error);
     return NextResponse.json(
