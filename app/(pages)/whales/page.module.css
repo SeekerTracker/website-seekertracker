@@ -1,265 +1,455 @@
 .main {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0 2em 4em;
-    width: 100%;
-    min-height: 100vh;
-    gap: 2em;
-    max-width: 680px;
-    margin: 0 auto;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+  color: #e8f7f4;
 }
 
 .backRow {
-    align-self: flex-start;
-    padding-top: 1em;
+  margin-bottom: 0.75rem;
 }
 
-/* ── Hero ─────────────────────────────────────────────── */
 .hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 0.5em;
-    padding: 1em 0;
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
 }
 
 .whaleLogo {
-    border-radius: 50%;
-    box-shadow: 0 0 40px rgba(45, 248, 160, 0.4);
-    margin-bottom: 0.5em;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 255, 217, 0.2);
+  background: rgba(0, 255, 217, 0.04);
+}
+
+.heroCopy {
+  flex: 1;
+  min-width: 220px;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #00ffd9;
 }
 
 .title {
-    font-size: 3em;
-    font-weight: 700;
-    color: #2DF8A0;
-    font-family: monospace;
-    letter-spacing: 0.1em;
-    margin: 0;
-    text-shadow: 0 0 20px rgba(45, 248, 160, 0.5);
+  margin: 0;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f4fffc;
 }
 
 .subtitle {
-    font-size: 1.1em;
-    color: #a0a0a0;
-    margin: 0;
-    font-family: monospace;
-    letter-spacing: 0.05em;
+  margin: 0.4rem 0 0;
+  color: #8fb3ad;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  max-width: 40rem;
 }
 
-.requirementBadge {
-    margin-top: 0.75em;
-    background: rgba(153, 69, 255, 0.15);
-    border: 1.5px solid rgba(153, 69, 255, 0.5);
-    border-radius: 2em;
-    padding: 0.5em 1.25em;
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-bottom: 1rem;
 }
 
-.requirementText {
-    color: #9945FF;
-    font-family: monospace;
-    font-size: 0.95em;
-    font-weight: 600;
-    letter-spacing: 0.05em;
+.metric {
+  border: 1px solid rgba(0, 255, 217, 0.12);
+  background: rgba(0, 20, 22, 0.65);
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-/* ── Description ─────────────────────────────────────── */
-.descriptionCard {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(45, 248, 160, 0.15);
-    border-left: 3px solid #2DF8A0;
-    border-radius: 0.75em;
-    padding: 1.25em 1.5em;
-    width: 100%;
+.metricLabel {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a9090;
 }
 
-.descriptionText {
-    color: #a0a0a0;
-    font-family: monospace;
-    font-size: 0.9em;
-    line-height: 1.7;
-    margin: 0;
+.metricValue {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #00ffd9;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ── Steps ───────────────────────────────────────────── */
-.stepsSection {
-    width: 100%;
+.metricLink {
+  color: #9ed9cc;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.95rem;
 }
 
-.sectionLabel {
-    font-size: 0.75em;
-    font-family: monospace;
-    color: #666;
-    letter-spacing: 0.15em;
-    margin: 0 0 1.25em;
+.metricLink:hover {
+  color: #00ffd9;
+  text-decoration: underline;
 }
 
-.stepsContainer {
-    display: flex;
-    flex-direction: column;
+.panel {
+  border: 1px solid rgba(0, 255, 217, 0.12);
+  background: rgba(0, 14, 16, 0.72);
+  border-radius: 16px;
+  padding: 0.85rem;
+  margin-bottom: 1rem;
 }
 
-.stepRow {
-    display: flex;
-    gap: 1.25em;
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+  margin-bottom: 0.85rem;
 }
 
-.stepLeft {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-shrink: 0;
-    width: 40px;
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
-.stepNumber {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #9945FF;
-    color: #fff;
-    font-family: monospace;
-    font-size: 0.75em;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+.chip {
+  border: 1px solid rgba(0, 255, 217, 0.18);
+  background: rgba(0, 255, 217, 0.04);
+  color: #9ed9cc;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.stepLine {
-    width: 2px;
-    flex: 1;
-    min-height: 20px;
-    background: rgba(255, 255, 255, 0.08);
-    margin: 6px 0;
+.chip:hover {
+  border-color: rgba(0, 255, 217, 0.4);
 }
 
-.stepContent {
-    flex: 1;
-    padding-bottom: 1.75em;
+.chipActive {
+  background: rgba(0, 255, 217, 0.16);
+  color: #00ffd9;
+  border-color: rgba(0, 255, 217, 0.45);
 }
 
-.stepTitle {
-    font-size: 0.95em;
-    font-family: monospace;
-    font-weight: 700;
-    color: #fff;
-    margin: 0.5em 0 0.4em;
+.search {
+  flex: 1;
+  min-width: 160px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 217, 0.16);
+  background: rgba(0, 0, 0, 0.35);
+  color: #e8f7f4;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
 }
 
-.stepDescription {
-    font-size: 0.85em;
-    font-family: monospace;
-    color: #888;
-    margin: 0 0 0.5em;
-    line-height: 1.6;
+.search:focus {
+  outline: none;
+  border-color: rgba(0, 255, 217, 0.45);
 }
 
-.stepLink {
-    font-size: 0.8em;
-    font-family: monospace;
-    color: #2DF8A0;
-    text-decoration: none;
-    transition: opacity 0.15s;
+.refresh {
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 217, 0.28);
+  background: rgba(0, 255, 217, 0.1);
+  color: #00ffd9;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
 }
 
-.stepLink:hover {
-    opacity: 0.8;
-    text-decoration: underline;
+.refresh:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
-/* ── CTAs ────────────────────────────────────────────── */
-.ctaSection {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75em;
-    width: 100%;
+.error {
+  color: #ff8a9a;
+  font-size: 0.88rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.retry {
+  border: 1px solid rgba(255, 138, 154, 0.4);
+  background: transparent;
+  color: #ffb3bd;
+  border-radius: 8px;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 217, 0.1);
+}
+
+.table {
+  min-width: 640px;
+  display: flex;
+  flex-direction: column;
+}
+
+.thead,
+.trow {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1.4fr) 6rem 5.5rem 7rem;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+}
+
+.thead {
+  background: rgba(0, 255, 217, 0.06);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #00ffd9;
+}
+
+.trow {
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.9rem;
+}
+
+.trow:hover {
+  background: rgba(0, 255, 217, 0.04);
+}
+
+.trowWhale {
+  background: rgba(255, 210, 70, 0.04);
+}
+
+.rank {
+  color: #6a8585;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.wallet {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.walletLink {
+  color: #c8ebe4;
+  text-decoration: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.86rem;
+}
+
+.walletLink:hover {
+  color: #00ffd9;
+  text-decoration: underline;
+}
+
+.whaleChip {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 210, 70, 0.45);
+  color: #ffd246;
+  background: rgba(255, 210, 70, 0.1);
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bal {
+  font-weight: 800;
+  color: #00ffd9;
+}
+
+.hold {
+  color: #c4b5fd;
+  font-weight: 700;
+}
+
+.since {
+  color: #8fb3ad;
+  font-size: 0.82rem;
+}
+
+.empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: #6a9090;
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.skeletonRow {
+  height: 42px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 255, 217, 0.04),
+    rgba(0, 255, 217, 0.1),
+    rgba(0, 255, 217, 0.04)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.pageBtn {
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 217, 0.22);
+  background: rgba(0, 255, 217, 0.06);
+  color: #00ffd9;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageMeta {
+  color: #6a9090;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  margin: 0.85rem 0 0;
+  font-size: 0.75rem;
+  color: #5d7777;
+  line-height: 1.45;
+}
+
+.chatCard {
+  border: 1px solid rgba(0, 255, 217, 0.14);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 40, 36, 0.5),
+    rgba(0, 14, 16, 0.85)
+  );
+  border-radius: 16px;
+  padding: 1.1rem 1.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chatTitle {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.chatText {
+  margin: 0;
+  color: #8fb3ad;
+  font-size: 0.88rem;
+  max-width: 28rem;
+  line-height: 1.45;
+}
+
+.chatActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.primaryButton,
+.telegramButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font-weight: 800;
+  font-size: 0.84rem;
+  text-decoration: none;
 }
 
 .primaryButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5em;
-    background: #2DF8A0;
-    color: #0a0a0a;
-    font-family: monospace;
-    font-size: 1em;
-    font-weight: 700;
-    padding: 1em 2em;
-    border-radius: 0.75em;
-    text-decoration: none;
-    transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: 0.02em;
-}
-
-.primaryButton:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+  background: #00ffd9;
+  color: #042018;
 }
 
 .telegramButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5em;
-    background: transparent;
-    color: #9945FF;
-    border: 2px solid #9945FF;
-    font-family: monospace;
-    font-size: 1em;
-    font-weight: 700;
-    padding: 1em 2em;
-    border-radius: 0.75em;
-    text-decoration: none;
-    transition: background 0.15s, transform 0.1s;
-    letter-spacing: 0.02em;
+  border: 1px solid rgba(0, 255, 217, 0.35);
+  color: #00ffd9;
+  background: rgba(0, 255, 217, 0.08);
 }
 
-.telegramButton:hover {
-    background: rgba(153, 69, 255, 0.1);
-    transform: translateY(-1px);
+.buyLink {
+  color: #9ed9cc;
+  font-weight: 700;
+  font-size: 0.84rem;
+  text-decoration: none;
 }
 
-/* ── Footer note ─────────────────────────────────────── */
-.footerNote {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4em;
-    padding-top: 0.5em;
+.buyLink:hover {
+  color: #00ffd9;
+  text-decoration: underline;
 }
 
-.footerText {
-    font-family: monospace;
-    font-size: 0.8em;
-    color: #555;
-    margin: 0;
+@media (max-width: 720px) {
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .thead,
+  .trow {
+    grid-template-columns: 2.4rem minmax(0, 1fr) 4.5rem 4rem 5.5rem;
+    padding: 0.55rem 0.6rem;
+    font-size: 0.8rem;
+  }
 }
 
-.jupiterLink {
-    font-family: monospace;
-    font-size: 0.8em;
-    color: #9945FF;
-    text-decoration: none;
-    transition: opacity 0.15s;
-}
-
-.jupiterLink:hover {
-    opacity: 0.8;
-    text-decoration: underline;
-}
-
-/* ── Responsive ──────────────────────────────────────── */
-@media (max-width: 480px) {
-    .title {
-        font-size: 2em;
-    }
-
-    .main {
-        padding: 0 1em 3em;
-    }
+@media (max-width: 420px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
 }

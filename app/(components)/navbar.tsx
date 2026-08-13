@@ -47,6 +47,7 @@ const PRIMARY = [
 const MORE = [
   { href: "/sweep", label: "Sweep" },
   { href: "/winners", label: "Winners" },
+  { href: "/whales", label: "Whales" },
   { href: "/competitors", label: "Competitors" },
   { href: "/snake", label: "Snake" },
   { href: "/export", label: "Export" },
