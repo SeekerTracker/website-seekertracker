@@ -44,8 +44,7 @@ function formatBal(n: number) {
   return Math.floor(n).toLocaleString();
 }
 
-function formatHold(days: number | null, since: number | null) {
-  if (days == null && since == null) return "—";
+function formatHold(days: number | null) {
   if (days == null) return "—";
   if (days < 1) return "<1d";
   if (days < 30) return `${days}d`;
@@ -67,16 +66,34 @@ function addressUrl(w: string) {
   return `https://sol.new/address/${w}`;
 }
 
+function sinceLabel(since: number | null) {
+  if (!since) return null;
+  return new Date(since * 1000).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 export default function WhalesClient() {
   const [holders, setHolders] = useState<Holder[]>([]);
   const [total, setTotal] = useState(0);
   const [supplyHeld, setSupplyHeld] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(50);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [minFilter, setMinFilter] = useState<"all" | "1m" | "10m">("all");
   const [q, setQ] = useState("");
+
+  // Smaller pages on narrow phones
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const apply = () => setPageSize(mq.matches ? 25 : 50);
+    apply();
+    mq.addEventListener?.("change", apply);
+    return () => mq.removeEventListener?.("change", apply);
+  }, []);
 
   const minBal =
     minFilter === "10m" ? WHALE_MIN : minFilter === "1m" ? 1_000_000 : 0;
@@ -108,7 +125,7 @@ export default function WhalesClient() {
 
   useEffect(() => {
     setPage(1);
-  }, [minFilter]);
+  }, [minFilter, pageSize]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -131,9 +148,9 @@ export default function WhalesClient() {
       <header className={styles.hero}>
         <Image
           src="/tracker-whale.png"
-          alt="Tracker Whale"
-          width={120}
-          height={120}
+          alt=""
+          width={88}
+          height={88}
           className={styles.whaleLogo}
           priority
         />
@@ -141,8 +158,7 @@ export default function WhalesClient() {
           <p className={styles.eyebrow}>$TRACKER · holders</p>
           <h1 className={styles.title}>TRACKER Whales</h1>
           <p className={styles.subtitle}>
-            Every holder wallet, balance, and how long they&apos;ve been
-            holding. Sorted by size.
+            Balance + how long each wallet has been holding. Sorted by size.
           </p>
         </div>
       </header>
@@ -161,7 +177,7 @@ export default function WhalesClient() {
           </strong>
         </div>
         <div className={styles.metric}>
-          <span className={styles.metricLabel}>≥10M (this page)</span>
+          <span className={styles.metricLabel}>≥10M here</span>
           <strong className={styles.metricValue}>
             {loading ? "…" : whaleCount.toLocaleString()}
           </strong>
@@ -181,48 +197,63 @@ export default function WhalesClient() {
 
       <section className={styles.panel}>
         <div className={styles.toolbar}>
-          <div className={styles.filters} role="group" aria-label="Min balance">
-            {(
-              [
-                ["all", "All"],
-                ["1m", "≥1M"],
-                ["10m", "≥10M whales"],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                className={`${styles.chip} ${
-                  minFilter === id ? styles.chipActive : ""
-                }`}
-                onClick={() => setMinFilter(id)}
-              >
-                {label}
-              </button>
-            ))}
+          <div className={styles.filterScroll}>
+            <div className={styles.filters} role="group" aria-label="Min balance">
+              {(
+                [
+                  ["all", "All"],
+                  ["1m", "≥1M"],
+                  ["10m", "≥10M"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`${styles.chip} ${
+                    minFilter === id ? styles.chipActive : ""
+                  }`}
+                  onClick={() => setMinFilter(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-          <input
-            className={styles.search}
-            type="search"
-            placeholder="Filter wallet on this page…"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            aria-label="Filter wallets"
-          />
-          <button
-            type="button"
-            className={styles.refresh}
-            onClick={() => void load()}
-            disabled={loading}
-          >
-            {loading ? "Loading…" : "Refresh"}
-          </button>
+          <div className={styles.searchRow}>
+            <input
+              className={styles.search}
+              type="search"
+              inputMode="text"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="Filter wallet…"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Filter wallets"
+            />
+            <button
+              type="button"
+              className={styles.refresh}
+              onClick={() => void load()}
+              disabled={loading}
+            >
+              {loading ? "…" : "↻"}
+              <span className={styles.refreshLabel}>
+                {loading ? "Loading" : "Refresh"}
+              </span>
+            </button>
+          </div>
         </div>
 
         {error && (
           <p className={styles.error}>
-            {error}
-            <button type="button" className={styles.retry} onClick={() => void load()}>
+            <span>{error}</span>
+            <button
+              type="button"
+              className={styles.retry}
+              onClick={() => void load()}
+            >
               Retry
             </button>
           </p>
@@ -230,34 +261,35 @@ export default function WhalesClient() {
 
         {loading && holders.length === 0 ? (
           <div className={styles.skeletonList} aria-hidden>
-            {Array.from({ length: 10 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className={styles.skeletonRow} />
             ))}
           </div>
+        ) : filtered.length === 0 ? (
+          <p className={styles.empty}>No holders match this filter.</p>
         ) : (
-          <div className={styles.tableWrap}>
-            <div className={styles.table} role="table">
-              <div className={styles.thead} role="row">
-                <span role="columnheader">#</span>
-                <span role="columnheader">Wallet</span>
-                <span role="columnheader" className={styles.num}>
-                  TRACKER
-                </span>
-                <span role="columnheader" className={styles.num}>
-                  Held
-                </span>
-                <span role="columnheader" className={styles.num}>
-                  Since
-                </span>
-              </div>
-              {filtered.length === 0 ? (
-                <p className={styles.empty}>No holders match this filter.</p>
-              ) : (
-                filtered.map((h) => {
+          <>
+            {/* Desktop table */}
+            <div className={styles.tableWrap} data-desktop>
+              <div className={styles.table} role="table">
+                <div className={styles.thead} role="row">
+                  <span role="columnheader">#</span>
+                  <span role="columnheader">Wallet</span>
+                  <span role="columnheader" className={styles.num}>
+                    TRACKER
+                  </span>
+                  <span role="columnheader" className={styles.num}>
+                    Held
+                  </span>
+                  <span role="columnheader" className={styles.num}>
+                    Since
+                  </span>
+                </div>
+                {filtered.map((h) => {
                   const isWhale = h.balance >= WHALE_MIN;
                   return (
                     <div
-                      key={h.wallet}
+                      key={`t-${h.wallet}`}
                       className={`${styles.trow} ${
                         isWhale ? styles.trowWhale : ""
                       }`}
@@ -289,28 +321,72 @@ export default function WhalesClient() {
                       <span
                         className={`${styles.num} ${styles.hold}`}
                         role="cell"
-                        title={
-                          h.heldSince
-                            ? new Date(h.heldSince * 1000).toISOString()
-                            : "Hold time from first TRACKER ATA activity (top wallets)"
-                        }
                       >
-                        {formatHold(h.heldDays, h.heldSince)}
+                        {formatHold(h.heldDays)}
                       </span>
-                      <span className={`${styles.num} ${styles.since}`} role="cell">
-                        {h.heldSince
-                          ? new Date(h.heldSince * 1000).toLocaleDateString(
-                              undefined,
-                              { year: "numeric", month: "short", day: "numeric" }
-                            )
-                          : "—"}
+                      <span
+                        className={`${styles.num} ${styles.since}`}
+                        role="cell"
+                      >
+                        {sinceLabel(h.heldSince) || "—"}
                       </span>
                     </div>
                   );
-                })
-              )}
+                })}
+              </div>
             </div>
-          </div>
+
+            {/* Mobile cards */}
+            <ul className={styles.cardList} data-mobile>
+              {filtered.map((h) => {
+                const isWhale = h.balance >= WHALE_MIN;
+                const since = sinceLabel(h.heldSince);
+                return (
+                  <li
+                    key={`c-${h.wallet}`}
+                    className={`${styles.card} ${
+                      isWhale ? styles.cardWhale : ""
+                    }`}
+                  >
+                    <div className={styles.cardTop}>
+                      <span className={styles.cardRank}>#{h.rank}</span>
+                      <a
+                        href={addressUrl(h.wallet)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.cardWallet}
+                      >
+                        {shortWallet(h.wallet)}
+                      </a>
+                      {isWhale && (
+                        <span className={styles.whaleChip}>whale</span>
+                      )}
+                    </div>
+                    <div className={styles.cardStats}>
+                      <div className={styles.cardStat}>
+                        <span className={styles.cardStatLabel}>TRACKER</span>
+                        <strong className={styles.cardBal}>
+                          {formatBal(h.balance)}
+                        </strong>
+                      </div>
+                      <div className={styles.cardStat}>
+                        <span className={styles.cardStatLabel}>Held</span>
+                        <strong className={styles.cardHold}>
+                          {formatHold(h.heldDays)}
+                        </strong>
+                      </div>
+                      <div className={styles.cardStat}>
+                        <span className={styles.cardStatLabel}>Since</span>
+                        <strong className={styles.cardSince}>
+                          {since || "—"}
+                        </strong>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
 
         <div className={styles.pager}>
@@ -323,8 +399,14 @@ export default function WhalesClient() {
             ← Prev
           </button>
           <span className={styles.pageMeta}>
-            Page {page} / {totalPages}
-            {total > 0 && ` · ${total.toLocaleString()} wallets`}
+            <span className={styles.pageNum}>
+              {page}/{totalPages}
+            </span>
+            {total > 0 && (
+              <span className={styles.pageTotal}>
+                {total.toLocaleString()} wallets
+              </span>
+            )}
           </span>
           <button
             type="button"
@@ -337,19 +419,17 @@ export default function WhalesClient() {
         </div>
 
         <p className={styles.note}>
-          Hold duration uses the oldest on-chain activity on each wallet&apos;s
-          primary TRACKER token account (enriched for the largest holders).
-          Balances refresh about every few minutes. Not financial advice.
+          Hold time = first on-chain activity on the wallet&apos;s main TRACKER
+          token account (top holders). Refreshes every few minutes.
         </p>
       </section>
 
-      {/* Whale chat CTA */}
       <section className={styles.chatCard}>
-        <div>
+        <div className={styles.chatCopy}>
           <h2 className={styles.chatTitle}>Whale Telegram</h2>
           <p className={styles.chatText}>
-            Hold ≥{formatBal(WHALE_MIN)} TRACKER, verify on gated.fun, then join
-            the private group.
+            Hold ≥{formatBal(WHALE_MIN)} TRACKER, verify on gated.fun, join the
+            private group.
           </p>
         </div>
         <div className={styles.chatActions}>
