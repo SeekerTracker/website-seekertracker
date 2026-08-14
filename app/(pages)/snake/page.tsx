@@ -104,9 +104,13 @@ export default function SnakePage() {
     solBalance: number;
   } | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [lbPeriod, setLbPeriod] = useState<"all" | "weekly" | "daily">("all");
   const [gameStats, setGameStats] = useState<{
     totalPlayers: number;
     totalGames: number;
+    eligiblePlayers?: number;
+    eligibleOnBoard?: number;
+    scannedPlayers?: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
@@ -144,7 +148,10 @@ export default function SnakePage() {
   const loadLeaderboard = useCallback(async () => {
     setLeaderboardLoading(true);
     try {
-      const res = await fetch("/api/snake/leaderboard", { cache: "no-store" });
+      const res = await fetch(
+        `/api/snake/leaderboard?period=${lbPeriod}&limit=20`,
+        { cache: "no-store" }
+      );
       const data = await res.json();
       if (res.status === 401) {
         setLeaderboardError("Leaderboard temporarily unavailable");
@@ -165,7 +172,7 @@ export default function SnakePage() {
     } finally {
       setLeaderboardLoading(false);
     }
-  }, []);
+  }, [lbPeriod]);
 
   const loadConfig = useCallback(async () => {
     try {
@@ -464,12 +471,67 @@ export default function SnakePage() {
           <div>
             <h2 className={styles.panelTitle}>Leaderboard</h2>
             <p className={styles.panelSub}>
-              {gameStats
-                ? `${gameStats.totalPlayers.toLocaleString()} players · ${gameStats.totalGames.toLocaleString()} games`
+              {gameStats?.totalPlayers
+                ? `${gameStats.totalPlayers.toLocaleString()} players`
                 : "Top scores"}
+              {gameStats?.totalGames
+                ? ` · ${gameStats.totalGames.toLocaleString()} games`
+                : ""}
               {" · "}✓ = ≥{minHoldLabel} TRACKER
             </p>
           </div>
+        </div>
+
+        <div
+          className={styles.periodTabs}
+          role="tablist"
+          aria-label="Leaderboard period"
+        >
+          {(
+            [
+              ["all", "All time"],
+              ["weekly", "Weekly"],
+              ["daily", "Daily"],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={lbPeriod === id}
+              className={`${styles.periodTab} ${
+                lbPeriod === id ? styles.periodTabActive : ""
+              }`}
+              onClick={() => setLbPeriod(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.eligibleBanner} aria-live="polite">
+          <span className={styles.eligibleLabel}>Eligible to win $SKR</span>
+          <strong className={styles.eligibleValue}>
+            {leaderboardLoading && gameStats?.eligiblePlayers == null
+              ? "…"
+              : (
+                  gameStats?.eligiblePlayers ??
+                  leaderboard.filter(
+                    (e) =>
+                      e.eligible ??
+                      (e.trackerBalance ?? 0) >= requiredTracker
+                  ).length
+                ).toLocaleString()}
+          </strong>
+          <span className={styles.eligibleHint}>
+            hold ≥{minHoldLabel} TRACKER
+            {gameStats?.scannedPlayers
+              ? ` · of top ${gameStats.scannedPlayers.toLocaleString()} scorers`
+              : ""}
+            {typeof gameStats?.eligibleOnBoard === "number"
+              ? ` · ${gameStats.eligibleOnBoard} on this board`
+              : ""}
+          </span>
         </div>
 
         {leaderboardLoading && leaderboard.length === 0 ? (
@@ -481,7 +543,7 @@ export default function SnakePage() {
         ) : leaderboardError ? (
           <p className={styles.empty}>{leaderboardError}</p>
         ) : leaderboard.length === 0 ? (
-          <p className={styles.empty}>No scores yet. Be the first to play.</p>
+          <p className={styles.empty}>No scores yet for this period.</p>
         ) : (
           <div className={styles.table} role="table">
             <div className={styles.thead} role="row">
@@ -508,7 +570,7 @@ export default function SnakePage() {
               const isYou = !!address && entry.wallet === address;
               return (
                 <div
-                  key={entry.wallet}
+                  key={`${lbPeriod}-${entry.wallet}-${index}`}
                   className={`${styles.trow} ${isYou ? styles.trowYou : ""} ${
                     ok ? "" : styles.trowInelig
                   }`}

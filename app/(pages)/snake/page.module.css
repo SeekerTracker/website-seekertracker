@@ -356,6 +356,80 @@
   line-height: 1.4;
 }
 
+.periodTabs {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin: 0.15rem 0 0.65rem;
+}
+
+.periodTab {
+  border: 1px solid rgba(0, 255, 217, 0.18);
+  background: rgba(0, 255, 217, 0.04);
+  color: #9ed9cc;
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 40px;
+  touch-action: manipulation;
+}
+
+.periodTab:hover {
+  border-color: rgba(0, 255, 217, 0.4);
+}
+
+.periodTabActive {
+  background: rgba(0, 255, 217, 0.16);
+  color: #00ffd9;
+  border-color: rgba(0, 255, 217, 0.5);
+}
+
+.eligibleBanner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
+  margin: 0 0 0.85rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 102, 0.22);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 255, 102, 0.08),
+    rgba(0, 255, 217, 0.05)
+  );
+}
+
+.eligibleLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8fb3ad;
+}
+
+.eligibleValue {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #00ff66;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.eligibleHint {
+  font-size: 0.78rem;
+  color: #6a9090;
+  flex: 1 1 100%;
+}
+
+@media (min-width: 640px) {
+  .eligibleHint {
+    flex: 1 1 auto;
+  }
+}
+
 .panelSub code,
 .bullets code {
   color: #9ed9cc;

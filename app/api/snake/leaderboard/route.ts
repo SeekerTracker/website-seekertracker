@@ -1,15 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { CONN_RPC_URL, SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 /**
- * Snake leaderboard + global stats for seekertracker.com/snake.
- * Reads Snake Turso over HTTP pipeline (never @libsql/client on Workers).
- *
- * Prefers SNAKE_TURSO_* secrets; falls back to SNAKE_AIRDROP_API_URL worker.
- * Enriches each row with live TRACKER + SKR balances.
+ * Snake leaderboard — periods match the game: all | weekly | daily.
+ * Enriches rows with TRACKER + SKR balances and eligible (≥1M TRACKER).
  */
 
 const SNAKE_API =
@@ -17,9 +15,24 @@ const SNAKE_API =
   "https://snake-airdrop-api.gm-4e8.workers.dev";
 
 const TRACKER_MINT = SEEKER_TOKEN_ADDRESS;
-/** Seeker SKR mint (reward token) */
 const SKR_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
 const MIN_REWARD_TRACKER = 1_000_000;
+
+type Period = "all" | "weekly" | "daily";
+
+function normalizePeriod(raw: string | null): Period {
+  const p = (raw || "all").toLowerCase().trim();
+  if (p === "week" || p === "weekly" || p === "7d") return "weekly";
+  if (p === "day" || p === "daily" || p === "24h") return "daily";
+  return "all";
+}
+
+/** Map to snake-airdrop-api period param */
+function airdropPeriod(p: Period): string {
+  if (p === "weekly") return "weekly";
+  if (p === "daily") return "daily";
+  return "all";
+}
 
 function rpcCandidates(): string[] {
   const list: string[] = [];
@@ -85,7 +98,6 @@ async function fetchMintBalanceOne(
   }
 }
 
-/** Pick a working RPC once, then fetch all wallets (TRACKER or SKR). */
 async function fetchMintBalances(
   wallets: string[],
   mint: string
@@ -125,8 +137,19 @@ async function fetchMintBalances(
   return out;
 }
 
-function withBalances<T extends { wallet: string; [k: string]: unknown }>(
-  rows: T[],
+type BoardRow = {
+  wallet: string;
+  username: string | null;
+  high_score: number;
+  total_plays: number;
+  total_score: number;
+  skrId: string | null;
+  rank: number;
+  played_at?: string | null;
+};
+
+function withBalances(
+  rows: BoardRow[],
   trackerBalances: Record<string, number>,
   skrBalances: Record<string, number>
 ) {
@@ -142,6 +165,15 @@ function withBalances<T extends { wallet: string; [k: string]: unknown }>(
   });
 }
 
+async function enrichLeaderboard(baseBoard: BoardRow[]) {
+  const wallets = baseBoard.map((r) => r.wallet);
+  const [trackerBalances, skrBalances] = await Promise.all([
+    fetchMintBalances(wallets, TRACKER_MINT),
+    fetchMintBalances(wallets, SKR_MINT),
+  ]);
+  return withBalances(baseBoard, trackerBalances, skrBalances);
+}
+
 function snakeTursoBase(): string | null {
   const raw =
     process.env.SNAKE_TURSO_URL ||
@@ -152,7 +184,9 @@ function snakeTursoBase(): string | null {
 }
 
 function snakeTursoToken(): string | null {
-  return process.env.SNAKE_TURSO_AUTH_TOKEN || process.env.SNAKE_TURSO_TOKEN || null;
+  return (
+    process.env.SNAKE_TURSO_AUTH_TOKEN || process.env.SNAKE_TURSO_TOKEN || null
+  );
 }
 
 type PipelineResult = {
@@ -210,49 +244,134 @@ function cell(
   return row?.[i]?.value ?? "";
 }
 
-async function enrichLeaderboard(
-  baseBoard: Array<{
-    wallet: string;
-    username: string | null;
-    high_score: number;
-    total_plays: number;
-    total_score: number;
-    skrId: string | null;
-    rank: number;
-  }>
-) {
-  const wallets = baseBoard.map((r) => r.wallet);
-  const [trackerBalances, skrBalances] = await Promise.all([
-    fetchMintBalances(wallets, TRACKER_MINT),
-    fetchMintBalances(wallets, SKR_MINT),
-  ]);
-  return withBalances(baseBoard, trackerBalances, skrBalances);
+async function fetchFromAirdropApi(
+  period: Period,
+  limit: number
+): Promise<BoardRow[]> {
+  const res = await fetch(
+    `${SNAKE_API}/leaderboard?period=${airdropPeriod(period)}&limit=${limit}`,
+    { cache: "no-store", headers: { Accept: "application/json" } }
+  );
+  if (!res.ok) throw new Error(`airdrop API ${res.status}`);
+  const upstream = (await res.json()) as {
+    leaderboard?: Array<{
+      wallet?: string;
+      domain?: string | null;
+      score?: number;
+      total_plays?: number;
+      total_score?: number;
+      played_at?: string;
+    }>;
+  };
+  const rows = Array.isArray(upstream.leaderboard) ? upstream.leaderboard : [];
+  return rows.map((row, i) => ({
+    wallet: row.wallet || "",
+    username: row.domain || null,
+    high_score: Number(row.score) || 0,
+    total_plays: Number(row.total_plays) || 0,
+    total_score: Number(row.total_score ?? row.score) || 0,
+    skrId: row.domain || null,
+    rank: i + 1,
+    played_at: row.played_at || null,
+  }));
 }
 
-export async function GET() {
+async function fetchAllTimeFromTurso(
+  base: string,
+  token: string,
+  limit: number
+): Promise<{
+  board: BoardRow[];
+  totalPlayers: number;
+  totalGames: number;
+} | null> {
   try {
-    const base = snakeTursoBase();
-    const token = snakeTursoToken();
+    const data = await tursoPipeline(base, token, [
+      {
+        sql: `SELECT u.wallet, u.username, s.high_score, s.total_plays, s.total_score
+              FROM stats s
+              JOIN users u ON u.id = s.user_id
+              WHERE s.high_score > 0
+              ORDER BY s.high_score DESC
+              LIMIT ?`,
+        args: [limit],
+      },
+      { sql: `SELECT COUNT(*) FROM users` },
+      { sql: `SELECT COUNT(*) FROM games` },
+      // wallets with any high score — for eligibility scan pool
+      {
+        sql: `SELECT u.wallet
+              FROM stats s
+              JOIN users u ON u.id = s.user_id
+              WHERE s.high_score > 0
+              ORDER BY s.high_score DESC
+              LIMIT 200`,
+      },
+    ]);
 
-    if (base && token) {
-      const data = await tursoPipeline(base, token, [
-        {
-          sql: `SELECT u.wallet, u.username, s.high_score, s.total_plays, s.total_score
-                FROM stats s
-                JOIN users u ON u.id = s.user_id
-                WHERE s.high_score > 0
-                ORDER BY s.high_score DESC
-                LIMIT 20`,
-        },
-        { sql: `SELECT COUNT(*) FROM users` },
-        { sql: `SELECT COUNT(*) FROM games` },
-      ]);
+    const lbRows = data.results?.[0]?.response?.result?.rows || [];
+    const playersRaw = cell(data.results?.[1]?.response?.result?.rows?.[0], 0);
+    const gamesRaw = cell(data.results?.[2]?.response?.result?.rows?.[0], 0);
 
+    const board = lbRows.map((row, i) => {
+      const wallet = cell(row, 0);
+      const username = cell(row, 1) || null;
+      return {
+        wallet,
+        username,
+        high_score: Number(cell(row, 2)) || 0,
+        total_plays: Number(cell(row, 3)) || 0,
+        total_score: Number(cell(row, 4)) || 0,
+        skrId: username,
+        rank: i + 1,
+        played_at: null as string | null,
+      };
+    });
+
+    return {
+      board,
+      totalPlayers: Number(playersRaw) || 0,
+      totalGames: Number(gamesRaw) || 0,
+    };
+  } catch (e) {
+    console.warn("turso all-time failed", e);
+    return null;
+  }
+}
+
+async function fetchPeriodFromTurso(
+  base: string,
+  token: string,
+  period: "weekly" | "daily",
+  limit: number
+): Promise<BoardRow[] | null> {
+  // games.played_at / created_at — try common column names
+  const window = period === "daily" ? "-1 day" : "-7 days";
+  const sqls = [
+    `SELECT u.wallet, u.username, MAX(g.score) AS high_score, COUNT(*) AS total_plays, SUM(g.score) AS total_score
+     FROM games g
+     JOIN users u ON u.id = g.user_id
+     WHERE g.played_at >= datetime('now', '${window}')
+     GROUP BY u.wallet
+     HAVING high_score > 0
+     ORDER BY high_score DESC
+     LIMIT ${limit}`,
+    `SELECT u.wallet, u.username, MAX(g.score) AS high_score, COUNT(*) AS total_plays, SUM(g.score) AS total_score
+     FROM games g
+     JOIN users u ON u.id = g.user_id
+     WHERE g.created_at >= datetime('now', '${window}')
+     GROUP BY u.wallet
+     HAVING high_score > 0
+     ORDER BY high_score DESC
+     LIMIT ${limit}`,
+  ];
+
+  for (const sql of sqls) {
+    try {
+      const data = await tursoPipeline(base, token, [{ sql }]);
       const lbRows = data.results?.[0]?.response?.result?.rows || [];
-      const playersRaw = cell(data.results?.[1]?.response?.result?.rows?.[0], 0);
-      const gamesRaw = cell(data.results?.[2]?.response?.result?.rows?.[0], 0);
-
-      const baseBoard = lbRows.map((row, i) => {
+      if (!lbRows.length) continue;
+      return lbRows.map((row, i) => {
         const wallet = cell(row, 0);
         const username = cell(row, 1) || null;
         return {
@@ -263,91 +382,106 @@ export async function GET() {
           total_score: Number(cell(row, 4)) || 0,
           skrId: username,
           rank: i + 1,
+          played_at: null as string | null,
         };
       });
-
-      const leaderboard = await enrichLeaderboard(baseBoard);
-
-      return NextResponse.json(
-        {
-          success: true,
-          leaderboard,
-          minRewardTracker: MIN_REWARD_TRACKER,
-          rewardMint: SKR_MINT,
-          holdMint: TRACKER_MINT,
-          stats: {
-            totalPlayers: Number(playersRaw) || 0,
-            totalGames: Number(gamesRaw) || 0,
-          },
-        },
-        { headers: { "Cache-Control": "no-store" } }
-      );
+    } catch {
+      /* try next sql shape */
     }
+  }
+  return null;
+}
 
-    // Fallback: CF worker list + separate count queries via worker if present
-    const res = await fetch(`${SNAKE_API}/leaderboard?period=all&limit=20`, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch leaderboard", success: false },
-        { status: 502 }
+export async function GET(request: NextRequest) {
+  try {
+    const period = normalizePeriod(
+      request.nextUrl.searchParams.get("period")
+    );
+    const limit = Math.min(
+      50,
+      Math.max(5, Number(request.nextUrl.searchParams.get("limit") || 20))
+    );
+    // Extra wallets to scan for eligible count among top scorers
+    const scanLimit = Math.min(100, Math.max(limit, 50));
+
+    const base = snakeTursoBase();
+    const token = snakeTursoToken();
+
+    let board: BoardRow[] = [];
+    let totalPlayers = 0;
+    let totalGames = 0;
+    let source = "airdrop-api";
+
+    if (period === "all" && base && token) {
+      const turso = await fetchAllTimeFromTurso(base, token, scanLimit);
+      if (turso?.board?.length) {
+        board = turso.board;
+        totalPlayers = turso.totalPlayers;
+        totalGames = turso.totalGames;
+        source = "turso";
+      }
+    } else if ((period === "weekly" || period === "daily") && base && token) {
+      const tursoBoard = await fetchPeriodFromTurso(
+        base,
+        token,
+        period,
+        scanLimit
       );
-    }
-    const upstream = (await res.json()) as {
-      leaderboard?: Array<{
-        wallet?: string;
-        domain?: string | null;
-        score?: number;
-        total_plays?: number;
-        total_score?: number;
-      }>;
-      stats?: { totalPlayers?: number; totalGames?: number };
-    };
-
-    const rows = Array.isArray(upstream.leaderboard) ? upstream.leaderboard : [];
-    const baseBoard = rows.map((row, i) => ({
-      wallet: row.wallet || "",
-      username: row.domain || null,
-      high_score: Number(row.score) || 0,
-      total_plays: Number(row.total_plays) || 0,
-      total_score: Number(row.total_score ?? row.score) || 0,
-      skrId: row.domain || null,
-      rank: i + 1,
-    }));
-
-    let totalPlayers = Number(upstream.stats?.totalPlayers) || 0;
-    let totalGames = Number(upstream.stats?.totalGames) || 0;
-
-    if (!totalPlayers || !totalGames) {
-      try {
-        const statsRes = await fetch(`${SNAKE_API}/global-stats`, {
-          cache: "no-store",
-        });
-        if (statsRes.ok) {
-          const s = (await statsRes.json()) as {
-            totalPlayers?: number;
-            totalGames?: number;
-          };
-          totalPlayers = Number(s.totalPlayers) || totalPlayers;
-          totalGames = Number(s.totalGames) || totalGames;
-        }
-      } catch {
-        /* ignore */
+      if (tursoBoard?.length) {
+        board = tursoBoard;
+        source = "turso";
       }
     }
 
-    const leaderboard = await enrichLeaderboard(baseBoard);
+    if (!board.length) {
+      board = await fetchFromAirdropApi(period, scanLimit);
+      source = "airdrop-api";
+    }
+
+    // Display board (top `limit`) + eligibility scan on fuller set
+    const displayBoard = board.slice(0, limit);
+    const scanBoard = board.slice(0, scanLimit);
+
+    const [leaderboard, scanned] = await Promise.all([
+      enrichLeaderboard(displayBoard),
+      enrichLeaderboard(scanBoard),
+    ]);
+
+    const eligibleOnBoard = leaderboard.filter((r) => r.eligible).length;
+    const eligibleAmongTop = scanned.filter((r) => r.eligible).length;
+    const scannedPlayers = scanned.length;
+
+    // Best-effort global stats
+    if (!totalPlayers) {
+      try {
+        const statsRes = await fetch(`${SNAKE_API}/`, { cache: "no-store" });
+        if (statsRes.ok) {
+          /* ignore body shape */
+        }
+      } catch {
+        /* */
+      }
+    }
 
     return NextResponse.json(
       {
         success: true,
+        period,
         leaderboard,
         minRewardTracker: MIN_REWARD_TRACKER,
         rewardMint: SKR_MINT,
         holdMint: TRACKER_MINT,
-        stats: { totalPlayers, totalGames },
+        stats: {
+          totalPlayers,
+          totalGames,
+          /** Eligible on the visible board (top `limit`) */
+          eligibleOnBoard,
+          /** Eligible among top scorers scanned for this period */
+          eligiblePlayers: eligibleAmongTop,
+          scannedPlayers,
+          boardSize: leaderboard.length,
+        },
+        source,
       },
       { headers: { "Cache-Control": "no-store" } }
     );
