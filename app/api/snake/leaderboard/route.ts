@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CONN_RPC_URL, SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
+import { SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
+import {
+  fetchMintBalancesAta,
+  rpcLabel,
+} from "../../../(utils)/lib/solanaRpc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,6 +12,7 @@ export const maxDuration = 60;
 /**
  * Snake leaderboard — periods match the game: all | weekly | daily.
  * Enriches rows with TRACKER + SKR balances and eligible (≥1M TRACKER).
+ * Balances via ATA getAccountInfo on aex402 (getTokenAccountsByOwner unsupported).
  */
 
 const SNAKE_API =
@@ -32,111 +37,6 @@ function airdropPeriod(p: Period): string {
   if (p === "weekly") return "weekly";
   if (p === "daily") return "daily";
   return "all";
-}
-
-function rpcCandidates(): string[] {
-  const list: string[] = [];
-  if (process.env.SOLANA_RPC_URL) list.push(process.env.SOLANA_RPC_URL);
-  if (process.env.HELIUS_API_KEY) {
-    list.push(
-      `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
-    );
-  }
-  if (CONN_RPC_URL) list.push(CONN_RPC_URL);
-  list.push(
-    "https://solana-rpc.publicnode.com",
-    "https://api.mainnet-beta.solana.com"
-  );
-  return Array.from(new Set(list.filter(Boolean)));
-}
-
-type RpcAccount = {
-  account?: {
-    data?: {
-      parsed?: {
-        info?: { tokenAmount?: { uiAmount?: number | null } };
-      };
-    };
-  };
-};
-
-async function fetchMintBalanceOne(
-  rpc: string,
-  wallet: string,
-  mint: string
-): Promise<number | null> {
-  try {
-    const res = await fetch(rpc, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "getTokenAccountsByOwner",
-        params: [
-          wallet,
-          { mint },
-          { encoding: "jsonParsed", commitment: "confirmed" },
-        ],
-      }),
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      error?: { message?: string };
-      result?: { value?: RpcAccount[] };
-    };
-    if (data.error) return null;
-    let bal = 0;
-    for (const acc of data.result?.value || []) {
-      const ui = acc?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
-      if (typeof ui === "number" && Number.isFinite(ui)) bal += ui;
-    }
-    return bal;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchMintBalances(
-  wallets: string[],
-  mint: string
-): Promise<Record<string, number | null>> {
-  const unique = Array.from(new Set(wallets.filter(Boolean)));
-  // null = unknown (RPC failed) — never invent 0
-  const out: Record<string, number | null> = Object.fromEntries(
-    unique.map((w) => [w, null])
-  );
-  if (unique.length === 0) return out;
-
-  const rpcs = rpcCandidates();
-  let rpc: string | null = null;
-  for (const candidate of rpcs) {
-    const probe = await fetchMintBalanceOne(candidate, unique[0], mint);
-    if (probe !== null) {
-      rpc = candidate;
-      out[unique[0]] = probe;
-      break;
-    }
-  }
-  if (!rpc) {
-    console.error("fetchMintBalances: all RPCs failed for mint", mint);
-    return out;
-  }
-
-  const rest = unique.slice(1);
-  const CONCURRENCY = 6;
-  for (let i = 0; i < rest.length; i += CONCURRENCY) {
-    const chunk = rest.slice(i, i + CONCURRENCY);
-    const results = await Promise.all(
-      chunk.map((w) => fetchMintBalanceOne(rpc!, w, mint))
-    );
-    chunk.forEach((w, j) => {
-      // keep null on per-wallet failure
-      out[w] = results[j];
-    });
-  }
-  return out;
 }
 
 type BoardRow = {
@@ -177,11 +77,18 @@ function withBalances(
 
 async function enrichLeaderboard(baseBoard: BoardRow[]) {
   const wallets = baseBoard.map((r) => r.wallet);
-  const [trackerBalances, skrBalances] = await Promise.all([
-    fetchMintBalances(wallets, TRACKER_MINT),
-    fetchMintBalances(wallets, SKR_MINT),
+  const [trackerRes, skrRes] = await Promise.all([
+    fetchMintBalancesAta(wallets, TRACKER_MINT),
+    fetchMintBalancesAta(wallets, SKR_MINT),
   ]);
-  return withBalances(baseBoard, trackerBalances, skrBalances);
+  return {
+    rows: withBalances(
+      baseBoard,
+      trackerRes.balances,
+      skrRes.balances
+    ),
+    rpc: trackerRes.rpc || skrRes.rpc,
+  };
 }
 
 function snakeTursoBase(): string | null {
@@ -452,12 +359,16 @@ export async function GET(request: NextRequest) {
     const displayBoard = board.slice(0, limit);
     const scanBoard = board.slice(0, scanLimit);
 
-    const [leaderboard, scanned] = await Promise.all([
+    const [lbEnriched, scanEnriched] = await Promise.all([
       enrichLeaderboard(displayBoard),
       enrichLeaderboard(scanBoard),
     ]);
+    const leaderboard = lbEnriched.rows;
+    const scanned = scanEnriched.rows;
+    const balanceRpc = rpcLabel(lbEnriched.rpc || scanEnriched.rpc);
 
-    const eligibleOnBoard = leaderboard.filter((r) => r.eligible === true).length;
+    const eligibleOnBoard = leaderboard.filter((r) => r.eligible === true)
+      .length;
     const eligibleAmongTop = scanned.filter((r) => r.eligible === true).length;
     const scannedPlayers = scanned.filter(
       (r) => typeof r.trackerBalance === "number"
@@ -494,6 +405,7 @@ export async function GET(request: NextRequest) {
           scannedPlayers,
           balancesOk,
           boardSize: leaderboard.length,
+          rpc: balanceRpc,
         },
         source,
       },
