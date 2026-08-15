@@ -38,9 +38,11 @@ type LeaderboardEntry = {
   high_score: number;
   total_plays: number;
   total_score: number;
-  trackerBalance?: number;
-  skrBalance?: number;
-  eligible?: boolean;
+  /** null = RPC failed / unknown — never treat as 0 */
+  trackerBalance?: number | null;
+  skrBalance?: number | null;
+  /** null = unknown eligibility */
+  eligible?: boolean | null;
 };
 
 type GameConfig = {
@@ -74,8 +76,12 @@ function addressUrl(wallet: string): string {
 }
 
 /** Compact for balances; exact "1M" for thresholds when whole millions */
-function formatToken(num: number, exactMillions = false) {
-  if (!Number.isFinite(num) || num <= 0) return "0";
+function formatToken(
+  num: number | null | undefined,
+  exactMillions = false
+): string {
+  if (num == null || !Number.isFinite(num)) return "—";
+  if (num <= 0) return "0";
   if (exactMillions && num >= 1_000_000 && num % 1_000_000 === 0) {
     return `${num / 1_000_000}M`;
   }
@@ -111,6 +117,7 @@ export default function SnakePage() {
     eligiblePlayers?: number;
     eligibleOnBoard?: number;
     scannedPlayers?: number;
+    balancesOk?: boolean;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
@@ -147,6 +154,10 @@ export default function SnakePage() {
 
   const loadLeaderboard = useCallback(async () => {
     setLeaderboardLoading(true);
+    setLeaderboardError(null);
+    // Clear stale board immediately when switching periods
+    setLeaderboard([]);
+    setGameStats(null);
     try {
       const res = await fetch(
         `/api/snake/leaderboard?period=${lbPeriod}&limit=20`,
@@ -503,8 +514,9 @@ export default function SnakePage() {
                 lbPeriod === id ? styles.periodTabActive : ""
               }`}
               onClick={() => setLbPeriod(id)}
+              disabled={leaderboardLoading && lbPeriod === id}
             >
-              {label}
+              {leaderboardLoading && lbPeriod === id ? "…" : label}
             </button>
           ))}
         </div>
@@ -512,33 +524,40 @@ export default function SnakePage() {
         <div className={styles.eligibleBanner} aria-live="polite">
           <span className={styles.eligibleLabel}>Eligible to win $SKR</span>
           <strong className={styles.eligibleValue}>
-            {leaderboardLoading && gameStats?.eligiblePlayers == null
+            {leaderboardLoading
               ? "…"
-              : (
-                  gameStats?.eligiblePlayers ??
-                  leaderboard.filter(
-                    (e) =>
-                      e.eligible ??
-                      (e.trackerBalance ?? 0) >= requiredTracker
-                  ).length
-                ).toLocaleString()}
+              : gameStats?.balancesOk === false
+                ? "—"
+                : (
+                    gameStats?.eligiblePlayers ??
+                    leaderboard.filter((e) => e.eligible === true).length
+                  ).toLocaleString()}
           </strong>
           <span className={styles.eligibleHint}>
             hold ≥{minHoldLabel} TRACKER
-            {gameStats?.scannedPlayers
-              ? ` · of top ${gameStats.scannedPlayers.toLocaleString()} scorers`
-              : ""}
-            {typeof gameStats?.eligibleOnBoard === "number"
+            {gameStats?.balancesOk === false
+              ? " · balances unavailable (RPC)"
+              : gameStats?.scannedPlayers
+                ? ` · of ${gameStats.scannedPlayers.toLocaleString()} checked`
+                : ""}
+            {gameStats?.balancesOk !== false &&
+            typeof gameStats?.eligibleOnBoard === "number"
               ? ` · ${gameStats.eligibleOnBoard} on this board`
               : ""}
           </span>
         </div>
 
-        {leaderboardLoading && leaderboard.length === 0 ? (
-          <div className={styles.skeletonList} aria-hidden>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className={styles.skeletonRow} />
-            ))}
+        {leaderboardLoading ? (
+          <div className={styles.lbLoading} role="status" aria-live="polite">
+            <div className={styles.lbSpinner} aria-hidden />
+            <p className={styles.lbLoadingText}>
+              Loading {lbPeriod === "all" ? "all-time" : lbPeriod} leaderboard…
+            </p>
+            <div className={styles.skeletonList} aria-hidden>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className={styles.skeletonRow} />
+              ))}
+            </div>
           </div>
         ) : leaderboardError ? (
           <p className={styles.empty}>{leaderboardError}</p>
@@ -563,16 +582,19 @@ export default function SnakePage() {
               </span>
             </div>
             {leaderboard.map((entry, index) => {
-              const bal = entry.trackerBalance ?? 0;
-              const skrBal = entry.skrBalance ?? 0;
-              const ok = entry.eligible ?? bal >= requiredTracker;
+              const bal = entry.trackerBalance;
+              const skrBal = entry.skrBalance;
+              const balKnown = typeof bal === "number";
+              const skrKnown = typeof skrBal === "number";
+              const ok = entry.eligible === true;
+              const unknown = entry.eligible == null || !balKnown;
               const skrLabel = displaySkr(entry);
               const isYou = !!address && entry.wallet === address;
               return (
                 <div
                   key={`${lbPeriod}-${entry.wallet}-${index}`}
                   className={`${styles.trow} ${isYou ? styles.trowYou : ""} ${
-                    ok ? "" : styles.trowInelig
+                    ok ? "" : unknown ? "" : styles.trowInelig
                   }`}
                   role="row"
                 >
@@ -604,16 +626,32 @@ export default function SnakePage() {
                     {ok && <span className={styles.okChip}>✓</span>}
                   </span>
                   <span
-                    className={`${styles.num} ${ok ? styles.balOk : styles.balLow}`}
+                    className={`${styles.num} ${
+                      !balKnown
+                        ? styles.balUnknown
+                        : ok
+                          ? styles.balOk
+                          : styles.balLow
+                    }`}
                     role="cell"
-                    title={`${bal.toLocaleString()} TRACKER`}
+                    title={
+                      balKnown
+                        ? `${bal!.toLocaleString()} TRACKER`
+                        : "Balance unavailable"
+                    }
                   >
                     {formatToken(bal)}
                   </span>
                   <span
-                    className={`${styles.num} ${styles.skrBal}`}
+                    className={`${styles.num} ${
+                      skrKnown ? styles.skrBal : styles.balUnknown
+                    }`}
                     role="cell"
-                    title={`${skrBal.toLocaleString()} SKR`}
+                    title={
+                      skrKnown
+                        ? `${skrBal!.toLocaleString()} SKR`
+                        : "Balance unavailable"
+                    }
                   >
                     {formatToken(skrBal)}
                   </span>
@@ -621,7 +659,9 @@ export default function SnakePage() {
                     {entry.high_score.toLocaleString()}
                   </span>
                   <span className={`${styles.num} ${styles.plays}`} role="cell">
-                    {entry.total_plays.toLocaleString()}
+                    {entry.total_plays > 0
+                      ? entry.total_plays.toLocaleString()
+                      : "—"}
                   </span>
                 </div>
               );
