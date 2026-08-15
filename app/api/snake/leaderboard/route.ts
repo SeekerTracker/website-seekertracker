@@ -101,10 +101,11 @@ async function fetchMintBalanceOne(
 async function fetchMintBalances(
   wallets: string[],
   mint: string
-): Promise<Record<string, number>> {
+): Promise<Record<string, number | null>> {
   const unique = Array.from(new Set(wallets.filter(Boolean)));
-  const out: Record<string, number> = Object.fromEntries(
-    unique.map((w) => [w, 0])
+  // null = unknown (RPC failed) — never invent 0
+  const out: Record<string, number | null> = Object.fromEntries(
+    unique.map((w) => [w, null])
   );
   if (unique.length === 0) return out;
 
@@ -131,7 +132,8 @@ async function fetchMintBalances(
       chunk.map((w) => fetchMintBalanceOne(rpc!, w, mint))
     );
     chunk.forEach((w, j) => {
-      out[w] = results[j] ?? 0;
+      // keep null on per-wallet failure
+      out[w] = results[j];
     });
   }
   return out;
@@ -150,17 +152,25 @@ type BoardRow = {
 
 function withBalances(
   rows: BoardRow[],
-  trackerBalances: Record<string, number>,
-  skrBalances: Record<string, number>
+  trackerBalances: Record<string, number | null>,
+  skrBalances: Record<string, number | null>
 ) {
   return rows.map((row) => {
-    const trackerBalance = trackerBalances[row.wallet] ?? 0;
-    const skrBalance = skrBalances[row.wallet] ?? 0;
+    const trackerBalance =
+      row.wallet in trackerBalances
+        ? trackerBalances[row.wallet]
+        : null;
+    const skrBalance =
+      row.wallet in skrBalances ? skrBalances[row.wallet] : null;
+    const eligible =
+      typeof trackerBalance === "number"
+        ? trackerBalance >= MIN_REWARD_TRACKER
+        : null;
     return {
       ...row,
       trackerBalance,
       skrBalance,
-      eligible: trackerBalance >= MIN_REWARD_TRACKER,
+      eligible,
     };
   });
 }
@@ -447,9 +457,12 @@ export async function GET(request: NextRequest) {
       enrichLeaderboard(scanBoard),
     ]);
 
-    const eligibleOnBoard = leaderboard.filter((r) => r.eligible).length;
-    const eligibleAmongTop = scanned.filter((r) => r.eligible).length;
-    const scannedPlayers = scanned.length;
+    const eligibleOnBoard = leaderboard.filter((r) => r.eligible === true).length;
+    const eligibleAmongTop = scanned.filter((r) => r.eligible === true).length;
+    const scannedPlayers = scanned.filter(
+      (r) => typeof r.trackerBalance === "number"
+    ).length;
+    const balancesOk = scannedPlayers > 0;
 
     // Best-effort global stats
     if (!totalPlayers) {
@@ -479,6 +492,7 @@ export async function GET(request: NextRequest) {
           /** Eligible among top scorers scanned for this period */
           eligiblePlayers: eligibleAmongTop,
           scannedPlayers,
+          balancesOk,
           boardSize: leaderboard.length,
         },
         source,

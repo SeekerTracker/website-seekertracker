@@ -386,6 +386,42 @@
   border-color: rgba(0, 255, 217, 0.5);
 }
 
+.lbLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0 0.25rem;
+  width: 100%;
+}
+
+.lbSpinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(0, 255, 217, 0.15);
+  border-top-color: #00ffd9;
+  animation: lbspin 0.7s linear infinite;
+}
+
+@keyframes lbspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.lbLoadingText {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #8fb3ad;
+}
+
+.balUnknown {
+  color: #5d7777;
+  font-weight: 600;
+}
+
 .eligibleBanner {
   display: flex;
   flex-wrap: wrap;
