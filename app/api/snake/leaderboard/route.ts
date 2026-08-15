@@ -203,6 +203,7 @@ async function fetchAllTimeFromTurso(
   totalGames: number;
 } | null> {
   try {
+    // Single pipeline: top board + counts (no extra 200-wallet scan query)
     const data = await tursoPipeline(base, token, [
       {
         sql: `SELECT u.wallet, u.username, s.high_score, s.total_plays, s.total_score
@@ -215,15 +216,6 @@ async function fetchAllTimeFromTurso(
       },
       { sql: `SELECT COUNT(*) FROM users` },
       { sql: `SELECT COUNT(*) FROM games` },
-      // wallets with any high score — for eligibility scan pool
-      {
-        sql: `SELECT u.wallet
-              FROM stats s
-              JOIN users u ON u.id = s.user_id
-              WHERE s.high_score > 0
-              ORDER BY s.high_score DESC
-              LIMIT 200`,
-      },
     ]);
 
     const lbRows = data.results?.[0]?.response?.result?.rows || [];
@@ -262,51 +254,43 @@ async function fetchPeriodFromTurso(
   period: "weekly" | "daily",
   limit: number
 ): Promise<BoardRow[] | null> {
-  // games.played_at / created_at — try common column names
   const window = period === "daily" ? "-1 day" : "-7 days";
-  const sqls = [
-    `SELECT u.wallet, u.username, MAX(g.score) AS high_score, COUNT(*) AS total_plays, SUM(g.score) AS total_score
-     FROM games g
-     JOIN users u ON u.id = g.user_id
-     WHERE g.played_at >= datetime('now', '${window}')
-     GROUP BY u.wallet
-     HAVING high_score > 0
-     ORDER BY high_score DESC
-     LIMIT ${limit}`,
-    `SELECT u.wallet, u.username, MAX(g.score) AS high_score, COUNT(*) AS total_plays, SUM(g.score) AS total_score
-     FROM games g
-     JOIN users u ON u.id = g.user_id
-     WHERE g.created_at >= datetime('now', '${window}')
-     GROUP BY u.wallet
-     HAVING high_score > 0
-     ORDER BY high_score DESC
-     LIMIT ${limit}`,
-  ];
-
-  for (const sql of sqls) {
-    try {
-      const data = await tursoPipeline(base, token, [{ sql }]);
-      const lbRows = data.results?.[0]?.response?.result?.rows || [];
-      if (!lbRows.length) continue;
-      return lbRows.map((row, i) => {
-        const wallet = cell(row, 0);
-        const username = cell(row, 1) || null;
-        return {
-          wallet,
-          username,
-          high_score: Number(cell(row, 2)) || 0,
-          total_plays: Number(cell(row, 3)) || 0,
-          total_score: Number(cell(row, 4)) || 0,
-          skrId: username,
-          rank: i + 1,
-          played_at: null as string | null,
-        };
-      });
-    } catch {
-      /* try next sql shape */
-    }
+  // Prefer played_at (indexed) only — no sequential fallback RTT
+  try {
+    const data = await tursoPipeline(base, token, [
+      {
+        sql: `SELECT u.wallet, u.username, MAX(g.score) AS high_score,
+                     COUNT(*) AS total_plays, SUM(g.score) AS total_score
+              FROM games g
+              JOIN users u ON u.id = g.user_id
+              WHERE g.played_at >= datetime('now', ?)
+              GROUP BY u.id
+              HAVING high_score > 0
+              ORDER BY high_score DESC
+              LIMIT ?`,
+        args: [window, limit],
+      },
+    ]);
+    const lbRows = data.results?.[0]?.response?.result?.rows || [];
+    if (!lbRows.length) return [];
+    return lbRows.map((row, i) => {
+      const wallet = cell(row, 0);
+      const username = cell(row, 1) || null;
+      return {
+        wallet,
+        username,
+        high_score: Number(cell(row, 2)) || 0,
+        total_plays: Number(cell(row, 3)) || 0,
+        total_score: Number(cell(row, 4)) || 0,
+        skrId: username,
+        rank: i + 1,
+        played_at: null as string | null,
+      };
+    });
+  } catch (e) {
+    console.warn("turso period failed", e);
+    return null;
   }
-  return null;
 }
 
 export async function GET(request: NextRequest) {
@@ -355,37 +339,18 @@ export async function GET(request: NextRequest) {
       source = "airdrop-api";
     }
 
-    // Display board (top `limit`) + eligibility scan on fuller set
+    // Display board (top `limit`) — enrich once (scan = same rows, no double RPC)
     const displayBoard = board.slice(0, limit);
-    const scanBoard = board.slice(0, scanLimit);
-
-    const [lbEnriched, scanEnriched] = await Promise.all([
-      enrichLeaderboard(displayBoard),
-      enrichLeaderboard(scanBoard),
-    ]);
-    const leaderboard = lbEnriched.rows;
-    const scanned = scanEnriched.rows;
-    const balanceRpc = rpcLabel(lbEnriched.rpc || scanEnriched.rpc);
+    const { rows: leaderboard, rpc } = await enrichLeaderboard(displayBoard);
+    const balanceRpc = rpcLabel(rpc);
 
     const eligibleOnBoard = leaderboard.filter((r) => r.eligible === true)
       .length;
-    const eligibleAmongTop = scanned.filter((r) => r.eligible === true).length;
-    const scannedPlayers = scanned.filter(
+    const eligibleAmongTop = eligibleOnBoard;
+    const scannedPlayers = leaderboard.filter(
       (r) => typeof r.trackerBalance === "number"
     ).length;
     const balancesOk = scannedPlayers > 0;
-
-    // Best-effort global stats
-    if (!totalPlayers) {
-      try {
-        const statsRes = await fetch(`${SNAKE_API}/`, { cache: "no-store" });
-        if (statsRes.ok) {
-          /* ignore body shape */
-        }
-      } catch {
-        /* */
-      }
-    }
 
     return NextResponse.json(
       {
@@ -398,9 +363,7 @@ export async function GET(request: NextRequest) {
         stats: {
           totalPlayers,
           totalGames,
-          /** Eligible on the visible board (top `limit`) */
           eligibleOnBoard,
-          /** Eligible among top scorers scanned for this period */
           eligiblePlayers: eligibleAmongTop,
           scannedPlayers,
           balancesOk,
@@ -409,7 +372,12 @@ export async function GET(request: NextRequest) {
         },
         source,
       },
-      { headers: { "Cache-Control": "no-store" } }
+      {
+        headers: {
+          // Edge/CDN may cache briefly — balances refresh every request when uncached
+          "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
+        },
+      }
     );
   } catch (error) {
     console.error("Leaderboard API error:", error);
