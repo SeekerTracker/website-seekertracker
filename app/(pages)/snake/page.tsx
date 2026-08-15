@@ -43,6 +43,8 @@ type LeaderboardEntry = {
   skrBalance?: number | null;
   /** SKR locked in official stake program */
   skrStaked?: number | null;
+  /** ISO / SQL datetime of last game */
+  played_at?: string | null;
   /** null = unknown eligibility */
   eligible?: boolean | null;
 };
@@ -104,6 +106,21 @@ function formatTracker(num: number, exactMillions = false) {
 
 function shortWallet(w: string) {
   return `${w.slice(0, 4)}…${w.slice(-4)}`;
+}
+
+function formatPlayedAt(raw: string | null | undefined): string {
+  if (!raw) return "—";
+  const d = new Date(raw.includes("T") ? raw : raw.replace(" ", "T") + "Z");
+  if (Number.isNaN(d.getTime())) {
+    // already human-ish
+    const s = raw.trim();
+    return s.length > 16 ? s.slice(0, 16) : s;
+  }
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "2-digit",
+  });
 }
 
 export default function SnakePage() {
@@ -566,12 +583,15 @@ export default function SnakePage() {
         ) : leaderboard.length === 0 ? (
           <p className={styles.empty}>No scores yet for this period.</p>
         ) : (
-          <div className={styles.table} role="table">
+          <div className={styles.tableWrap}><div className={styles.table} role="table">
             <div className={styles.thead} role="row">
               <span role="columnheader">#</span>
               <span role="columnheader">Player</span>
               <span role="columnheader" className={styles.num}>
                 TRACKER
+              </span>
+              <span role="columnheader" className={styles.num}>
+                SKR
               </span>
               <span role="columnheader" className={styles.num}>
                 Staked
@@ -582,11 +602,16 @@ export default function SnakePage() {
               <span role="columnheader" className={styles.num}>
                 Games
               </span>
+              <span role="columnheader" className={styles.num}>
+                Last
+              </span>
             </div>
             {leaderboard.map((entry, index) => {
               const bal = entry.trackerBalance;
+              const skrBal = entry.skrBalance;
               const staked = entry.skrStaked;
               const balKnown = typeof bal === "number";
+              const skrKnown = typeof skrBal === "number";
               const stakedKnown = typeof staked === "number";
               const ok = entry.eligible === true;
               const unknown = entry.eligible == null || !balKnown;
@@ -646,6 +671,19 @@ export default function SnakePage() {
                   </span>
                   <span
                     className={`${styles.num} ${
+                      skrKnown ? styles.skrWallet : styles.balUnknown
+                    }`}
+                    role="cell"
+                    title={
+                      skrKnown
+                        ? `${skrBal!.toLocaleString()} SKR in wallet`
+                        : "Wallet SKR unavailable"
+                    }
+                  >
+                    {formatToken(skrBal)}
+                  </span>
+                  <span
+                    className={`${styles.num} ${
                       stakedKnown ? styles.skrBal : styles.balUnknown
                     }`}
                     role="cell"
@@ -665,10 +703,17 @@ export default function SnakePage() {
                       ? entry.total_plays.toLocaleString()
                       : "—"}
                   </span>
+                  <span
+                    className={`${styles.num} ${styles.lastPlayed}`}
+                    role="cell"
+                    title={entry.played_at || undefined}
+                  >
+                    {formatPlayedAt(entry.played_at)}
+                  </span>
                 </div>
               );
             })}
-          </div>
+          </div></div>
         )}
       </section>
 
