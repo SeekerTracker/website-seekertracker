@@ -215,7 +215,8 @@ async function fetchAllTimeFromTurso(
     // Single pipeline: top board + counts (no extra 200-wallet scan query)
     const data = await tursoPipeline(base, token, [
       {
-        sql: `SELECT u.wallet, u.username, s.high_score, s.total_plays, s.total_score
+        sql: `SELECT u.wallet, u.username, s.high_score, s.total_plays, s.total_score,
+                     (SELECT MAX(g.played_at) FROM games g WHERE g.user_id = s.user_id) AS last_played
               FROM stats s
               JOIN users u ON u.id = s.user_id
               WHERE s.high_score > 0
@@ -242,7 +243,7 @@ async function fetchAllTimeFromTurso(
         total_score: Number(cell(row, 4)) || 0,
         skrId: username,
         rank: i + 1,
-        played_at: null as string | null,
+        played_at: cell(row, 5) || null,
       };
     });
 
@@ -269,7 +270,8 @@ async function fetchPeriodFromTurso(
     const data = await tursoPipeline(base, token, [
       {
         sql: `SELECT u.wallet, u.username, MAX(g.score) AS high_score,
-                     COUNT(*) AS total_plays, SUM(g.score) AS total_score
+                     COUNT(*) AS total_plays, SUM(g.score) AS total_score,
+                     MAX(g.played_at) AS last_played
               FROM games g
               JOIN users u ON u.id = g.user_id
               WHERE g.played_at >= datetime('now', ?)
@@ -293,7 +295,7 @@ async function fetchPeriodFromTurso(
         total_score: Number(cell(row, 4)) || 0,
         skrId: username,
         rank: i + 1,
-        played_at: null as string | null,
+        played_at: cell(row, 5) || null,
       };
     });
   } catch (e) {

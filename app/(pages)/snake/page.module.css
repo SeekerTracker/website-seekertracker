@@ -534,10 +534,19 @@
 }
 
 /* Table */
+/* Table */
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+}
+
 .table {
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 760px;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid rgba(0, 255, 217, 0.1);
@@ -546,10 +555,11 @@
 .thead,
 .trow {
   display: grid;
-  grid-template-columns: 2.2rem minmax(0, 1.4fr) 4.6rem 4.2rem 4.2rem 3.6rem;
-  gap: 0.4rem;
+  grid-template-columns:
+    2rem minmax(6.5rem, 1.2fr) 4.2rem 3.8rem 3.8rem 3.6rem 3.2rem 4.2rem;
+  gap: 0.35rem;
   align-items: center;
-  padding: 0.65rem 0.75rem;
+  padding: 0.6rem 0.7rem;
 }
 
 .thead {
@@ -637,6 +647,18 @@
 .skrBal {
   color: #c4b5fd;
   font-weight: 600;
+}
+
+.skrWallet {
+  color: #9ed9cc;
+  font-weight: 600;
+}
+
+.lastPlayed {
+  color: #8fb3ad;
+  font-size: 0.78em;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .balLow {
@@ -756,11 +778,12 @@
   }
 
   .thead,
-  .trow {
-    grid-template-columns: 1.8rem minmax(0, 1fr) 3.6rem 3.4rem 3.4rem 3rem;
-    padding: 0.55rem 0.5rem;
-    font-size: 0.78rem;
-  }
+    .trow {
+      grid-template-columns:
+        1.7rem minmax(5.5rem, 1fr) 3.4rem 3.2rem 3.2rem 3rem 2.8rem 3.6rem;
+      padding: 0.5rem 0.45rem;
+      font-size: 0.74rem;
+    }
 
   .thead {
     font-size: 0.62rem;
