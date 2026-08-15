@@ -207,3 +207,120 @@ export function rpcLabel(rpc: string | null): string {
   if (rpc.includes("mainnet-beta")) return "solana-public";
   return rpc.replace(/^https?:\/\//, "").slice(0, 40);
 }
+
+/** Official SKR stake program (Seeker) */
+export const SKR_STAKING_PROGRAM = "SKRskrmtL83pcL4YqLWt6iPefDqwXQWHSw9S9vz94BZ";
+/** Stake account data layout (confirmed on-chain) */
+const SKR_STAKE_DATA_SIZE = 169;
+const SKR_STAKE_OWNER_OFFSET = 41;
+const SKR_STAKE_AMOUNT_OFFSET = 105;
+const SKR_STAKE_DECIMALS = 9;
+
+/** RPCs that support getProgramAccounts for the stake program */
+function gpaRpcCandidates(): string[] {
+  const list: string[] = [];
+  if (process.env.HELIUS_RPC_URL) list.push(process.env.HELIUS_RPC_URL);
+  if (process.env.HELIUS_API_KEY) {
+    list.push(
+      `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
+    );
+  }
+  // viviyan supports GPA; aex402 excludes this program from secondary indexes
+  list.push("https://viviyan-bkj12u-fast-mainnet.helius-rpc.com");
+  list.push("https://api.mainnet-beta.solana.com");
+  return Array.from(new Set(list.filter(Boolean)));
+}
+
+/**
+ * Staked SKR per wallet via stake program accounts (owner @ offset 41).
+ * null = lookup failed; 0 = no stake accounts.
+ */
+export async function fetchSkrStakedBalances(
+  wallets: string[]
+): Promise<{ balances: Record<string, number | null>; rpc: string | null }> {
+  const unique = Array.from(new Set(wallets.filter(Boolean)));
+  const balances: Record<string, number | null> = Object.fromEntries(
+    unique.map((w) => [w, null])
+  );
+  if (unique.length === 0) return { balances, rpc: null };
+
+  const candidates = gpaRpcCandidates();
+  let rpc: string | null = null;
+
+  // Probe first wallet
+  for (const candidate of candidates) {
+    const probe = await fetchSkrStakedOne(candidate, unique[0]);
+    if (probe !== null) {
+      rpc = candidate;
+      balances[unique[0]] = probe;
+      break;
+    }
+  }
+  if (!rpc) {
+    console.error("fetchSkrStakedBalances: all GPA RPCs failed");
+    return { balances, rpc: null };
+  }
+
+  const rest = unique.slice(1);
+  const CONCURRENCY = 6;
+  for (let i = 0; i < rest.length; i += CONCURRENCY) {
+    const chunk = rest.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(
+      chunk.map((w) => fetchSkrStakedOne(rpc!, w))
+    );
+    chunk.forEach((w, j) => {
+      balances[w] = results[j];
+    });
+  }
+  return { balances, rpc };
+}
+
+async function fetchSkrStakedOne(
+  rpc: string,
+  wallet: string
+): Promise<number | null> {
+  try {
+    const result = await rpcCall<
+      Array<{
+        account?: { data?: [string, string] | string };
+      }>
+    >(
+      rpc,
+      "getProgramAccounts",
+      [
+        SKR_STAKING_PROGRAM,
+        {
+          encoding: "base64",
+          filters: [
+            { dataSize: SKR_STAKE_DATA_SIZE },
+            {
+              memcmp: {
+                offset: SKR_STAKE_OWNER_OFFSET,
+                bytes: wallet,
+              },
+            },
+          ],
+        },
+      ],
+      `skr-stake-${wallet.slice(0, 8)}`
+    );
+
+    const accounts = Array.isArray(result) ? result : [];
+    if (accounts.length === 0) return 0;
+
+    let totalRaw = 0;
+    for (const acc of accounts) {
+      const dataField = acc.account?.data;
+      const b64 = Array.isArray(dataField) ? dataField[0] : dataField;
+      if (!b64 || typeof b64 !== "string") continue;
+      const raw = Buffer.from(b64, "base64");
+      if (raw.length < SKR_STAKE_AMOUNT_OFFSET + 8) continue;
+      const amount = raw.readBigUInt64LE(SKR_STAKE_AMOUNT_OFFSET);
+      totalRaw += Number(amount);
+    }
+    return totalRaw / Math.pow(10, SKR_STAKE_DECIMALS);
+  } catch (e) {
+    console.warn("fetchSkrStakedOne failed", wallet.slice(0, 8), e);
+    return null;
+  }
+}
