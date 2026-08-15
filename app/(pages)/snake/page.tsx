@@ -41,6 +41,8 @@ type LeaderboardEntry = {
   /** null = RPC failed / unknown — never treat as 0 */
   trackerBalance?: number | null;
   skrBalance?: number | null;
+  /** SKR locked in official stake program */
+  skrStaked?: number | null;
   /** null = unknown eligibility */
   eligible?: boolean | null;
 };
@@ -572,7 +574,7 @@ export default function SnakePage() {
                 TRACKER
               </span>
               <span role="columnheader" className={styles.num}>
-                SKR
+                Staked
               </span>
               <span role="columnheader" className={styles.num}>
                 High
@@ -583,9 +585,9 @@ export default function SnakePage() {
             </div>
             {leaderboard.map((entry, index) => {
               const bal = entry.trackerBalance;
-              const skrBal = entry.skrBalance;
+              const staked = entry.skrStaked;
               const balKnown = typeof bal === "number";
-              const skrKnown = typeof skrBal === "number";
+              const stakedKnown = typeof staked === "number";
               const ok = entry.eligible === true;
               const unknown = entry.eligible == null || !balKnown;
               const skrLabel = displaySkr(entry);
@@ -644,16 +646,16 @@ export default function SnakePage() {
                   </span>
                   <span
                     className={`${styles.num} ${
-                      skrKnown ? styles.skrBal : styles.balUnknown
+                      stakedKnown ? styles.skrBal : styles.balUnknown
                     }`}
                     role="cell"
                     title={
-                      skrKnown
-                        ? `${skrBal!.toLocaleString()} SKR`
-                        : "Balance unavailable"
+                      stakedKnown
+                        ? `${staked!.toLocaleString()} SKR staked`
+                        : "Staked SKR unavailable"
                     }
                   >
-                    {formatToken(skrBal)}
+                    {formatToken(staked)}
                   </span>
                   <span className={`${styles.num} ${styles.score}`} role="cell">
                     {entry.high_score.toLocaleString()}

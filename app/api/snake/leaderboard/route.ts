@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
 import {
   fetchMintBalancesAta,
+  fetchSkrStakedBalances,
   rpcLabel,
 } from "../../../(utils)/lib/solanaRpc";
 
@@ -53,7 +54,8 @@ type BoardRow = {
 function withBalances(
   rows: BoardRow[],
   trackerBalances: Record<string, number | null>,
-  skrBalances: Record<string, number | null>
+  skrBalances: Record<string, number | null>,
+  skrStakedBalances: Record<string, number | null>
 ) {
   return rows.map((row) => {
     const trackerBalance =
@@ -62,6 +64,10 @@ function withBalances(
         : null;
     const skrBalance =
       row.wallet in skrBalances ? skrBalances[row.wallet] : null;
+    const skrStaked =
+      row.wallet in skrStakedBalances
+        ? skrStakedBalances[row.wallet]
+        : null;
     const eligible =
       typeof trackerBalance === "number"
         ? trackerBalance >= MIN_REWARD_TRACKER
@@ -70,6 +76,7 @@ function withBalances(
       ...row,
       trackerBalance,
       skrBalance,
+      skrStaked,
       eligible,
     };
   });
@@ -77,17 +84,19 @@ function withBalances(
 
 async function enrichLeaderboard(baseBoard: BoardRow[]) {
   const wallets = baseBoard.map((r) => r.wallet);
-  const [trackerRes, skrRes] = await Promise.all([
+  const [trackerRes, skrRes, stakedRes] = await Promise.all([
     fetchMintBalancesAta(wallets, TRACKER_MINT),
     fetchMintBalancesAta(wallets, SKR_MINT),
+    fetchSkrStakedBalances(wallets),
   ]);
   return {
     rows: withBalances(
       baseBoard,
       trackerRes.balances,
-      skrRes.balances
+      skrRes.balances,
+      stakedRes.balances
     ),
-    rpc: trackerRes.rpc || skrRes.rpc,
+    rpc: trackerRes.rpc || skrRes.rpc || stakedRes.rpc,
   };
 }
 
