@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { CONN_RPC_URL } from "../../../(utils)/constant";
+import {
+  fetchMintBalanceAta,
+  rpcCandidates,
+  rpcCall,
+  rpcLabel,
+} from "../../../(utils)/lib/solanaRpc";
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 /** Win / airdrop mint (Seeker SKR) */
@@ -25,6 +30,7 @@ export async function GET() {
             rewardSymbol: "SKR",
             solBalance: 0,
             wallet: PRIZE_WALLET,
+            source: "airdrop-api",
           });
         }
       }
@@ -32,38 +38,39 @@ export async function GET() {
       /* fall through to RPC */
     }
 
-    const response = await fetch(CONN_RPC_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: "snake-prize",
-        method: "getTokenAccountsByOwner",
-        params: [
-          PRIZE_WALLET,
-          { mint: SKR_TOKEN },
-          { encoding: "jsonParsed" },
-        ],
-      }),
-      cache: "no-store",
-    });
+    let skrBalance: number | null = null;
+    let usedRpc: string | null = null;
+    for (const rpc of rpcCandidates()) {
+      const bal = await fetchMintBalanceAta(rpc, PRIZE_WALLET, SKR_TOKEN);
+      if (bal !== null) {
+        skrBalance = bal;
+        usedRpc = rpc;
+        break;
+      }
+    }
 
-    const data = await response.json();
-    const values = data?.result?.value || [];
-    let skrBalance = 0;
-    for (const v of values) {
-      const ui = v?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
-      if (typeof ui === "number") skrBalance += ui;
+    let solBalance = 0;
+    if (usedRpc) {
+      try {
+        const lamports = await rpcCall<number>(usedRpc, "getBalance", [
+          PRIZE_WALLET,
+        ]);
+        solBalance = (lamports || 0) / 1e9;
+      } catch {
+        /* soft */
+      }
     }
 
     return NextResponse.json({
-      skrBalance,
-      trackerBalance: skrBalance, // legacy alias — now SKR
+      skrBalance: skrBalance ?? 0,
+      trackerBalance: skrBalance ?? 0, // legacy alias — now SKR
       rewardMint: SKR_TOKEN,
       rewardSymbol: "SKR",
       holdMint: TRACKER_TOKEN,
-      solBalance: 0,
+      solBalance,
       wallet: PRIZE_WALLET,
+      rpc: rpcLabel(usedRpc),
+      balancesOk: skrBalance !== null,
     });
   } catch (error) {
     console.error("Snake prize API error:", error);

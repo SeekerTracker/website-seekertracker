@@ -18,11 +18,14 @@ export const LEGACY_DOMAIN_API =
 
 export const SEEKER_TOKEN_ADDRESS = 'ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS'
 // NOTE: this endpoint is exposed client-side, so every visitor's browser hits it
-// directly — a capped plan drains fast (the previous viviyan-bkj12u endpoint hit
-// "max usage reached" and 404'd all /id pages). Consider proxying RPC through a
-// server route with the key in an env var to avoid exposure + draining.
-export const CONN_RPC_URL = "https://cassandra-bq5oqs-fast-mainnet.helius-rpc.com"
-export const solanaWSConnection = new Connection(CONN_RPC_URL, "processed")
+// directly. Prefer aex402 (TOKENSHIT primary). Bare curl without User-Agent → 403.
+// Token secondary indexes are disabled on aex402 — server routes must use ATA
+// getAccountInfo (see app/(utils)/lib/solanaRpc.ts), not getTokenAccountsByOwner.
+export const CONN_RPC_URL =
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
+  process.env.SOLANA_RPC_URL ||
+  "https://rpc.aex402.com/";
+export const solanaWSConnection = new Connection(CONN_RPC_URL, "processed");
 
 /** Absolute paths so server components / edge can call own APIs */
 export const BEPATH = {
