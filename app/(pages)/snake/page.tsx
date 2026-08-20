@@ -840,7 +840,7 @@ export default function SnakePage() {
       <section className={styles.panel}>
         <h2 className={styles.panelTitle}>Reward Multipliers</h2>
         <p className={styles.panelSub} style={{marginBottom: '0.75rem'}}>
-          Hold TRACKER to earn a personal multiplier on every score → SKR payout.
+          Effective rate = Turso base × bag boost. Base is live from config (currently 0.1).
         </p>
         <div style={{
           display: 'grid',
@@ -849,9 +849,9 @@ export default function SnakePage() {
           margin: '8px 0'
         }}>
           {[
-            { hold: '1M', mult: '0.1×', note: 'base' },
-            { hold: '2.5M', mult: '0.25×', note: '2.5× boost' },
-            { hold: '5M+', mult: '0.5×', note: '5× boost' },
+            { hold: '1M', boost: '×1', mult: '0.1×', note: '0.1 × 1' },
+            { hold: '2.5M', boost: '×2.5', mult: '0.25×', note: '0.1 × 2.5' },
+            { hold: '5M+', boost: '×5', mult: '0.5×', note: '0.1 × 5' },
           ].map((tier, i) => (
             <div key={i} style={{
               background: 'rgba(0, 255, 136, 0.06)',
@@ -864,6 +864,9 @@ export default function SnakePage() {
               <div style={{fontFamily: 'monospace', fontWeight: 700, color: '#00ff88'}}>
                 {tier.hold} TRACKER
               </div>
+              <div style={{fontSize: '0.75rem', color: '#7aa8a8', marginTop: 2}}>
+                boost {tier.boost}
+              </div>
               <div style={{fontSize: '1.1rem', fontWeight: 800, margin: '2px 0'}}>
                 {tier.mult}
               </div>
@@ -874,7 +877,7 @@ export default function SnakePage() {
           ))}
         </div>
         <p style={{fontSize: '0.75rem', color: '#666', marginTop: '4px'}}>
-          1 score = multiplier × SKR. Higher bag = higher personal rate.
+          1 score × effective rate = SKR. Your bag multiplies the Turso base.
         </p>
       </section>
 
