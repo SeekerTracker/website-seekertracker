@@ -28,10 +28,18 @@ type Stats = {
   totalEligible: number;
   totalBalance: number;
   totalCounted?: number;
+  rewardWallet?: string;
+  rewardWalletSol?: number | null;
+  walletReserveSol?: number;
+  minPrizeSol?: number;
+  dripActive?: boolean | null;
+  dripStatus?: "active" | "paused_unfunded" | "unknown";
 };
 
 const MIN_HOLD = 1_000_000;
 const MAX_HOLD = 20_000_000;
+const REWARD_WALLET_FALLBACK =
+  "rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug";
 
 function msToNextHour(): number {
   const now = Date.now();
@@ -223,6 +231,39 @@ export default function Sweep() {
         </div>
       </header>
 
+      {/* Drip funding status */}
+      {stats?.dripStatus === "paused_unfunded" && (
+        <div className={styles.statusBanner} role="status">
+          <strong>Drip paused — reward wallet unfunded</strong>
+          <p>
+            Bot is healthy but prize wallet holds only{" "}
+            <code>
+              {typeof stats.rewardWalletSol === "number"
+                ? `${stats.rewardWalletSol.toFixed(4)} SOL`
+                : "reserve"}
+            </code>{" "}
+            (keeps {stats.walletReserveSol ?? 0.01} SOL gas). Send ≥{" "}
+            {(stats.minPrizeSol ?? 0.002) + (stats.walletReserveSol ?? 0.01)} SOL
+            to resume hourly drips.
+          </p>
+          <a
+            className={styles.statusLink}
+            href={`https://sol.new/address/${stats.rewardWallet || REWARD_WALLET_FALLBACK}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {shortWallet(stats.rewardWallet || REWARD_WALLET_FALLBACK)} on sol.new →
+          </a>
+        </div>
+      )}
+      {stats?.dripStatus === "active" &&
+        typeof stats.rewardWalletSol === "number" && (
+          <div className={styles.statusOk} role="status">
+            Drip active · prize wallet{" "}
+            <strong>{stats.rewardWalletSol.toFixed(4)} SOL</strong>
+          </div>
+        )}
+
       {/* Metrics */}
       <section className={styles.metrics} aria-label="Sweep stats">
         <div className={styles.metric}>
@@ -242,15 +283,26 @@ export default function Sweep() {
           </span>
         </div>
         <div className={styles.metric}>
-          <span className={styles.metricLabel}>Band</span>
+          <span className={styles.metricLabel}>Prize wallet</span>
           <span className={styles.metricValue}>
-            1–20<em>M</em>
+            {typeof stats?.rewardWalletSol === "number"
+              ? formatSol(stats.rewardWalletSol)
+              : loading
+                ? "…"
+                : "—"}
+            <em> SOL</em>
           </span>
         </div>
         <div className={styles.metric}>
-          <span className={styles.metricLabel}>Min drip</span>
+          <span className={styles.metricLabel}>Drip</span>
           <span className={styles.metricValue}>
-            0.002<em>SOL</em>
+            {stats?.dripStatus === "paused_unfunded"
+              ? "Paused"
+              : stats?.dripStatus === "active"
+                ? "Live"
+                : loading
+                  ? "…"
+                  : "—"}
           </span>
         </div>
       </section>

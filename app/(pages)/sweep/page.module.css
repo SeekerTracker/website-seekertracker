@@ -755,3 +755,44 @@
     /* keep weight — drop nothing critical */
   }
 }
+
+/* Drip funding status */
+.statusBanner {
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 180, 60, 0.45);
+  background: rgba(255, 160, 40, 0.1);
+  color: #ffd9a0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.statusBanner strong {
+  color: #ffcc66;
+  font-size: 0.95rem;
+}
+.statusBanner p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #e8d0a8;
+}
+.statusBanner code {
+  font-size: 0.85em;
+  color: #fff;
+}
+.statusLink {
+  color: #00ffd9;
+  font-size: 0.85rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+.statusLink:hover { text-decoration: underline; }
+.statusOk {
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  background: rgba(0, 255, 136, 0.07);
+  color: #9ef0c8;
+  font-size: 0.85rem;
+}
