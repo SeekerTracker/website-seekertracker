@@ -1,37 +1,51 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
+/** Serve /solana.txt as plain ASCII text (TRACKER mint + related addresses). */
 export const dynamic = "force-static";
 
-/** Serve /solana.txt as plain text (TRACKER mint + related addresses). */
-export async function GET() {
-  try {
-    const filePath = path.join(process.cwd(), "public", "solana.txt");
-    const body = await readFile(filePath, "utf8");
-    return new Response(body, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "public, max-age=300, s-maxage=600",
-      },
-    });
-  } catch {
-    // Fallback body if public file missing at runtime
-    const fallback = `# Seeker Tracker — Solana
+const BODY = `# Seeker Tracker - Solana
 # https://seekertracker.com
+# ASCII only (token registry)
 
 token: ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS
 chain: solana
 symbol: TRACKER
 name: Seeker Tracker
+decimals: 6
+
 site: https://seekertracker.com
+snake: https://seekertracker.com/snake
+sweep: https://seekertracker.com/sweep
+whitepaper: https://seekertracker.com/whitepaper
+buy: https://jup.ag/tokens/ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS
+chart: https://dexscreener.com/solana/ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS
+bags: https://bags.fm/ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS
+
+# Related
+skr_token: SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3
+skr_symbol: SKR
+skr_site: https://seekertracker.com/skr
+
+# Wallets / programs
+snake_prize: snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq
+sweep_reward: rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug
+treasury: 3ZvuZbCn4CYYNorGVMbzPbsUamckFmzhmhXWu9WcFb8P
+tracker_staking: 86CeBUE4vRbxWpwr4U1QcC7tLoF7z6u8RTvxpgtDaPqk
+lp_excluded: HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC
+
+x: https://x.com/Seeker_Tracker
+telegram: https://t.me/seeker_tracker
+solscan_token: https://solscan.io/token/ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS
+portfolio_snake_prize: https://sol.new/portfolio/snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq
+portfolio_sweep: https://sol.new/portfolio/rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug
+portfolio_treasury: https://sol.new/portfolio/3ZvuZbCn4CYYNorGVMbzPbsUamckFmzhmhXWu9WcFb8P
 `;
-    return new Response(fallback, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "public, max-age=60",
-      },
-    });
-  }
+
+export async function GET() {
+  return new Response(BODY, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "public, max-age=300, s-maxage=600",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
