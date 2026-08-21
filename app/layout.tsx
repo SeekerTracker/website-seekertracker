@@ -15,11 +15,15 @@ const jetBrains = JetBrains_Mono({
   display: "swap",
 });
 
+/** GA4 — Seeker Tracker property (existing stream since 2025-08) */
+const GA_MEASUREMENT_ID = "G-2G1PFJ2R6G";
+
 const DESCRIPTION =
   "Search and track .skr SeekerIDs, Seeker dApps, SKR stats, and analytics. Public API for agents.";
 // Keep OG titles under ~60 chars so X/LinkedIn do not truncate awkwardly.
 const TITLE = "Seeker Tracker — Solana Mobile explorer";
 const OG_TITLE = "Seeker Tracker — .skr, dApps & SKR";
+const SITE = "https://seekertracker.com";
 
 export const metadata: Metadata = {
   title: {
@@ -27,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s | Seeker Tracker",
   },
   description: DESCRIPTION,
-  metadataBase: new URL("https://seekertracker.com"),
+  metadataBase: new URL(SITE),
   keywords: [
     "Solana Mobile",
     "Seeker",
@@ -37,18 +41,27 @@ export const metadata: Metadata = {
     "web3",
     "dApp Store",
     "SKR",
+    "TRACKER",
     "on-chain analytics",
   ],
+  authors: [{ name: "Seeker Tracker", url: SITE }],
+  creator: "Seeker Tracker",
+  publisher: "Seeker Tracker",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
   openGraph: {
     title: OG_TITLE,
     description: DESCRIPTION,
-    url: "https://seekertracker.com",
+    url: SITE,
     siteName: "SeekerTracker",
     type: "website",
     locale: "en_US",
     images: [
       {
-        url: "https://seekertracker.com/og/home.png",
+        url: `${SITE}/og/home.png`,
         width: 1200,
         height: 630,
         alt: OG_TITLE,
@@ -61,11 +74,70 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     site: "@Seeker_Tracker",
     creator: "@seeker_tracker",
-    images: ["https://seekertracker.com/og/home.png"],
+    images: [`${SITE}/og/home.png`],
   },
+  // Do NOT set root alternates.canonical — it bleeds onto every child page.
+  // Each route sets its own canonical (home via app/page.tsx).
   alternates: {
-    canonical: "https://seekertracker.com",
+    types: {
+      "text/plain": [
+        { url: `${SITE}/llms.txt`, title: "llms.txt" },
+        { url: `${SITE}/llms-full.txt`, title: "llms-full.txt" },
+      ],
+    },
   },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE}/#organization`,
+      name: "Seeker Tracker",
+      url: SITE,
+      logo: {
+        "@type": "ImageObject",
+        url: `${SITE}/logo.png`,
+      },
+      sameAs: [
+        "https://x.com/Seeker_Tracker",
+        "https://t.me/seeker_tracker",
+      ],
+      description: DESCRIPTION,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE}/#website`,
+      url: SITE,
+      name: "Seeker Tracker",
+      description: DESCRIPTION,
+      publisher: { "@id": `${SITE}/#organization` },
+      inLanguage: "en-US",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${SITE}/lookup?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@type": "WebApplication",
+      "@id": `${SITE}/#app`,
+      name: "Seeker Tracker",
+      url: SITE,
+      applicationCategory: "BrowserApplication",
+      operatingSystem: "Web, Android, iOS",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      description: DESCRIPTION,
+    },
+  ],
 };
 
 /**
@@ -86,8 +158,29 @@ export default function RootLayout({
           content="7828d28e-fd95-467f-9d72-d888e2b67bf3"
           id="ogp-key-meta"
         />
+        <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className={`${jetBrains.variable}`}>
+        {/* GA4 — afterInteractive so first paint is not blocked */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-config" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}', {
+              anonymize_ip: true,
+              send_page_view: true
+            });
+          `}
+        </Script>
         {/* afterInteractive: do not block first paint / hydration */}
         <Script
           src="https://plugin.jup.ag/plugin-v1.js"
