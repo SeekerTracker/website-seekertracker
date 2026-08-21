@@ -6,7 +6,8 @@ import styles from "./page.module.css";
 import Backbutton from "app/(components)/shared/Backbutton";
 
 export const metadata: Metadata = {
-    title: "Get DApp - Seeker Tracker",
+  alternates: { canonical: "https://seekertracker.com/getdapp" },
+    title: "Get DApp",
     description: "Access Seeker Tracker DApp and start tracking your SeekerID domains",
 };
 

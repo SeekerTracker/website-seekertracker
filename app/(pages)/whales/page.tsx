@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import WhalesClient from "./WhalesClient";
 
 export const metadata: Metadata = {
-  title: "TRACKER Whales & Holders | Seeker Tracker",
+  alternates: { canonical: "https://seekertracker.com/whales" },
+  title: "TRACKER Whales & Holders",
   description:
-    "Live TRACKER holder leaderboard: wallet, balance, and how long they've been holding. Plus whale Telegram access.",
+    "Live TRACKER holder leaderboard: wallet, balance, and how long they have been holding. Plus whale Telegram access.",
   openGraph: {
     title: "TRACKER Whales & Holders | Seeker Tracker",
     description:
