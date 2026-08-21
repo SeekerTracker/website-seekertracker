@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
-import { HELIUS_FAST_RPC } from "../../../(utils)/lib/solanaRpc";
+import { HELIUS_FAST_RPC, rpcCall } from "../../../(utils)/lib/solanaRpc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +21,13 @@ const EXCLUDED_WALLETS = new Set(
     "HLnpSz9h2S4hiLQ43rnSD9XkcUThA7B8hQMKmDaiTLcC",
   ].map((w) => w.trim())
 );
+
+const REWARD_WALLET =
+  process.env.SWEEP_REWARD_WALLET ||
+  "rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug";
+/** Must match tracker-sweep-bot WALLET_RESERVE_SOL + MIN_PRIZE_SOL */
+const WALLET_RESERVE_SOL = 0.01;
+const MIN_PRIZE_SOL = 0.002;
 
 interface TokenAccount {
   address?: string;
@@ -125,6 +132,26 @@ export async function GET() {
       weight: totalCounted > 0 ? c.counted / totalCounted : 0,
     }));
 
+    // Reward wallet funding status (bot skips when only reserve left)
+    let rewardWalletSol: number | null = null;
+    try {
+      const bal = await rpcCall<{ value: number }>(
+        HELIUS_RPC,
+        "getBalance",
+        [REWARD_WALLET, { commitment: "confirmed" }],
+        "sweep-reward-bal"
+      );
+      rewardWalletSol = (bal?.value ?? 0) / 1e9;
+    } catch {
+      rewardWalletSol = null;
+    }
+    const affordable =
+      rewardWalletSol == null
+        ? null
+        : Math.max(0, rewardWalletSol - WALLET_RESERVE_SOL);
+    const dripActive =
+      affordable != null ? affordable >= MIN_PRIZE_SOL - 1e-12 : null;
+
     return NextResponse.json(
       {
         success: true,
@@ -137,12 +164,23 @@ export async function GET() {
           maxCounted: MAX_COUNTED,
           holdersScanned: byOwner.size,
           accountsScanned: allAccounts.length,
+          rewardWallet: REWARD_WALLET,
+          rewardWalletSol,
+          walletReserveSol: WALLET_RESERVE_SOL,
+          minPrizeSol: MIN_PRIZE_SOL,
+          dripActive,
+          dripStatus:
+            dripActive === false
+              ? "paused_unfunded"
+              : dripActive === true
+                ? "active"
+                : "unknown",
         },
         lastUpdated: Date.now(),
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
         },
       }
     );
