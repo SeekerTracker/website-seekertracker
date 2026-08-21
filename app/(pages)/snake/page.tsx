@@ -146,6 +146,7 @@ export default function SnakePage() {
     DEFAULT_REQUIRED_TRACKER
   );
   const [config, setConfig] = useState<GameConfig | null>(null);
+  const lbReqId = React.useRef(0);
 
   const { trackerBalance, isLoadingBalance, openWalletModal } =
     useWalletContext();
@@ -172,35 +173,77 @@ export default function SnakePage() {
   }, []);
 
   const loadLeaderboard = useCallback(async () => {
+    const period = lbPeriod;
+    const reqId = ++lbReqId.current;
     setLeaderboardLoading(true);
     setLeaderboardError(null);
     // Clear stale board immediately when switching periods
     setLeaderboard([]);
     setGameStats(null);
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 28_000);
     try {
       const res = await fetch(
-        `/api/snake/leaderboard?period=${lbPeriod}&limit=20`,
-        { cache: "no-store" }
+        `/api/snake/leaderboard?period=${period}&limit=20`,
+        { cache: "no-store", signal: ctrl.signal }
       );
-      const data = await res.json();
+      let data: {
+        success?: boolean;
+        leaderboard?: LeaderboardEntry[];
+        stats?: {
+          totalPlayers: number;
+          totalGames: number;
+          eligiblePlayers?: number;
+          eligibleOnBoard?: number;
+          scannedPlayers?: number;
+          balancesOk?: boolean;
+        };
+        minRewardTracker?: number;
+        error?: string;
+      } = {};
+      try {
+        data = await res.json();
+      } catch {
+        if (reqId !== lbReqId.current) return;
+        setLeaderboardError("Leaderboard returned invalid data");
+        return;
+      }
+      // Ignore stale responses after period switch
+      if (reqId !== lbReqId.current) return;
       if (res.status === 401) {
         setLeaderboardError("Leaderboard temporarily unavailable");
         return;
       }
+      if (!res.ok) {
+        setLeaderboardError(
+          data.error || `Failed to load leaderboard (${res.status})`
+        );
+        return;
+      }
       if (data.success) {
-        setLeaderboard(data.leaderboard || []);
+        const rows = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+        setLeaderboard(rows);
         setGameStats(data.stats || null);
         if (data.minRewardTracker) {
           setRequiredTracker(Number(data.minRewardTracker));
         }
         setLeaderboardError(null);
       } else {
-        setLeaderboardError("Failed to load leaderboard");
+        setLeaderboardError(data.error || "Failed to load leaderboard");
       }
-    } catch {
-      setLeaderboardError("Failed to load leaderboard");
+    } catch (e) {
+      if (reqId !== lbReqId.current) return;
+      const aborted =
+        (e instanceof DOMException && e.name === "AbortError") ||
+        (e instanceof Error && e.name === "AbortError");
+      setLeaderboardError(
+        aborted
+          ? "Leaderboard timed out — tap Refresh"
+          : "Failed to load leaderboard"
+      );
     } finally {
-      setLeaderboardLoading(false);
+      clearTimeout(timer);
+      if (reqId === lbReqId.current) setLeaderboardLoading(false);
     }
   }, [lbPeriod]);
 
@@ -579,7 +622,17 @@ export default function SnakePage() {
             </div>
           </div>
         ) : leaderboardError ? (
-          <p className={styles.empty}>{leaderboardError}</p>
+          <div className={styles.empty}>
+            <p>{leaderboardError}</p>
+            <button
+              type="button"
+              className={styles.ctaGhost}
+              onClick={() => loadLeaderboard()}
+              style={{ marginTop: "0.75rem" }}
+            >
+              Retry
+            </button>
+          </div>
         ) : leaderboard.length === 0 ? (
           <p className={styles.empty}>No scores yet for this period.</p>
         ) : (
@@ -696,11 +749,11 @@ export default function SnakePage() {
                     {formatToken(staked)}
                   </span>
                   <span className={`${styles.num} ${styles.score}`} role="cell">
-                    {entry.high_score.toLocaleString()}
+                    {Number(entry.high_score || 0).toLocaleString()}
                   </span>
                   <span className={`${styles.num} ${styles.plays}`} role="cell">
-                    {entry.total_plays > 0
-                      ? entry.total_plays.toLocaleString()
+                    {Number(entry.total_plays) > 0
+                      ? Number(entry.total_plays).toLocaleString()
                       : "—"}
                   </span>
                   <span
@@ -881,52 +934,37 @@ export default function SnakePage() {
         </p>
       </section>
 
-      {/* Brand & Assets */}
+      {/* Brand — links only (no embedded posters) */}
       <section className={styles.panel}>
-        <h2 className={styles.panelTitle}>Brand & Assets</h2>
-        
-        <div style={{marginBottom: '1.5rem'}}>
-          <p style={{color: '#7aa8a8', marginBottom: '1rem', fontSize: '0.95rem'}}>
-            Snake Seeker — Retro pixel snake on Solana Seeker. 
-            Neon green snake, deep navy, Solana purple accents. Press Start 2P typography.
-          </p>
-          <a 
-            href="/snake/brand/BRAND.md" 
-            target="_blank" 
-            rel="noopener"
-            style={{color: '#00ffd9', textDecoration: 'underline', fontSize: '0.9rem'}}
+        <h2 className={styles.panelTitle}>Brand</h2>
+        <p className={styles.panelSub} style={{ marginBottom: "0.75rem" }}>
+          Snake Seeker assets and guidelines.
+        </p>
+        <div className={styles.downloadRow}>
+          <a
+            href="/snake/brand/BRAND.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaGhost}
           >
-            View full Brand Guide →
+            Brand guide
           </a>
-        </div>
-
-        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem'}}>
-          <a href="/snake/brand/snake-promo-poster-square.png" target="_blank" style={{display: 'block'}}>
-            <img 
-              src="/snake/brand/snake-promo-poster-square.png" 
-              alt="Snake Seeker Square Poster" 
-              style={{width: '100%', borderRadius: '8px', border: '1px solid rgba(0,255,217,0.2)'}}
-            />
-            <div style={{marginTop: '0.4rem', fontSize: '0.75rem', color: '#888', textAlign: 'center'}}>
-              Square 1200×1200 (X / Telegram)
-            </div>
+          <a
+            href="/snake/brand/snake-promo-poster-square.png"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaGhost}
+          >
+            Square poster
           </a>
-
-          <a href="/snake/brand/snake-promo-poster-landscape.png" target="_blank" style={{display: 'block'}}>
-            <img 
-              src="/snake/brand/snake-promo-poster-landscape.png" 
-              alt="Snake Seeker Landscape Poster" 
-              style={{width: '100%', borderRadius: '8px', border: '1px solid rgba(0,255,217,0.2)'}}
-            />
-            <div style={{marginTop: '0.4rem', fontSize: '0.75rem', color: '#888', textAlign: 'center'}}>
-              Landscape 1200×675 (OG / Twitter)
-            </div>
+          <a
+            href="/snake/brand/snake-promo-poster-landscape.png"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaGhost}
+          >
+            Landscape poster
           </a>
-        </div>
-
-        <div style={{marginTop: '1rem', fontSize: '0.8rem', color: '#666'}}>
-          Colors: <code style={{background:'#16213e', padding:'1px 5px'}}>#1a1a2e</code> / <code style={{background:'#16213e', padding:'1px 5px'}}>#00ff88</code> / <code style={{background:'#16213e', padding:'1px 5px'}}>#9945FF</code><br />
-          Font: Press Start 2P (all caps for headers)
         </div>
       </section>
 
