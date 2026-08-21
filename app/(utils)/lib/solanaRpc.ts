@@ -1,9 +1,9 @@
 /**
  * Server-side Solana RPC helpers for Seeker Tracker.
  *
- * Primary: rpc.aex402.com (requires User-Agent — bare fetch gets 403).
- * aex402 excludes Token program secondary indexes, so getTokenAccountsByOwner
- * fails; use ATA + getAccountInfo / getMultipleAccounts instead.
+ * Primary: Helius dedicated (viviyan) — full indexes, getTokenAccountsByOwner + GPA.
+ * Fallback: rpc.aex402.com (needs User-Agent; ATA getAccountInfo preferred).
+ * Shared HELIUS_API_KEY mainnet URL is often 403 — deprioritized.
  */
 import {
   getAssociatedTokenAddressSync,
@@ -13,22 +13,29 @@ import {
 import { PublicKey } from "@solana/web3.js";
 import { CONN_RPC_URL } from "../constant";
 
+/** Best available dedicated Helius endpoint (full indexes, fast). */
+export const HELIUS_FAST_RPC =
+  "https://viviyan-bkj12u-fast-mainnet.helius-rpc.com";
+
 export const AEX402_RPC = "https://rpc.aex402.com/";
 
 const RPC_UA = "SeekerTracker/1.0 (+https://seekertracker.com)";
 
 export function rpcCandidates(): string[] {
   const list: string[] = [];
+  // Explicit env first (ops override)
   if (process.env.SOLANA_RPC_URL) list.push(process.env.SOLANA_RPC_URL);
+  if (process.env.HELIUS_RPC_URL) list.push(process.env.HELIUS_RPC_URL);
+  // Dedicated Helius — proven working for balances + staked GPA
+  list.push(HELIUS_FAST_RPC);
+  // aex402 — fine for ATA reads; slower GPA
   list.push(AEX402_RPC);
+  // Shared Helius API key (may 403 if plan/key dead)
   if (process.env.HELIUS_API_KEY) {
     list.push(
       `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
     );
   }
-  if (process.env.HELIUS_RPC_URL) list.push(process.env.HELIUS_RPC_URL);
-  // Working Helius dedicated endpoint (cassandra is often 429)
-  list.push("https://viviyan-bkj12u-fast-mainnet.helius-rpc.com");
   if (CONN_RPC_URL) list.push(CONN_RPC_URL);
   list.push(
     "https://solana-rpc.publicnode.com",
@@ -202,8 +209,10 @@ export async function fetchMintBalancesAta(
 
 export function rpcLabel(rpc: string | null): string {
   if (!rpc) return "none";
+  if (rpc.includes("viviyan") || rpc.includes("bkj12u")) return "helius-fast";
   if (rpc.includes("aex402")) return "aex402";
   if (rpc.includes("helius") || rpc.includes("api-key")) return "helius";
+  if (rpc.includes("publicnode")) return "publicnode";
   if (rpc.includes("mainnet-beta")) return "solana-public";
   return rpc.replace(/^https?:\/\//, "").slice(0, 40);
 }
@@ -219,15 +228,16 @@ const SKR_STAKE_DECIMALS = 9;
 /** RPCs that support getProgramAccounts for the stake program */
 function gpaRpcCandidates(): string[] {
   const list: string[] = [];
+  if (process.env.SOLANA_RPC_URL) list.push(process.env.SOLANA_RPC_URL);
   if (process.env.HELIUS_RPC_URL) list.push(process.env.HELIUS_RPC_URL);
+  // viviyan first — full indexes + fast GPA
+  list.push(HELIUS_FAST_RPC);
   if (process.env.HELIUS_API_KEY) {
     list.push(
       `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
     );
   }
-  // viviyan supports GPA; aex402 excludes this program from secondary indexes
-  list.push("https://viviyan-bkj12u-fast-mainnet.helius-rpc.com");
-  list.push("https://api.mainnet-beta.solana.com");
+  list.push(AEX402_RPC, "https://api.mainnet-beta.solana.com");
   return Array.from(new Set(list.filter(Boolean)));
 }
 

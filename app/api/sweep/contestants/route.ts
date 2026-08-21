@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { CONN_RPC_URL, SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
+import { SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
+import { HELIUS_FAST_RPC } from "../../../(utils)/lib/solanaRpc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -7,8 +8,8 @@ export const dynamic = "force-dynamic";
 const TRACKER_TOKEN = SEEKER_TOKEN_ADDRESS;
 const HELIUS_RPC =
   process.env.HELIUS_RPC_URL ||
-  CONN_RPC_URL ||
-  "https://cassandra-bq5oqs-fast-mainnet.helius-rpc.com";
+  process.env.SOLANA_RPC_URL ||
+  HELIUS_FAST_RPC;
 const MIN_BALANCE = 1_000_000;
 const MAX_COUNTED = 20_000_000;
 const TOKEN_DECIMALS = 9;

@@ -17,14 +17,14 @@ export const LEGACY_DOMAIN_API =
     process.env.LEGACY_DOMAIN_API || "https://api.seeker.solana.charity";
 
 export const SEEKER_TOKEN_ADDRESS = 'ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS'
-// NOTE: this endpoint is exposed client-side, so every visitor's browser hits it
-// directly. Prefer aex402 (TOKENSHIT primary). Bare curl without User-Agent → 403.
-// Token secondary indexes are disabled on aex402 — server routes must use ATA
-// getAccountInfo (see app/(utils)/lib/solanaRpc.ts), not getTokenAccountsByOwner.
+// Server routes should prefer app/(utils)/lib/solanaRpc.ts (viviyan Helius fast).
+// CONN_RPC_URL is also used client-side via wallet provider — dedicated Helius
+// endpoint (no API key in URL). Env SOLANA_RPC_URL / HELIUS_RPC_URL override.
 export const CONN_RPC_URL =
   process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
   process.env.SOLANA_RPC_URL ||
-  "https://rpc.aex402.com/";
+  process.env.HELIUS_RPC_URL ||
+  "https://viviyan-bkj12u-fast-mainnet.helius-rpc.com";
 export const solanaWSConnection = new Connection(CONN_RPC_URL, "processed");
 
 /** Absolute paths so server components / edge can call own APIs */

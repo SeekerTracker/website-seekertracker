@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { CONN_RPC_URL } from "../../../(utils)/constant";
+import { HELIUS_FAST_RPC } from "../../../(utils)/lib/solanaRpc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,8 +10,8 @@ const REWARD_WALLET =
 
 const RPC =
   process.env.HELIUS_RPC_URL ||
-  CONN_RPC_URL ||
-  "https://cassandra-bq5oqs-fast-mainnet.helius-rpc.com";
+  process.env.SOLANA_RPC_URL ||
+  HELIUS_FAST_RPC;
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;

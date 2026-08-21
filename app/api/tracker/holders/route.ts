@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { CONN_RPC_URL, SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
+import { SEEKER_TOKEN_ADDRESS } from "../../../(utils)/constant";
+import { rpcCandidates } from "../../../(utils)/lib/solanaRpc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -7,30 +8,13 @@ export const maxDuration = 60;
 
 /**
  * TRACKER holder leaderboard for /whales
- * - Balance via Helius getTokenAccounts (paginated)
+ * - Balance via getTokenAccounts (paginated)
  * - Hold duration via oldest signature on each owner's TRACKER ATA(s)
  *   (enriched for top N by balance to stay within Worker limits)
  */
 
 const TRACKER_MINT = SEEKER_TOKEN_ADDRESS;
 const TOKEN_DECIMALS = 9;
-
-function rpcCandidates(): string[] {
-  const list: string[] = [];
-  if (process.env.SOLANA_RPC_URL) list.push(process.env.SOLANA_RPC_URL);
-  if (process.env.HELIUS_API_KEY) {
-    list.push(
-      `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
-    );
-  }
-  if (process.env.HELIUS_RPC_URL) list.push(process.env.HELIUS_RPC_URL);
-  if (CONN_RPC_URL) list.push(CONN_RPC_URL);
-  list.push(
-    "https://solana-rpc.publicnode.com",
-    "https://api.mainnet-beta.solana.com"
-  );
-  return Array.from(new Set(list.filter(Boolean)));
-}
 
 type TokenAccount = {
   address?: string;
