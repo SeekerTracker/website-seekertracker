@@ -1,5 +1,6 @@
-# Seeker Tracker — Solana
+# Seeker Tracker - Solana
 # https://seekertracker.com
+# ASCII only (token registry)
 
 token: ehipS3kn9GUSnEMgtB9RxCNBVfH5gTNRVxNtqFTBAGS
 chain: solana
