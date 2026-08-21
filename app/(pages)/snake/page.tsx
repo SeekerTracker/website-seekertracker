@@ -835,6 +835,101 @@ export default function SnakePage() {
         </div>
       </section>
 
+
+      {/* Reward Tiers */}
+      <section className={styles.panel}>
+        <h2 className={styles.panelTitle}>Reward Multipliers</h2>
+        <p className={styles.panelSub} style={{marginBottom: '0.75rem'}}>
+          Effective rate = Turso base × bag boost. Base is live from config (currently 0.1).
+        </p>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: '8px',
+          margin: '8px 0'
+        }}>
+          {[
+            { hold: '1M', boost: '×1', mult: '0.1×', note: '0.1 × 1' },
+            { hold: '2.5M', boost: '×2.5', mult: '0.25×', note: '0.1 × 2.5' },
+            { hold: '5M+', boost: '×5', mult: '0.5×', note: '0.1 × 5' },
+          ].map((tier, i) => (
+            <div key={i} style={{
+              background: 'rgba(0, 255, 136, 0.06)',
+              border: '1px solid rgba(0, 255, 136, 0.2)',
+              borderRadius: '6px',
+              padding: '8px 12px',
+              textAlign: 'center',
+              fontSize: '0.85rem'
+            }}>
+              <div style={{fontFamily: 'monospace', fontWeight: 700, color: '#00ff88'}}>
+                {tier.hold} TRACKER
+              </div>
+              <div style={{fontSize: '0.75rem', color: '#7aa8a8', marginTop: 2}}>
+                boost {tier.boost}
+              </div>
+              <div style={{fontSize: '1.1rem', fontWeight: 800, margin: '2px 0'}}>
+                {tier.mult}
+              </div>
+              <div style={{fontSize: '0.7rem', color: '#7aa8a8'}}>
+                {tier.note}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p style={{fontSize: '0.75rem', color: '#666', marginTop: '4px'}}>
+          1 score × effective rate = SKR. Your bag multiplies the Turso base.
+        </p>
+      </section>
+
+      {/* Brand & Assets */}
+      <section className={styles.panel}>
+        <h2 className={styles.panelTitle}>Brand & Assets</h2>
+        
+        <div style={{marginBottom: '1.5rem'}}>
+          <p style={{color: '#7aa8a8', marginBottom: '1rem', fontSize: '0.95rem'}}>
+            Snake Seeker — Retro pixel snake on Solana Seeker. 
+            Neon green snake, deep navy, Solana purple accents. Press Start 2P typography.
+          </p>
+          <a 
+            href="/snake/brand/BRAND.md" 
+            target="_blank" 
+            rel="noopener"
+            style={{color: '#00ffd9', textDecoration: 'underline', fontSize: '0.9rem'}}
+          >
+            View full Brand Guide →
+          </a>
+        </div>
+
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem'}}>
+          <a href="/snake/brand/snake-promo-poster-square.png" target="_blank" style={{display: 'block'}}>
+            <img 
+              src="/snake/brand/snake-promo-poster-square.png" 
+              alt="Snake Seeker Square Poster" 
+              style={{width: '100%', borderRadius: '8px', border: '1px solid rgba(0,255,217,0.2)'}}
+            />
+            <div style={{marginTop: '0.4rem', fontSize: '0.75rem', color: '#888', textAlign: 'center'}}>
+              Square 1200×1200 (X / Telegram)
+            </div>
+          </a>
+
+          <a href="/snake/brand/snake-promo-poster-landscape.png" target="_blank" style={{display: 'block'}}>
+            <img 
+              src="/snake/brand/snake-promo-poster-landscape.png" 
+              alt="Snake Seeker Landscape Poster" 
+              style={{width: '100%', borderRadius: '8px', border: '1px solid rgba(0,255,217,0.2)'}}
+            />
+            <div style={{marginTop: '0.4rem', fontSize: '0.75rem', color: '#888', textAlign: 'center'}}>
+              Landscape 1200×675 (OG / Twitter)
+            </div>
+          </a>
+        </div>
+
+        <div style={{marginTop: '1rem', fontSize: '0.8rem', color: '#666'}}>
+          Colors: <code style={{background:'#16213e', padding:'1px 5px'}}>#1a1a2e</code> / <code style={{background:'#16213e', padding:'1px 5px'}}>#00ff88</code> / <code style={{background:'#16213e', padding:'1px 5px'}}>#9945FF</code><br />
+          Font: Press Start 2P (all caps for headers)
+        </div>
+      </section>
+
       <p className={styles.disclaimer}>
         Unofficial Seeker game · airdrop rules can change · not financial advice
       </p>
