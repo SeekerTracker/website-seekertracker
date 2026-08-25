@@ -307,8 +307,6 @@ export default function SnakePage() {
   }, [loadPrize, loadLeaderboard, loadConfig, loadPrice]);
 
   const userEligible = trackerBalance >= requiredTracker;
-  const airdropOn = config?.airdrop_enabled !== false;
-  const tokensPerPill = config?.tokens_per_pill ?? 10;
   const maintenance = !!config?.maintenance_mode;
 
   const youRank = useMemo(() => {
