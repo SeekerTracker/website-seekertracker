@@ -889,48 +889,63 @@ export default function SnakePage() {
       </section>
 
 
-      {/* Reward Tiers */}
+      {/* Reward Tiers — score × tier rate = SKR */}
       <section className={styles.panel}>
         <h2 className={styles.panelTitle}>Reward Multipliers</h2>
-        <p className={styles.panelSub} style={{marginBottom: '0.75rem'}}>
-          Effective rate = Turso base × bag boost. Base is live from config (currently 0.1).
+        <p className={styles.panelSub} style={{ marginBottom: "0.75rem" }}>
+          Hold more TRACKER, earn more SKR per phone. Payout = score × tier rate.
         </p>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-          gap: '8px',
-          margin: '8px 0'
-        }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+            gap: "8px",
+            margin: "8px 0",
+          }}
+        >
           {[
-            { hold: '1M', boost: '×1', mult: '0.1×', note: '0.1 × 1' },
-            { hold: '2.5M', boost: '×2.5', mult: '0.25×', note: '0.1 × 2.5' },
-            { hold: '5M+', boost: '×5', mult: '0.5×', note: '0.1 × 5' },
-          ].map((tier, i) => (
-            <div key={i} style={{
-              background: 'rgba(0, 255, 136, 0.06)',
-              border: '1px solid rgba(0, 255, 136, 0.2)',
-              borderRadius: '6px',
-              padding: '8px 12px',
-              textAlign: 'center',
-              fontSize: '0.85rem'
-            }}>
-              <div style={{fontFamily: 'monospace', fontWeight: 700, color: '#00ff88'}}>
+            { hold: "1M", rate: "0.1", unit: "SKR / phone" },
+            { hold: "2M", rate: "0.2", unit: "SKR / phone" },
+            { hold: "5M+", rate: "0.5", unit: "SKR / phone" },
+          ].map((tier) => (
+            <div
+              key={tier.hold}
+              style={{
+                background: "rgba(0, 255, 136, 0.06)",
+                border: "1px solid rgba(0, 255, 136, 0.2)",
+                borderRadius: "6px",
+                padding: "8px 12px",
+                textAlign: "center",
+                fontSize: "0.85rem",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "monospace",
+                  fontWeight: 700,
+                  color: "#00ff88",
+                }}
+              >
                 {tier.hold} TRACKER
               </div>
-              <div style={{fontSize: '0.75rem', color: '#7aa8a8', marginTop: 2}}>
-                boost {tier.boost}
+              <div
+                style={{
+                  fontSize: "1.25rem",
+                  fontWeight: 800,
+                  margin: "6px 0 2px",
+                }}
+              >
+                {tier.rate}
               </div>
-              <div style={{fontSize: '1.1rem', fontWeight: 800, margin: '2px 0'}}>
-                {tier.mult}
-              </div>
-              <div style={{fontSize: '0.7rem', color: '#7aa8a8'}}>
-                {tier.note}
+              <div style={{ fontSize: "0.72rem", color: "#7aa8a8" }}>
+                {tier.unit}
               </div>
             </div>
           ))}
         </div>
-        <p style={{fontSize: '0.75rem', color: '#666', marginTop: '4px'}}>
-          1 score × effective rate = SKR. Your bag multiplies the Turso base.
+        <p style={{ fontSize: "0.75rem", color: "#666", marginTop: "4px" }}>
+          Example: score 1,000 at 1M TRACKER → 100 SKR. Same score at 5M+ → 500
+          SKR.
         </p>
       </section>
 
