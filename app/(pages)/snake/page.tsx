@@ -898,9 +898,9 @@ export default function SnakePage() {
           }}
         >
           {[
-            { hold: '1M', mult: '0.1', note: 'SKR per phone' },
-            { hold: '2M', mult: '0.2', note: 'SKR per phone' },
-            { hold: '5M+', mult: '0.5', note: 'SKR per phone' },
+            { hold: "1M", rate: "0.1", unit: "SKR / phone" },
+            { hold: "2M", rate: "0.2", unit: "SKR / phone" },
+            { hold: "5M+", rate: "0.5", unit: "SKR / phone" },
           ].map((tier) => (
             <div
               key={tier.hold}
