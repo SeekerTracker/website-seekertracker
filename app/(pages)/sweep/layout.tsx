@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 const TITLE = "Sweep | SeekerTracker";
 const DESCRIPTION =
-  "Hourly SOL drip lottery for TRACKER holders. Hold 1M–20M. Floor 0.002 SOL. LP excluded.";
+  "Hourly SKR drip lottery for TRACKER holders. Hold 1M-20M TRACKER. Floor 1 SKR. LP excluded.";
 const OG = "https://seekertracker.com/og/sweep.png";
 
 export const metadata: Metadata = {
