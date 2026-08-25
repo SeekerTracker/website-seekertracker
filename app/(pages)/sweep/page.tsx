@@ -18,7 +18,8 @@ type Contestant = {
 
 type Winner = {
   wallet: string;
-  sol: number;
+  skr?: number;
+  sol?: number;
   signature: string;
   blockTime: number | null;
   receiptUrl: string;
@@ -30,7 +31,9 @@ type Stats = {
   totalCounted?: number;
   rewardWallet?: string;
   rewardWalletSol?: number | null;
+  rewardWalletSkr?: number | null;
   walletReserveSol?: number;
+  minPrizeSkr?: number;
   minPrizeSol?: number;
   dripActive?: boolean | null;
   dripStatus?: "active" | "paused_unfunded" | "unknown";
@@ -62,10 +65,15 @@ function formatTracker(num: number): string {
   return n.toLocaleString();
 }
 
-function formatSol(n: number): string {
-  if (n >= 1) return n.toFixed(3);
-  if (n >= 0.01) return n.toFixed(4);
-  return n.toFixed(5);
+function formatSkr(n: number): string {
+  if (n >= 100) return n.toFixed(0);
+  if (n >= 10) return n.toFixed(1);
+  if (n >= 1) return n.toFixed(2);
+  return n.toFixed(3);
+}
+
+function winnerSkr(w: Winner): number {
+  return typeof w.skr === "number" ? w.skr : w.sol ?? 0;
 }
 
 function shortWallet(w: string): string {
@@ -197,8 +205,9 @@ export default function Sweep() {
             <p className={styles.eyebrow}>$TRACKER · fee share</p>
             <h1 className={styles.title}>Sweep</h1>
             <p className={styles.slogan}>
-              Hourly SOL drip for holders in the 1M–20M band. Equal-odds lottery among
-              eligible wallets. Floor prize when volume is low. LP excluded.
+              Hourly SKR drip for holders in the 1M-20M TRACKER band. Equal-odds
+              lottery among eligible wallets. Floor prize when volume is low. LP
+              excluded. Hold TRACKER - win SKR.
             </p>
           </div>
           <div className={styles.heroAside}>
@@ -234,17 +243,16 @@ export default function Sweep() {
       {/* Drip funding status */}
       {stats?.dripStatus === "paused_unfunded" && (
         <div className={styles.statusBanner} role="status">
-          <strong>Drip paused — reward wallet unfunded</strong>
+          <strong>Drip paused - prize wallet needs SKR</strong>
           <p>
             Bot is healthy but prize wallet holds only{" "}
             <code>
-              {typeof stats.rewardWalletSol === "number"
-                ? `${stats.rewardWalletSol.toFixed(4)} SOL`
-                : "reserve"}
-            </code>{" "}
-            (keeps {stats.walletReserveSol ?? 0.01} SOL gas). Send ≥{" "}
-            {(stats.minPrizeSol ?? 0.002) + (stats.walletReserveSol ?? 0.01)} SOL
-            to resume hourly drips.
+              {typeof stats.rewardWalletSkr === "number"
+                ? `${formatSkr(stats.rewardWalletSkr)} SKR`
+                : "no SKR"}
+            </code>
+            . Send ≥ {stats.minPrizeSkr ?? 1} SKR to resume hourly drips. Keep a
+            little SOL for gas ({stats.walletReserveSol ?? 0.01} SOL reserve).
           </p>
           <a
             className={styles.statusLink}
@@ -257,10 +265,10 @@ export default function Sweep() {
         </div>
       )}
       {stats?.dripStatus === "active" &&
-        typeof stats.rewardWalletSol === "number" && (
+        typeof stats.rewardWalletSkr === "number" && (
           <div className={styles.statusOk} role="status">
             Drip active · prize wallet{" "}
-            <strong>{stats.rewardWalletSol.toFixed(4)} SOL</strong>
+            <strong>{formatSkr(stats.rewardWalletSkr)} SKR</strong>
           </div>
         )}
 
@@ -285,12 +293,12 @@ export default function Sweep() {
         <div className={styles.metric}>
           <span className={styles.metricLabel}>Prize wallet</span>
           <span className={styles.metricValue}>
-            {typeof stats?.rewardWalletSol === "number"
-              ? formatSol(stats.rewardWalletSol)
+            {typeof stats?.rewardWalletSkr === "number"
+              ? formatSkr(stats.rewardWalletSkr)
               : loading
                 ? "…"
                 : "—"}
-            <em> SOL</em>
+            <em> SKR</em>
           </span>
         </div>
         <div className={styles.metric}>
@@ -376,7 +384,7 @@ export default function Sweep() {
           <div>
             <h2 className={styles.panelTitle}>Recent winners</h2>
             <p className={styles.panelSub}>
-              Last 20 SOL drips from reward wallet ·{" "}
+              Last 20 SKR drips from reward wallet ·{" "}
               <a
                 href="https://solscan.io/account/rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug"
                 target="_blank"
@@ -403,7 +411,7 @@ export default function Sweep() {
               <span role="columnheader">#</span>
               <span role="columnheader">Winner</span>
               <span role="columnheader" className={styles.num}>
-                SOL
+                SKR
               </span>
               <span role="columnheader" className={styles.num}>
                 When
@@ -428,7 +436,7 @@ export default function Sweep() {
                   </a>
                 </span>
                 <span className={`${styles.num} ${styles.sol}`} role="cell">
-                  {formatSol(w.sol)}
+                  {formatSkr(winnerSkr(w))}
                 </span>
                 <span className={`${styles.num} ${styles.when}`} role="cell">
                   {timeAgo(w.blockTime)}
@@ -554,8 +562,8 @@ export default function Sweep() {
             <li>
               <strong>Prize from fees / floor</strong>
               <span>
-                Target ~0.1% of 1h volume in SOL (capped). If volume is low, floor
-                prize 0.002 SOL while the reward wallet can pay.
+                Target ~0.1% of 1h volume in SKR (capped). If volume is low, floor
+                prize 1 SKR while the reward wallet can pay.
               </span>
             </li>
             <li>
@@ -574,7 +582,7 @@ export default function Sweep() {
             <li>Max 20,000,000 TRACKER (above = not eligible)</li>
             <li>LP / protocol wallets excluded</li>
             <li>Equal-odds draw among eligible (not balance-weighted)</li>
-            <li>Floor prize 0.002 SOL when volume is low</li>
+            <li>Floor prize 1 SKR when volume is low</li>
             <li>No CEX / custodial holdings</li>
           </ul>
           <Link

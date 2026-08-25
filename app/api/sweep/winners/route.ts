@@ -8,6 +8,8 @@ const REWARD_WALLET =
   process.env.SWEEP_REWARD_WALLET ||
   "rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug";
 
+const SKR_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
+
 const RPC =
   process.env.HELIUS_RPC_URL ||
   process.env.SOLANA_RPC_URL ||
@@ -15,12 +17,14 @@ const RPC =
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
-const SIG_SCAN = 80; // scan enough sigs to fill winners
+const SIG_SCAN = 80;
 
 type Winner = {
   wallet: string;
-  sol: number;
-  lamports: number;
+  skr: number;
+  amount: number;
+  symbol: "SKR";
+  sol: number; // alias of skr for older clients
   signature: string;
   blockTime: number | null;
   receiptUrl: string;
@@ -47,8 +51,27 @@ function keyStr(k: unknown): string {
   return "";
 }
 
+type TokenBal = {
+  mint?: string;
+  owner?: string;
+  uiTokenAmount?: { uiAmount?: number | null };
+};
+
+function skrDeltas(bals: TokenBal[] | undefined): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const b of bals || []) {
+    if (b.mint !== SKR_MINT) continue;
+    const owner = b.owner || "";
+    if (!owner) continue;
+    const n = b.uiTokenAmount?.uiAmount;
+    const amt = typeof n === "number" && Number.isFinite(n) ? n : 0;
+    m.set(owner, (m.get(owner) || 0) + amt);
+  }
+  return m;
+}
+
 /**
- * Past sweep winners = outbound SOL transfers from the reward wallet.
+ * Past sweep winners = outbound SKR transfers from the reward wallet.
  */
 export async function GET(request: Request) {
   try {
@@ -73,9 +96,8 @@ export async function GET(request: Request) {
       type Tx = {
         meta?: {
           err: unknown;
-          fee?: number;
-          preBalances?: number[];
-          postBalances?: number[];
+          preTokenBalances?: TokenBal[];
+          postTokenBalances?: TokenBal[];
         };
         transaction?: {
           message?: { accountKeys?: unknown[] };
@@ -88,38 +110,30 @@ export async function GET(request: Request) {
       ]);
       if (!tx?.meta || tx.meta.err) continue;
 
-      const keys = (tx.transaction?.message?.accountKeys || [])
-        .map(keyStr)
-        .filter(Boolean);
-      const pre = tx.meta.preBalances || [];
-      const post = tx.meta.postBalances || [];
-      if (keys.length === 0 || pre.length !== keys.length || post.length !== keys.length) {
-        continue;
-      }
+      const pre = skrDeltas(tx.meta.preTokenBalances);
+      const post = skrDeltas(tx.meta.postTokenBalances);
+      const owners = new Set([...pre.keys(), ...post.keys()]);
+      const rewardOut = (pre.get(REWARD_WALLET) || 0) - (post.get(REWARD_WALLET) || 0);
+      if (rewardOut <= 0.000001) continue;
 
-      const ri = keys.indexOf(REWARD_WALLET);
-      if (ri < 0) continue;
-
-      const outflow = pre[ri] - post[ri];
-      // skip fee-only / dust
-      if (outflow <= 10_000) continue;
-
-      let bestI = -1;
+      let bestWallet = "";
       let bestGain = 0;
-      for (let i = 0; i < keys.length; i++) {
-        if (i === ri) continue;
-        const gain = post[i] - pre[i];
+      for (const owner of owners) {
+        if (owner === REWARD_WALLET) continue;
+        const gain = (post.get(owner) || 0) - (pre.get(owner) || 0);
         if (gain > bestGain) {
           bestGain = gain;
-          bestI = i;
+          bestWallet = owner;
         }
       }
-      if (bestI < 0 || bestGain <= 0) continue;
+      if (!bestWallet || bestGain <= 0) continue;
 
       winners.push({
-        wallet: keys[bestI],
-        sol: bestGain / 1e9,
-        lamports: bestGain,
+        wallet: bestWallet,
+        skr: bestGain,
+        amount: bestGain,
+        symbol: "SKR",
+        sol: bestGain,
         signature: s.signature,
         blockTime: s.blockTime ?? null,
         receiptUrl: `https://sol.new/receipt/${s.signature}`,
@@ -130,6 +144,8 @@ export async function GET(request: Request) {
       {
         success: true,
         rewardWallet: REWARD_WALLET,
+        rewardMint: SKR_MINT,
+        rewardSymbol: "SKR",
         winners,
         count: winners.length,
       },

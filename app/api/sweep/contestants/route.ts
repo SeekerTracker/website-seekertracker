@@ -25,9 +25,10 @@ const EXCLUDED_WALLETS = new Set(
 const REWARD_WALLET =
   process.env.SWEEP_REWARD_WALLET ||
   "rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug";
-/** Must match tracker-sweep-bot WALLET_RESERVE_SOL + MIN_PRIZE_SOL */
+/** Must match tracker-sweep-bot — prize is SKR; keep a little SOL for gas */
 const WALLET_RESERVE_SOL = 0.01;
-const MIN_PRIZE_SOL = 0.002;
+const MIN_PRIZE_SKR = 1;
+const SKR_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
 
 interface TokenAccount {
   address?: string;
@@ -132,8 +133,9 @@ export async function GET() {
       weight: totalCounted > 0 ? c.counted / totalCounted : 0,
     }));
 
-    // Reward wallet funding status (bot skips when only reserve left)
+    // Reward wallet: prize is SKR; SOL is gas only
     let rewardWalletSol: number | null = null;
+    let rewardWalletSkr: number | null = null;
     try {
       const bal = await rpcCall<{ value: number }>(
         HELIUS_RPC,
@@ -145,12 +147,36 @@ export async function GET() {
     } catch {
       rewardWalletSol = null;
     }
-    const affordable =
-      rewardWalletSol == null
-        ? null
-        : Math.max(0, rewardWalletSol - WALLET_RESERVE_SOL);
+    try {
+      const atas = await rpcCall<{
+        value?: Array<{
+          account?: {
+            data?: {
+              parsed?: {
+                info?: { tokenAmount?: { uiAmount?: number | null } };
+              };
+            };
+          };
+        }>;
+      }>(
+        HELIUS_RPC,
+        "getTokenAccountsByOwner",
+        [
+          REWARD_WALLET,
+          { mint: SKR_MINT },
+          { encoding: "jsonParsed", commitment: "confirmed" },
+        ],
+        "sweep-reward-skr"
+      );
+      rewardWalletSkr = (atas?.value || []).reduce((s, a) => {
+        const n = a?.account?.data?.parsed?.info?.tokenAmount?.uiAmount;
+        return s + (typeof n === "number" && Number.isFinite(n) ? n : 0);
+      }, 0);
+    } catch {
+      rewardWalletSkr = null;
+    }
     const dripActive =
-      affordable != null ? affordable >= MIN_PRIZE_SOL - 1e-12 : null;
+      rewardWalletSkr == null ? null : rewardWalletSkr >= MIN_PRIZE_SKR - 1e-12;
 
     return NextResponse.json(
       {
@@ -166,8 +192,11 @@ export async function GET() {
           accountsScanned: allAccounts.length,
           rewardWallet: REWARD_WALLET,
           rewardWalletSol,
+          rewardWalletSkr,
+          rewardMint: SKR_MINT,
+          rewardSymbol: "SKR",
           walletReserveSol: WALLET_RESERVE_SOL,
-          minPrizeSol: MIN_PRIZE_SOL,
+          minPrizeSkr: MIN_PRIZE_SKR,
           dripActive,
           dripStatus:
             dripActive === false
