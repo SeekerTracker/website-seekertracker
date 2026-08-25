@@ -339,8 +339,8 @@ export default function SnakePage() {
               </div>
             </div>
             <p className={styles.slogan}>
-              Classic snake on Solana Seeker. Global leaderboard. TRACKER
-              airdrops while you play if you hold the minimum.
+              Classic snake on Solana Seeker. Global leaderboard. Hold TRACKER
+              to qualify - win SKR from the score you rack up.
             </p>
             {maintenance && (
               <p className={styles.maintBanner}>Maintenance mode — scores may pause</p>
@@ -420,7 +420,7 @@ export default function SnakePage() {
             <div>
               <p className={styles.youLabel}>Your eligibility</p>
               <p className={styles.youCopy}>
-                Hold ≥{minHoldLabel} TRACKER to earn airdrops in-game. Connect
+                Hold ≥{minHoldLabel} TRACKER to qualify for SKR rewards. Connect
                 wallet to check.
               </p>
             </div>
@@ -469,7 +469,7 @@ export default function SnakePage() {
             <div className={styles.youActions}>
               <span className={userEligible ? styles.badgeOk : styles.badgeNo}>
                 {userEligible
-                  ? "Eligible for airdrops"
+                  ? "Eligible for SKR"
                   : `Need ${formatTracker(Math.max(0, requiredTracker - trackerBalance))} more`}
               </span>
               {!userEligible && (
@@ -494,20 +494,16 @@ export default function SnakePage() {
           <ul className={styles.bullets}>
             <li>
               Hold ≥ <strong>{minHoldLabel} TRACKER</strong>{" "}
-              ({requiredTracker.toLocaleString()})
+              ({requiredTracker.toLocaleString()}) to qualify
             </li>
             <li>
-              Airdrops:{" "}
-              <strong>{airdropOn ? "on" : "off"}</strong>
-              {tokensPerPill > 0 && (
-                <>
-                  {" "}
-                  · ~{tokensPerPill} TRACKER base per pill
-                </>
-              )}
+              Rewards pay in <strong>$SKR</strong> - not TRACKER. More TRACKER
+              held = higher SKR per phone (see tiers below)
             </li>
-            <li>Connect wallet in-app to save scores & receive drops</li>
-            <li>Package: <code>{SNAKE_DAPP}</code></li>
+            <li>Connect wallet in-app to save scores and claim SKR</li>
+            <li>
+              Package: <code>{SNAKE_DAPP}</code>
+            </li>
           </ul>
           {trackerPrice != null && (
             <p className={styles.panelSub}>
@@ -904,9 +900,9 @@ export default function SnakePage() {
           }}
         >
           {[
-            { hold: "1M", rate: "0.1", unit: "SKR / phone" },
-            { hold: "2M", rate: "0.2", unit: "SKR / phone" },
-            { hold: "5M+", rate: "0.5", unit: "SKR / phone" },
+            { hold: '1M', mult: '0.1', note: 'SKR per phone' },
+            { hold: '2M', mult: '0.2', note: 'SKR per phone' },
+            { hold: '5M+', mult: '0.5', note: 'SKR per phone' },
           ].map((tier) => (
             <div
               key={tier.hold}
@@ -984,7 +980,7 @@ export default function SnakePage() {
       </section>
 
       <p className={styles.disclaimer}>
-        Unofficial Seeker game · airdrop rules can change · not financial advice
+        Unofficial Seeker game · hold TRACKER to qualify · SKR rewards can change · not financial advice
       </p>
     </div>
   );
