@@ -325,6 +325,22 @@
   gap: 0.5rem;
 }
 
+.mobileVol {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #9ed9cc;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mobileVol em {
+  font-style: normal;
+  color: #00ffd9;
+}
+
 .hamburger {
   display: flex;
   flex-direction: column;
@@ -378,11 +394,28 @@
 
 .drawerPrices {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
   font-size: 0.78rem;
   color: #6a9090;
   padding-bottom: 0.65rem;
   border-bottom: 1px solid rgba(0, 255, 217, 0.08);
+}
+
+.drawerVol {
+  color: inherit;
+  text-decoration: none;
+}
+
+.drawerVol strong {
+  color: #00ffd9;
+  font-weight: 700;
+  margin-left: 0.25rem;
+}
+
+.drawerVol em {
+  font-style: normal;
+  color: inherit;
 }
 
 .drawerPrices strong {
@@ -412,7 +445,7 @@
 }
 
 @media (max-width: 1020px) {
-  .prices {
+  .prices .price:nth-child(2) {
     display: none;
   }
 }

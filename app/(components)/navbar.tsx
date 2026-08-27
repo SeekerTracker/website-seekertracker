@@ -142,6 +142,15 @@ const Navbar = () => {
           <span>Seeker Tracker</span>
         </Link>
         <div className={styles.mobileRight}>
+          <a
+            href={`https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=yfgv2ibxy07v`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.mobileVol}
+            aria-label="TRACKER 24h volume"
+          >
+            24h <VolValue value={Number(seekerData.token24hVol) || 0} />
+          </a>
           <span
             className={`${styles.status} ${live ? styles.statusLive : styles.statusOff}`}
             title={live ? "Live" : "Offline"}
@@ -184,10 +193,21 @@ const Navbar = () => {
               ) : skrPrice > 0 ? (
                 `$${skrPrice.toFixed(6)}`
               ) : (
-                "—"
+                "-"
               )}
             </strong>
           </span>
+          <a
+            href={`https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=yfgv2ibxy07v`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.drawerVol}
+          >
+            24h{" "}
+            <strong>
+              <VolValue value={Number(seekerData.token24hVol) || 0} />
+            </strong>
+          </a>
         </div>
         <nav className={styles.drawerNav} aria-label="Primary">
           {[...PRIMARY, ...MORE].map((item) => (
