@@ -58,21 +58,26 @@ type GameConfig = {
   leaderboard_limit?: number;
 };
 
-function displaySkr(entry: LeaderboardEntry): string | null {
-  const raw = (entry.skrId || entry.username || "").trim();
-  if (!raw) return null;
-  // Only treat pure SeekerIDs as .skr (ignore junk like "foo.sol")
-  const base = raw.replace(/\.skr$/i, "");
-  if (!base || /[^a-z0-9_-]/i.test(base)) return null;
-  if (/\.(sol|bonk|abc|poor|glow)$/i.test(raw) && !/\.skr$/i.test(raw)) {
-    return null;
+function parseHandle(raw: string): { label: string; tld: string } | null {
+  const s = raw.trim().toLowerCase();
+  if (!s) return null;
+  const m = s.match(/^([a-z0-9][a-z0-9_-]{0,62})\.(skr|sol|bonk)$/i);
+  if (m) return { label: `${m[1]}.${m[2].toLowerCase()}`, tld: m[2].toLowerCase() };
+  // bare SeekerID without suffix
+  if (/^[a-z0-9][a-z0-9_-]{0,62}$/i.test(s) && !s.includes(".")) {
+    return { label: `${s}.skr`, tld: "skr" };
   }
-  return `${base}.skr`;
+  return null;
 }
 
-function skrProfileUrl(skrLabel: string): string {
-  const base = skrLabel.replace(/\.skr$/i, "");
-  return `https://myseeker.id/${encodeURIComponent(base)}`;
+function displayHandle(entry: LeaderboardEntry): { label: string; tld: string } | null {
+  return parseHandle(entry.skrId || entry.username || "");
+}
+
+function handleProfileUrl(label: string, tld: string): string {
+  const base = label.replace(/\.(skr|sol|bonk)$/i, "");
+  if (tld === "skr") return `https://myseeker.id/${encodeURIComponent(base)}`;
+  return `https://www.sns.id/${encodeURIComponent(label)}`;
 }
 
 function addressUrl(wallet: string): string {
@@ -662,7 +667,7 @@ export default function SnakePage() {
               const stakedKnown = typeof staked === "number";
               const ok = entry.eligible === true;
               const unknown = entry.eligible == null || !balKnown;
-              const skrLabel = displaySkr(entry);
+              const handle = displayHandle(entry);
               const isYou = !!address && entry.wallet === address;
               return (
                 <div
@@ -676,15 +681,19 @@ export default function SnakePage() {
                     {index + 1}
                   </span>
                   <span className={styles.player} role="cell">
-                    {skrLabel && (
+                    {handle && (
                       <a
-                        href={skrProfileUrl(skrLabel)}
+                        href={handleProfileUrl(handle.label, handle.tld)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.skrId}
-                        title={`${skrLabel} on MySeeker`}
+                        title={
+                          handle.tld === "skr"
+                            ? `${handle.label} on MySeeker`
+                            : `${handle.label} on SNS`
+                        }
                       >
-                        {skrLabel}
+                        {handle.label}
                       </a>
                     )}
                     <a
