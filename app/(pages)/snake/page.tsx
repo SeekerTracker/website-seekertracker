@@ -844,6 +844,14 @@ export default function SnakePage() {
           >
             App Store
           </a>
+          <a
+            href="https://t.me/seeker_tracker"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.ctaGhost}
+          >
+            Telegram
+          </a>
           <button
             type="button"
             className={styles.ctaBuy}
