@@ -1,218 +1,207 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 interface CompetitorData {
-    name: string;
-    ticker?: string;
-    marketCap: number;
-    color: string;
-    isSolana?: boolean;
+  name: string;
+  ticker?: string;
+  marketCap: number; // USD billions
+  color: string;
+  isSolana?: boolean;
 }
 
-// Company config with companiesmarketcap.com slugs
-const COMPANIES: { name: string; slug: string; ticker: string; color: string; fallback: number }[] = [
-    { name: "Apple", slug: "apple", ticker: "AAPL", color: "#A2AAAD", fallback: 3645 },
-    { name: "Samsung", slug: "samsung", ticker: "005930.KS", color: "#1428A0", fallback: 658 },
-    { name: "Sony", slug: "sony", ticker: "SONY", color: "#000000", fallback: 142 },
-    { name: "Xiaomi", slug: "xiaomi", ticker: "1810.HK", color: "#FF6900", fallback: 116 },
-    { name: "Foxconn", slug: "foxconn", ticker: "2317.TW", color: "#E31937", fallback: 98 },
-    { name: "ZTE", slug: "zte", ticker: "000063.SZ", color: "#0066B3", fallback: 27 },
-    { name: "Lenovo", slug: "lenovo", ticker: "0992.HK", color: "#E2231A", fallback: 14 },
-    { name: "Asus", slug: "asus", ticker: "2357.TW", color: "#00539B", fallback: 12 },
-    { name: "Transsion", slug: "transsion-holdings", ticker: "688036.SS", color: "#FF9933", fallback: 11 },
-    { name: "HTC", slug: "htc", ticker: "2498.TW", color: "#84BD00", fallback: 1.2 },
+const SKR_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
+
+/** Equity OEM caps. fallback = USD billions (Aug 2026). */
+const COMPANIES: {
+  name: string;
+  slug: string;
+  ticker: string;
+  color: string;
+  fallback: number;
+}[] = [
+  { name: "Apple", slug: "apple", ticker: "AAPL", color: "#A2AAAD", fallback: 4580 },
+  { name: "Samsung", slug: "samsung", ticker: "005930.KS", color: "#1428A0", fallback: 420 },
+  { name: "Sony", slug: "sony", ticker: "SONY", color: "#000000", fallback: 150 },
+  { name: "Xiaomi", slug: "xiaomi", ticker: "1810.HK", color: "#FF6900", fallback: 160 },
+  { name: "Foxconn", slug: "foxconn", ticker: "2317.TW", color: "#E31937", fallback: 90 },
+  { name: "ZTE", slug: "zte", ticker: "000063.SZ", color: "#0066B3", fallback: 30 },
+  { name: "Lenovo", slug: "lenovo", ticker: "0992.HK", color: "#E2231A", fallback: 16 },
+  { name: "Asus", slug: "asus", ticker: "2357.TW", color: "#00539B", fallback: 12 },
+  { name: "Transsion", slug: "transsion-holdings", ticker: "688036.SS", color: "#FF9933", fallback: 12 },
+  { name: "HTC", slug: "htc", ticker: "2498.TW", color: "#84BD00", fallback: 1.08 },
 ];
 
-// Generate fallback data from COMPANIES config
+const SKR_FALLBACK_B = 0.142; // ~$142M circulating
+
 function getFallbackData(): CompetitorData[] {
-    const data: CompetitorData[] = COMPANIES.map(c => ({
-        name: c.name,
-        ticker: c.ticker,
-        marketCap: c.fallback,
-        color: c.color,
-    }));
-    data.push({
-        name: "Solana Mobile",
-        ticker: "SKR",
-        marketCap: 0.125,
-        color: "#14F195",
-        isSolana: true,
-    });
-    return data;
+  return [
+    ...COMPANIES.map((c) => ({
+      name: c.name,
+      ticker: c.ticker,
+      marketCap: c.fallback,
+      color: c.color,
+    })),
+    {
+      name: "SKR",
+      ticker: "SKR",
+      marketCap: SKR_FALLBACK_B,
+      color: "#00ffd9",
+      isSolana: true,
+    },
+  ];
 }
 
-// Cache for live data
 let cachedData: CompetitorData[] | null = null;
 let lastFetch = 0;
-const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes
+const CACHE_DURATION = 30 * 60 * 1000;
 
-async function fetchMarketCap(slug: string): Promise<number | null> {
-    try {
-        const response = await fetch(
-            `https://companiesmarketcap.com/${slug}/marketcap/`,
-            {
-                headers: {
-                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                },
-            }
-        );
-
-        if (!response.ok) return null;
-
-        const html = await response.text();
-
-        // Find all market cap values and pick the first reasonable one
-        // Pattern: $XXX.XX B or $X.XXX T (company market caps)
-        const allMatches = html.matchAll(/\$([0-9,.]+)\s*([BTM])\b/gi);
-
-        for (const match of allMatches) {
-            const value = parseFloat(match[1].replace(/,/g, ""));
-            const unit = match[2].toUpperCase();
-
-            let billions = 0;
-            if (unit === "T") {
-                billions = value * 1000;
-            } else if (unit === "B") {
-                billions = value;
-            } else if (unit === "M") {
-                billions = value / 1000;
-            }
-
-            // Skip obviously wrong values (global market caps > $50T)
-            if (billions > 50000) continue;
-
-            // Return first reasonable value
-            if (billions > 0) {
-                return Math.round(billions * 100) / 100; // Round to 2 decimals
-            }
-        }
-
-        return null;
-    } catch (error) {
-        console.error(`Failed to fetch ${slug}:`, error);
-        return null;
-    }
+function billionsFromUsd(usd: number): number {
+  if (!Number.isFinite(usd) || usd <= 0) return 0;
+  return Math.round((usd / 1_000_000_000) * 1000) / 1000;
 }
 
-const SKR_TOKEN_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
-const HELIUS_RPC = "https://viviyan-bkj12u-fast-mainnet.helius-rpc.com";
-// Known holder wallet for price lookup
-const SKR_HOLDER = "CYPdPHMh1mD6ioFFVva7L2rFeKLBpcefVv5yv1p6iRqB";
+async function fetchYahooMarketCap(ticker: string): Promise<number | null> {
+  try {
+    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(ticker)}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 SeekerTracker/competitors" },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      quoteResponse?: { result?: Array<{ marketCap?: number }> };
+    };
+    const mcap = json.quoteResponse?.result?.[0]?.marketCap;
+    if (typeof mcap === "number" && mcap > 0) return billionsFromUsd(mcap);
+    return null;
+  } catch {
+    return null;
+  }
+}
 
-async function fetchSolanaMarketCap(): Promise<number> {
-    try {
-        // Fetch supply from metasal API
-        const supplyRes = await fetch(`https://api.metasal.xyz/api/supply/${SKR_TOKEN_MINT}`);
-        if (!supplyRes.ok) return 0.125;
-
-        const supplyText = await supplyRes.text();
-        const totalSupply = parseFloat(supplyText);
-        if (isNaN(totalSupply) || totalSupply <= 0) return 0.125;
-
-        // Fetch price from Helius DAS (getAssetsByOwner returns price_info)
-        const priceRes = await fetch(HELIUS_RPC, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                jsonrpc: "2.0",
-                id: "price",
-                method: "getAssetsByOwner",
-                params: {
-                    ownerAddress: SKR_HOLDER,
-                    displayOptions: { showFungible: true },
-                },
-            }),
-        });
-
-        if (!priceRes.ok) return 0.125;
-
-        const priceData = await priceRes.json();
-        const items = priceData?.result?.items || [];
-
-        // Find SKR token
-        const skrToken = items.find((item: { id: string }) => item.id === SKR_TOKEN_MINT);
-        const price = skrToken?.token_info?.price_info?.price_per_token || 0;
-
-        if (price > 0) {
-            const marketCapUsd = price * totalSupply;
-            const marketCapBillions = marketCapUsd / 1_000_000_000;
-            return Math.round(marketCapBillions * 1000) / 1000; // Round to 3 decimals
-        }
-
-        return 0.125;
-    } catch (error) {
-        console.error("Failed to fetch Solana Mobile market cap:", error);
-        return 0.125;
+async function fetchCompaniesMarketCap(slug: string): Promise<number | null> {
+  try {
+    const response = await fetch(`https://companiesmarketcap.com/${slug}/marketcap/`, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+        Accept: "text/html",
+      },
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+    const html = await response.text();
+    const allMatches = html.matchAll(/\$([0-9,.]+)\s*([BTM])\b/gi);
+    for (const match of allMatches) {
+      const value = parseFloat(match[1].replace(/,/g, ""));
+      const unit = match[2].toUpperCase();
+      let billions = 0;
+      if (unit === "T") billions = value * 1000;
+      else if (unit === "B") billions = value;
+      else if (unit === "M") billions = value / 1000;
+      if (billions > 50000) continue;
+      if (billions > 0) return Math.round(billions * 100) / 100;
     }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchEquityCap(company: (typeof COMPANIES)[number]): Promise<number> {
+  const yahoo = await fetchYahooMarketCap(company.ticker);
+  if (yahoo && yahoo > 0) return yahoo;
+  const scraped = await fetchCompaniesMarketCap(company.slug);
+  if (scraped && scraped > 0) return scraped;
+  return company.fallback;
+}
+
+/** Circulating SKR mcap (not FDV). Dexscreener `marketCap` is circ. */
+async function fetchSkrCirculatingBillions(): Promise<number> {
+  try {
+    const res = await fetch(
+      `https://api.dexscreener.com/latest/dex/tokens/${SKR_MINT}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return SKR_FALLBACK_B;
+    const json = (await res.json()) as {
+      pairs?: Array<{
+        marketCap?: number;
+        fdv?: number;
+        liquidity?: { usd?: number };
+      }>;
+    };
+    const pairs = [...(json.pairs || [])].sort(
+      (a, b) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+    );
+    const best = pairs[0];
+    const usd = Number(best?.marketCap || 0);
+    if (usd > 0) return billionsFromUsd(usd);
+    return SKR_FALLBACK_B;
+  } catch {
+    return SKR_FALLBACK_B;
+  }
 }
 
 async function fetchLiveData(): Promise<CompetitorData[]> {
-    const results: CompetitorData[] = [];
+  const [companiesData, skrCap] = await Promise.all([
+    Promise.all(
+      COMPANIES.map(async (company) => ({
+        name: company.name,
+        ticker: company.ticker,
+        marketCap: await fetchEquityCap(company),
+        color: company.color,
+      }))
+    ),
+    fetchSkrCirculatingBillions(),
+  ]);
 
-    // Fetch all companies and Solana Mobile in parallel
-    const [companiesData, solanaMarketCap] = await Promise.all([
-        Promise.all(
-            COMPANIES.map(async (company) => {
-                const marketCap = await fetchMarketCap(company.slug);
-                return {
-                    name: company.name,
-                    ticker: company.ticker,
-                    marketCap: marketCap ?? company.fallback,
-                    color: company.color,
-                };
-            })
-        ),
-        fetchSolanaMarketCap(),
-    ]);
-
-    results.push(...companiesData);
-
-    // Add Solana Mobile with live market cap
-    results.push({
-        name: "Solana Mobile",
-        ticker: "SKR",
-        marketCap: solanaMarketCap,
-        color: "#14F195",
-        isSolana: true,
-    });
-
-    return results;
+  return [
+    ...companiesData,
+    {
+      name: "SKR",
+      ticker: "SKR",
+      marketCap: skrCap,
+      color: "#00ffd9",
+      isSolana: true,
+    },
+  ];
 }
 
 export async function GET() {
-    try {
-        // Check cache
-        if (cachedData && Date.now() - lastFetch < CACHE_DURATION) {
-            return NextResponse.json({
-                companies: cachedData,
-                lastUpdated: lastFetch,
-                cached: true,
-            });
-        }
-
-        // Try to fetch live data
-        let companies: CompetitorData[];
-        try {
-            companies = await fetchLiveData();
-        } catch {
-            companies = getFallbackData();
-        }
-
-        // Update cache
-        cachedData = companies;
-        lastFetch = Date.now();
-
-        return NextResponse.json({
-            companies,
-            lastUpdated: lastFetch,
-            cached: false,
-        });
-    } catch (error) {
-        console.error("Competitors API error:", error);
-        return NextResponse.json({
-            companies: getFallbackData(),
-            lastUpdated: Date.now(),
-            error: "Using static data",
-        });
+  try {
+    if (cachedData && Date.now() - lastFetch < CACHE_DURATION) {
+      return NextResponse.json({
+        companies: cachedData,
+        lastUpdated: lastFetch,
+        cached: true,
+        note: "SKR is circulating token mcap, not Solana Mobile Inc equity",
+      });
     }
+
+    let companies: CompetitorData[];
+    try {
+      companies = await fetchLiveData();
+    } catch {
+      companies = getFallbackData();
+    }
+
+    cachedData = companies;
+    lastFetch = Date.now();
+
+    return NextResponse.json({
+      companies,
+      lastUpdated: lastFetch,
+      cached: false,
+      note: "SKR is circulating token mcap, not Solana Mobile Inc equity",
+    });
+  } catch {
+    return NextResponse.json({
+      companies: getFallbackData(),
+      lastUpdated: Date.now(),
+      error: "Using static data",
+    });
+  }
 }
