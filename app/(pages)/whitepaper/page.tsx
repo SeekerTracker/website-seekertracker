@@ -17,45 +17,22 @@ type Segment = {
 
 const segments: Segment[] = [
   {
-    label: "Treasury",
-    value: 60,
+    label: "Compound liquidity",
+    value: 50,
     color: "#00ffd9",
-    description: "Development, ops, growth",
-    token: "SOL",
-    address: "3ZvuZbCn4CYYNorGVMbzPbsUamckFmzhmhXWu9WcFb8P",
+    description: "Bags fees compound back into TRACKER liquidity",
   },
   {
-    label: "Staking",
-    value: 10,
+    label: "AMM",
+    value: 30,
     color: "#66ffe8",
-    description: "TRACKER staker rewards (when live)",
-    token: "TRACKER",
-    address: "86CeBUE4vRbxWpwr4U1QcC7tLoF7z6u8RTvxpgtDaPqk",
-    status: "Planned / community tools",
+    description: "Market-making / AMM inventory",
   },
   {
-    label: "Snake",
-    value: 10,
+    label: "Dividends",
+    value: 20,
     color: "#00ff66",
-    description: "Snake prize pool · hold ≥1M TRACKER",
-    token: "TRACKER",
-    address: "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq",
-  },
-  {
-    label: "Sweep",
-    value: 10,
-    color: "#9ed9cc",
-    description: "Hourly SOL drip lottery · 1M–20M band",
-    token: "SOL",
-    address: "rwdkZmr8wDN2b2dNLnaTCkTThUBzRdMJJCqtqgbvMug",
-  },
-  {
-    label: "SKR buyback",
-    value: 10,
-    color: "#7aa8a8",
-    description: "SKR buybacks · proceeds to treasury",
-    token: "SKR",
-    address: "3ZvuZbCn4CYYNorGVMbzPbsUamckFmzhmhXWu9WcFb8P",
+    description: "Holder dividends",
   },
 ];
 
@@ -125,7 +102,7 @@ function PieChart({
         fontSize="11"
         fontWeight="600"
       >
-        Revenue
+        Bags fees
       </text>
       <text
         x={center}
@@ -152,7 +129,7 @@ export default function WhitepaperPage() {
         <p className={styles.eyebrow}>$TRACKER · tokenomics</p>
         <h1 className={styles.title}>Whitepaper</h1>
         <p className={styles.slogan}>
-          How TRACKER fee revenue is allocated. Unofficial product docs — subject
+          How TRACKER Bags fees are split. Unofficial product docs - subject
           to change.
         </p>
       </header>
@@ -164,16 +141,16 @@ export default function WhitepaperPage() {
           <span className={styles.revenueLabel}>of TRACKER trading volume</span>
         </div>
         <p className={styles.body}>
-          Protocol fee on TRACKER trades funds treasury and community programs.
-          Exact routing can change with ops needs.
+          Protocol fee on TRACKER trades (Bags) is split across liquidity,
+          AMM, and dividends. Exact routing can change with ops needs.
         </p>
       </section>
 
       <section className={styles.panel}>
         <h2 className={styles.panelTitle}>Distribution</h2>
         <p className={styles.panelSub}>
-          60% treasury · <strong>40%</strong> community programs (staking, snake,
-          sweep, SKR buyback)
+          <strong>50%</strong> compound liquidity · <strong>30%</strong> AMM ·{" "}
+          <strong>20%</strong> dividends
         </p>
         <div className={styles.chartContainer}>
           <PieChart
@@ -209,7 +186,7 @@ export default function WhitepaperPage() {
             <strong style={{ color: segments[activeSegment].color }}>
               {segments[activeSegment].label}
             </strong>
-            {" — "}
+            {" - "}
             {segments[activeSegment].description}
           </p>
         )}
@@ -228,7 +205,7 @@ export default function WhitepaperPage() {
             <h3 className={styles.cardTitle}>{s.label}</h3>
             <p className={styles.cardDesc}>{s.description}</p>
             {s.status && <p className={styles.cardStatus}>{s.status}</p>}
-            <p className={styles.cardToken}>Paid in {s.token}</p>
+            {s.token && <p className={styles.cardToken}>Paid in {s.token}</p>}
             {s.address && (
               <Link
                 href={`https://orbmarkets.io/address/${s.address}/history?hideSpam=true`}
@@ -246,13 +223,13 @@ export default function WhitepaperPage() {
       <section className={styles.panel}>
         <h2 className={styles.panelTitle}>Sweep (live rules)</h2>
         <ul className={styles.bullets}>
-          <li>Hold <strong>1M–20M TRACKER</strong> (LP wallets excluded)</li>
+          <li>Hold <strong>1M-20M TRACKER</strong> (LP wallets excluded)</li>
           <li>
             <strong>Equal-odds</strong> hourly lottery among eligible holders
           </li>
           <li>
-            Prize targets ~0.1% of 1h volume in SOL; <strong>floor 0.002 SOL</strong>{" "}
-            when volume is low
+            Prize is <strong>$SKR</strong> (floor <strong>1 SKR</strong> when
+            volume is low)
           </li>
           <li>
             On-chain memo: <em>Congrats from SeekerTracker.com</em>
@@ -266,13 +243,13 @@ export default function WhitepaperPage() {
       <section className={styles.panel}>
         <h2 className={styles.panelTitle}>Key points</h2>
         <ul className={styles.bullets}>
-          <li>1% fee on TRACKER trading volume</li>
+          <li>1% fee on TRACKER trading volume (Bags)</li>
           <li>
-            <strong>40%</strong> toward community programs + buyback;{" "}
-            <strong>60%</strong> treasury
+            Split: <strong>50%</strong> compound liquidity ·{" "}
+            <strong>30%</strong> AMM · <strong>20%</strong> dividends
           </li>
-          <li>Snake rewards require ≥1M TRACKER</li>
-          <li>Allocations can change — not financial advice</li>
+          <li>Snake: hold ≥250k TRACKER to play</li>
+          <li>Allocations can change - not financial advice</li>
         </ul>
       </section>
 

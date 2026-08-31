@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 const TITLE = "Whitepaper | SeekerTracker";
 const DESCRIPTION =
-  "TRACKER tokenomics, fee split, Sweep, Snake, and Seeker ecosystem overview.";
+  "TRACKER Bags fees: 50% compound liquidity, 30% AMM, 20% dividends. Snake hold 250k TRACKER.";
 const OG = "https://seekertracker.com/og/whitepaper.png";
 
 export const metadata: Metadata = {
