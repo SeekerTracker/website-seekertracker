@@ -248,7 +248,7 @@ export default function WhitepaperPage() {
             Split: <strong>50%</strong> compound liquidity ·{" "}
             <strong>30%</strong> AMM · <strong>20%</strong> dividends
           </li>
-          <li>Snake: hold ≥250k TRACKER to play</li>
+          <li>Snake: hold ≥1M TRACKER to play</li>
           <li>Allocations can change - not financial advice</li>
         </ul>
       </section>
