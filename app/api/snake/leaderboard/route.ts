@@ -12,7 +12,7 @@ export const maxDuration = 60;
 
 /**
  * Snake leaderboard — periods match the game: all | weekly | daily.
- * Enriches rows with TRACKER + SKR balances and eligible (≥1M TRACKER).
+ * Enriches rows with TRACKER + SKR balances and eligible (≥250k TRACKER).
  * Balances via ATA getAccountInfo on aex402 (getTokenAccountsByOwner unsupported).
  */
 
@@ -22,7 +22,7 @@ const SNAKE_API =
 
 const TRACKER_MINT = SEEKER_TOKEN_ADDRESS;
 const SKR_MINT = "SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3";
-const MIN_REWARD_TRACKER = 1_000_000;
+const MIN_REWARD_TRACKER = 250_000;
 
 type Period = "all" | "weekly" | "daily";
 

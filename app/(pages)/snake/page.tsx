@@ -15,7 +15,7 @@ import {
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 const TRACKER_MINT = SEEKER_TOKEN_ADDRESS;
-const DEFAULT_REQUIRED_TRACKER = 1_000_000;
+const DEFAULT_REQUIRED_TRACKER = 250_000;
 const SNAKE_DAPP = "com.snakeseeker";
 const SNAKE_DAPP_URL = `/dapps/${SNAKE_DAPP}`;
 const SNAKE_SDS_URL =
@@ -98,7 +98,10 @@ function formatToken(
     const m = num / 1_000_000;
     return `${m >= 10 ? m.toFixed(1) : m.toFixed(2)}M`.replace(/\.00M$/, "M");
   }
-  if (num >= 1_000) return `${(num / 1_000).toFixed(1)}K`;
+  if (num >= 1_000) {
+    if (num % 1_000 === 0) return `${num / 1_000}k`;
+    return `${(num / 1_000).toFixed(1)}K`;
+  }
   if (num >= 100) return Math.floor(num).toLocaleString();
   if (num >= 1) return num.toFixed(num >= 10 ? 1 : 2).replace(/\.0$/, "");
   return num.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") || "0";
@@ -915,7 +918,7 @@ export default function SnakePage() {
           }}
         >
           {[
-            { hold: "1M", rate: "0.1", unit: "SKR / phone" },
+            { hold: "250k", rate: "0.1", unit: "SKR / phone" },
             { hold: "2M", rate: "0.2", unit: "SKR / phone" },
             { hold: "5M+", rate: "0.5", unit: "SKR / phone" },
           ].map((tier) => (
@@ -955,7 +958,7 @@ export default function SnakePage() {
           ))}
         </div>
         <p style={{ fontSize: "0.75rem", color: "#666", marginTop: "4px" }}>
-          Example: score 1,000 at 1M TRACKER → 100 SKR. Same score at 5M+ → 500
+          Example: score 1,000 at 250k TRACKER → 100 SKR. Same score at 5M+ → 500
           SKR.
         </p>
       </section>
