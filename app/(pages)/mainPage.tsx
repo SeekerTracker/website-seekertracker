@@ -638,7 +638,7 @@ const MainPage = () => {
               Sweep
             </Link>
             <Link href="/snake" className={style.chip}>
-              Snake · 1M TRACKER
+              Snake · 250k TRACKER
             </Link>
             <a
               href="https://store.solanamobile.com/"

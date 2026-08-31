@@ -3,7 +3,7 @@ import { Metadata } from "next";
 // Omit brand from title — root template appends "| Seeker Tracker"
 const TITLE = "Snake";
 const DESCRIPTION =
-  "Play Snake Seeker on iOS & Android. Hold ≥1M TRACKER to qualify and win SKR. App Store + Seeker dApp Store.";
+  "Play Snake Seeker on iOS & Android. Hold ≥250k TRACKER to qualify and win SKR. App Store + Seeker dApp Store.";
 const OG = "https://seekertracker.com/og/snake.png";
 
 export const metadata: Metadata = {
