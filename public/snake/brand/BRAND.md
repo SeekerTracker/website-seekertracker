@@ -74,7 +74,7 @@ Nostalgic Nokia Snake energy + modern on-chain rewards (TRACKER gate, SKR wins).
 - Glow orbs (green top-left, purple bottom-right)
 - Corner brackets / HUD style
 - Press Start 2P font, all caps where possible
-- "Hold 1M TRACKER · Win SKR" as the core hook when relevant
+- Hold 250k TRACKER · Win SKR as the core hook when relevant
 
 **Do not:**
 - Use real photos of phones unless heavily stylized
@@ -125,7 +125,7 @@ Nostalgic Nokia Snake energy + modern on-chain rewards (TRACKER gate, SKR wins).
 **Do**
 - Use Press Start 2P everywhere visible
 - Keep snake neon green dominant
-- Show the core loop: Hold 1M TRACKER → Play → Win SKR
+- Show the core loop: Hold 250k TRACKER → Play → Win SKR
 - Credit "Seeker" when relevant
 
 **Don't**
