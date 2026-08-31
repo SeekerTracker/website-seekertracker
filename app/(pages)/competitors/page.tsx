@@ -100,7 +100,8 @@ export default function CompetitorsPage() {
       </div>
 
       <div className={styles.topBar}>
-        <span className={styles.header}>$SKR vs phone OEMs</span>
+        <span className={styles.eyebrow}>$SKR · phone OEMs</span>
+        <span className={styles.header}>Competitors</span>
         <span className={styles.subheader}>
           Circulating SKR token mcap vs public phone-company equity
         </span>
@@ -109,7 +110,7 @@ export default function CompetitorsPage() {
       {skr && (
         <div className={styles.solanaHighlight}>
           <div className={styles.solanaLogo}>
-            <span className={styles.solanaIcon}>$</span>
+            <span className={styles.solanaIcon}>S</span>
           </div>
           <div className={styles.solanaInfo}>
             <span className={styles.solanaName}>SKR (Seeker)</span>
