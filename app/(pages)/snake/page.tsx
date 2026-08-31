@@ -426,7 +426,7 @@ export default function SnakePage() {
             <div>
               <p className={styles.youLabel}>Your eligibility</p>
               <p className={styles.youCopy}>
-                Hold ≥{minHoldLabel} TRACKER to qualify for SKR rewards. Connect
+                Hold ≥{minHoldLabel} TRACKER and SKR to qualify. Connect
                 wallet to check.
               </p>
             </div>
@@ -998,7 +998,7 @@ export default function SnakePage() {
       </section>
 
       <p className={styles.disclaimer}>
-        Unofficial Seeker game · hold TRACKER to qualify · SKR rewards can change · not financial advice
+        Unofficial Seeker game · hold TRACKER and SKR to qualify · SKR rewards can change · not financial advice
       </p>
     </div>
   );
