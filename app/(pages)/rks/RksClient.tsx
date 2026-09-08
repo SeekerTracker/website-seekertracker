@@ -6,8 +6,6 @@ import styles from "./page.module.css";
 
 const MINT = "9ZrGHKCdX2Bf5GWiGb9wSGGdBTMoZQqdEyzChapwE2Cx";
 const BUY = `https://jup.ag/tokens/${MINT}?ref=${JUP_REFERRAL}`;
-const CHART = `https://birdeye.so/token/${MINT}?chain=solana`;
-const TV = `https://birdeye.so/tv-widget/${MINT}?chain=solana&viewMode=pair&chartInterval=15&chartType=CANDLE&theme=dark`;
 const ICON =
   "https://gateway.irys.xyz/Drf1WTjkGeNCDME1A2vZDRsALrfpPtMKJAubmdTpbx6b";
 
@@ -179,6 +177,15 @@ export default function RksClient() {
         </p>
       </div>
 
+      <div className={styles.hold}>
+        <div className={styles.holdK}>Seeker Tracker position</div>
+        <div className={styles.holdV}>3% of supply</div>
+        <div className={styles.holdS}>
+          Seeker Tracker holds 3% of $RKS. $SKR rewards from this bag fund the SNAKE and SWEEP
+          treasury.
+        </div>
+      </div>
+
       <div className={styles.actions}>
         <a className={styles.primary} href={BUY} target="_blank" rel="noopener noreferrer">
           Buy $RKS
@@ -186,9 +193,6 @@ export default function RksClient() {
         <button className={styles.btn} type="button" onClick={copyCa}>
           {copied ? "Copied" : "Copy CA"}
         </button>
-        <a className={styles.btn} href={CHART} target="_blank" rel="noopener noreferrer">
-          Chart
-        </a>
       </div>
 
       <p className={styles.note}>
@@ -302,11 +306,6 @@ export default function RksClient() {
             </div>
           ))
         )}
-      </div>
-
-      <h2 className={styles.h2}>Price</h2>
-      <div className={styles.chartWrap}>
-        <iframe title="$RKS chart" src={TV} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
       </div>
 
       <p className={styles.disclaimer}>
