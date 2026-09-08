@@ -41,6 +41,7 @@ const PRIMARY = [
   { href: "/activations", label: "Activations" },
   { href: "/das", label: "DAS" },
   { href: "/skr", label: "SKR" },
+  { href: "/rks", label: "RKS" },
 ] as const;
 
 /** Secondary — under More */
