@@ -14,6 +14,10 @@ const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
     name: "seekertracker.sns",
     tld: "sns",
   },
+  HRWj4gdAds2QtdjzwVejDavbsr1a8tmRT5HoNpF2H7jy: {
+    name: "rekees.sns",
+    tld: "sns",
+  },
 };
 
 type Largest = {
