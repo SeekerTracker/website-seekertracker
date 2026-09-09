@@ -8,6 +8,14 @@ export const maxDuration = 60;
 
 const MINT = "9ZrGHKCdX2Bf5GWiGb9wSGGdBTMoZQqdEyzChapwE2Cx";
 
+/** Display names we already know (SNS v2 uses .sns, not .sol). */
+const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
+  TRKRnnQLFtRrQutViLgqjCXWjk8YeFje88dEw2CoxP3: {
+    name: "seekertracker.sns",
+    tld: "sns",
+  },
+};
+
 type Largest = {
   address: string;
   uiAmount?: number;
@@ -56,10 +64,16 @@ async function jsonGet(url: string): Promise<unknown | null> {
 function pickName(raw: unknown): { name: string; tld: string } | null {
   if (!raw) return null;
   if (typeof raw === "string") {
-    const m = raw.trim().toLowerCase().match(/^([a-z0-9][a-z0-9_-]{0,62})\.(sol|bonk)$/i);
-    if (m) return { name: `${m[1]}.${m[2].toLowerCase()}`, tld: m[2].toLowerCase() };
+    const m = raw
+      .trim()
+      .toLowerCase()
+      .match(/^([a-z0-9][a-z0-9_-]{0,62})\.(sns|sol|bonk)$/i);
+    if (m) {
+      const tld = m[2].toLowerCase() === "sol" ? "sns" : m[2].toLowerCase();
+      return { name: `${m[1]}.${tld}`, tld };
+    }
     if (/^[a-z0-9][a-z0-9_-]{0,62}$/i.test(raw.trim())) {
-      return { name: `${raw.trim().toLowerCase()}.sol`, tld: "sol" };
+      return { name: `${raw.trim().toLowerCase()}.sns`, tld: "sns" };
     }
   }
   if (typeof raw === "object") {
@@ -78,8 +92,10 @@ function pickName(raw: unknown): { name: string; tld: string } | null {
 
 async function resolveSns(wallet: string): Promise<{ name: string; tld: string } | null> {
   const urls = [
-    `https://sns-sdk-proxy.bonfida.workers.dev/favorite-domain/${wallet}`,
+    `https://sns-sdk-proxy.bonfida.workers.dev/primary-domain/${wallet}`,
     `https://sns-sdk-proxy.bonfida.workers.dev/domains/${wallet}`,
+    `https://sns-sdk-proxy.bonfida.workers.dev/favorite-domain/${wallet}`,
+    `https://sns-sdk-proxy.bonfida.workers.dev/reverse-lookup/${wallet}`,
     `https://api.alldomains.id/name-service/owner/${wallet}`,
   ];
   for (const u of urls) {
@@ -93,6 +109,7 @@ async function resolveSns(wallet: string): Promise<{ name: string; tld: string }
 async function resolveId(
   wallet: string,
 ): Promise<{ name: string; tld: string } | null> {
+  if (KNOWN_NAMES[wallet]) return KNOWN_NAMES[wallet];
   try {
     const skr = await getDomainsByOwner(wallet);
     if (skr[0]?.subdomain) {

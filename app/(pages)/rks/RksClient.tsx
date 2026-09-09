@@ -110,9 +110,10 @@ function shortAddr(w: string) {
 }
 
 function idUrl(name: string, tld: string | null) {
-  const base = name.replace(/\.(skr|sol|bonk)$/i, "");
+  const base = name.replace(/\.(skr|sol|bonk|sns)$/i, "");
   if (tld === "skr") return `https://myseeker.id/${encodeURIComponent(base)}`;
-  return `https://www.sns.id/${encodeURIComponent(name)}`;
+  if (tld === "bonk") return `https://www.sns.id/${encodeURIComponent(name)}`;
+  return `https://www.sns.id/domain/${encodeURIComponent(base)}`;
 }
 
 export default function RksClient() {
@@ -340,7 +341,7 @@ export default function RksClient() {
 
       <h2 className={styles.h2}>Top holders</h2>
       <p className={styles.note}>
-        Rank · .skr / .sol / .bonk if set · wallet · $RKS balance. Opens MySeeker, SNS, or sol.new.
+        Rank · .skr / .sns / .bonk if set · wallet · $RKS balance. Opens MySeeker, SNS, or sol.new.
       </p>
       <div className={styles.list}>
         {!holders.length ? (
