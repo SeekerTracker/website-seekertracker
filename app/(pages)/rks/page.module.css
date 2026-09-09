@@ -311,6 +311,57 @@
   font-size: 0.82rem;
 }
 
+.holdRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid rgba(0, 255, 217, 0.12);
+  min-height: 52px;
+}
+
+.holdRow:last-child {
+  border-bottom: 0;
+}
+
+.holdRank {
+  width: 28px;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #00ffd9;
+  font-variant-numeric: tabular-nums;
+}
+
+.holdWho {
+  flex: 1;
+  min-width: 0;
+}
+
+.holdName {
+  display: block;
+  color: #00ffd9;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.holdNameMiss {
+  color: #6a908c;
+}
+
+.holdAddr {
+  display: block;
+  margin-top: 3px;
+  color: #7aa8a8;
+  font-size: 0.8rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  text-decoration: none;
+}
+
+.holdBal {
+  text-align: right;
+  flex-shrink: 0;
+}
+
 .disclaimer {
   color: #6a908c;
   font-size: 0.75rem;

@@ -59,6 +59,15 @@ type Stats = {
   payouts?: Payout[];
 };
 
+type Holder = {
+  rank: number;
+  wallet: string;
+  balance: number;
+  pct: number;
+  name: string | null;
+  tld: string | null;
+};
+
 function usd(n: number | undefined | null, d?: number) {
   if (n == null || !Number.isFinite(n)) return "-";
   const abs = Math.abs(n);
@@ -95,11 +104,23 @@ function ago(iso?: string) {
   return Math.floor(h / 24) + "d ago";
 }
 
+function shortAddr(w: string) {
+  if (!w || w.length < 10) return w || "-";
+  return w.slice(0, 4) + "..." + w.slice(-4);
+}
+
+function idUrl(name: string, tld: string | null) {
+  const base = name.replace(/\.(skr|sol|bonk)$/i, "");
+  if (tld === "skr") return `https://myseeker.id/${encodeURIComponent(base)}`;
+  return `https://www.sns.id/${encodeURIComponent(name)}`;
+}
+
 export default function RksClient() {
   const [data, setData] = useState<Stats | null>(null);
   const [err, setErr] = useState(false);
   const [volKey, setVolKey] = useState<"h1" | "h6" | "h24">("h24");
   const [copied, setCopied] = useState(false);
+  const [holders, setHolders] = useState<Holder[]>([]);
 
   const load = useCallback(async () => {
     try {
@@ -118,6 +139,15 @@ export default function RksClient() {
     const id = setInterval(load, 30000);
     return () => clearInterval(id);
   }, [load]);
+
+  useEffect(() => {
+    fetch("/api/rks/holders", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (Array.isArray(j?.holders)) setHolders(j.holders);
+      })
+      .catch(() => {});
+  }, []);
 
   const t = data?.token || {};
   const m = data?.market || {};
@@ -302,6 +332,48 @@ export default function RksClient() {
                     receipt
                   </a>
                 ) : null}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <h2 className={styles.h2}>Top holders</h2>
+      <p className={styles.note}>
+        Rank · .skr / .sol / .bonk if set · wallet · $RKS balance. Opens MySeeker, SNS, or sol.new.
+      </p>
+      <div className={styles.list}>
+        {!holders.length ? (
+          <div className={styles.s}>Loading holders</div>
+        ) : (
+          holders.map((h) => (
+            <div key={h.wallet} className={styles.holdRow}>
+              <div className={styles.holdRank}>{h.rank}</div>
+              <div className={styles.holdWho}>
+                {h.name ? (
+                  <a
+                    href={idUrl(h.name, h.tld)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.holdName}
+                  >
+                    {h.name}
+                  </a>
+                ) : (
+                  <span className={styles.holdNameMiss}>-</span>
+                )}
+                <a
+                  href={`https://sol.new/address/${h.wallet}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.holdAddr}
+                >
+                  {shortAddr(h.wallet)}
+                </a>
+              </div>
+              <div className={styles.holdBal}>
+                <div className={styles.amt}>{tok(h.balance, "RKS")}</div>
+                <div className={styles.meta}>{h.pct.toFixed(2)}% supply</div>
               </div>
             </div>
           ))
