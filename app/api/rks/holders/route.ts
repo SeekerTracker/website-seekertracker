@@ -18,6 +18,11 @@ const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
     name: "rekees.sns",
     tld: "sns",
   },
+  // Raydium CPMM RKS/SKR vault authority (pool 7XosxtLK5LxoRgdvyioHrKAHKpCcyx1rYURrCDWtDaog)
+  GpMZbSM2GgvTKHJirzeGfMFoaZ8UR2X7F4v8vHTvxFbL: {
+    name: "Raydium CPMM",
+    tld: "lp",
+  },
 };
 
 type Largest = {

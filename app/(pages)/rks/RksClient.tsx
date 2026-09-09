@@ -113,6 +113,8 @@ function idUrl(name: string, tld: string | null) {
   const base = name.replace(/\.(skr|sol|bonk|sns)$/i, "");
   if (tld === "skr") return `https://myseeker.id/${encodeURIComponent(base)}`;
   if (tld === "bonk") return `https://www.sns.id/${encodeURIComponent(name)}`;
+  if (tld === "lp")
+    return "https://dexscreener.com/solana/7XosxtLK5LxoRgdvyioHrKAHKpCcyx1rYURrCDWtDaog";
   return `https://www.sns.id/domain/${encodeURIComponent(base)}`;
 }
 
