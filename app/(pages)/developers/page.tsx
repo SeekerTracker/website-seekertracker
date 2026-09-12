@@ -59,6 +59,9 @@ export default function DevelopersPage() {
           <a href="#agent-skill" className={styles.primary}>
             Install skill
           </a>
+          <a href="/api/mcp" className={styles.secondary}>
+            MCP
+          </a>
           <a href="/llms.txt" className={styles.secondary}>
             llms.txt
           </a>

@@ -181,6 +181,12 @@ export const PUBLIC_ENDPOINTS: PublicEndpoint[] = [
     auth: false,
     summary: "Agent discovery document (start here)",
   },
+  {
+    path: "/api/mcp",
+    methods: ["GET", "POST"],
+    auth: false,
+    summary: "MCP (lookup_id, lookup_wallet, search_apps, get_app)",
+  },
 ];
 
 export function buildApiIndex() {
@@ -193,6 +199,7 @@ export function buildApiIndex() {
       "Unofficial Solana Mobile ecosystem data: .skr SeekerIDs, Seeker dApps, SKR stats, and prices. Prefer these JSON endpoints over HTML scraping.",
     docs: {
       llms: `${SITE_ORIGIN}/llms.txt`,
+      mcp: `${SITE_ORIGIN}/api/mcp`,
       openapi: `${SITE_ORIGIN}/openapi.json`,
       developers: `${SITE_ORIGIN}/developers`,
       skill: "https://github.com/SeekerTracker/website-seekertracker/tree/main/skills/seekertracker",
@@ -494,6 +501,7 @@ export function buildLlmsTxt(): string {
     "## Start here",
     "",
     `- API index (JSON): ${SITE_ORIGIN}/api`,
+    `- MCP: ${SITE_ORIGIN}/api/mcp  (lookup_id, lookup_wallet, search_apps, get_app)`,
     `- OpenAPI: ${SITE_ORIGIN}/openapi.json`,
     `- Human docs: ${SITE_ORIGIN}/developers`,
     `- This file: ${SITE_ORIGIN}/llms.txt`,
