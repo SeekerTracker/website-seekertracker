@@ -59,7 +59,7 @@ export default function DevelopersPage() {
           <a href="#agent-skill" className={styles.primary}>
             Install skill
           </a>
-          <a href="/api/mcp" className={styles.secondary}>
+          <a href="/mcp" className={styles.secondary}>
             MCP
           </a>
           <a href="/llms.txt" className={styles.secondary}>
@@ -146,6 +146,27 @@ npx skills add SeekerTracker/website-seekertracker@seekertracker -g -y`}</pre>
         </div>
       </section>
 
+      <section className={styles.card} id="mcp">
+        <h2 className={styles.sectionTitle}>MCP</h2>
+        <p className={styles.cardLead}>
+          Streamable HTTP MCP for SeekerIDs and Seeker dApps. No auth. Tools: lookup_id,
+          lookup_wallet, search_apps, get_app.
+        </p>
+        <pre className={styles.code}>{`claude mcp add seekertracker ${SITE_ORIGIN}/api/mcp --transport http
+
+# Cursor / Claude Desktop
+{
+  "mcpServers": {
+    "seekertracker": { "url": "${SITE_ORIGIN}/api/mcp" }
+  }
+}`}</pre>
+        <div className={styles.links}>
+          <Link href="/mcp" className={styles.secondary}>
+            Full MCP docs
+          </Link>
+        </div>
+      </section>
+
       <section className={styles.card}>
         <h2 className={styles.sectionTitle}>Policy</h2>
         <ul className={styles.list}>
@@ -220,6 +241,9 @@ curl -sS ${SITE_ORIGIN}/api/skr/vault`}</pre>
           </li>
           <li>
             <Link href="/skr">/skr</Link> — SKR stats UI
+          </li>
+          <li>
+            <Link href="/mcp">/mcp</Link> - MCP docs
           </li>
         </ul>
       </section>

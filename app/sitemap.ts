@@ -25,6 +25,8 @@ const STATIC_PATHS: {
   { path: "/sweep", changeFrequency: "weekly", priority: 0.6 },
   { path: "/snake", changeFrequency: "daily", priority: 0.85 },
   { path: "/developers", changeFrequency: "weekly", priority: 0.75 },
+  { path: "/mcp", changeFrequency: "weekly", priority: 0.75 },
+  { path: "/rks", changeFrequency: "hourly", priority: 0.8 },
   { path: "/llms.txt", changeFrequency: "weekly", priority: 0.7 },
   { path: "/llms-full.txt", changeFrequency: "weekly", priority: 0.65 },
   { path: "/solana.txt", changeFrequency: "monthly", priority: 0.6 },

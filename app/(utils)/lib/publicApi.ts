@@ -553,6 +553,7 @@ export function buildLlmsTxt(): string {
     `- dApp catalog: ${SITE_ORIGIN}/dapps`,
     `- dApp detail: ${SITE_ORIGIN}/dapps/{androidPackage}`,
     `- Domain profile: ${SITE_ORIGIN}/id/{name.skr}`,
+    `- MCP docs: ${SITE_ORIGIN}/mcp`,
     `- SKR: ${SITE_ORIGIN}/skr`,
     `- Developers / skill install: ${SITE_ORIGIN}/developers`,
     "",
