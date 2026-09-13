@@ -27,6 +27,8 @@ const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
 
 const KNOWN_FOMO: Record<string, string> = {
   "1eMe7KodeNghErV9AbHSq7j2gzvSTPP2kgFp3C5r4eb": "ADPtheGreat",
+  "498g1rVnFcnjBjpfw1xyqA1WvgQXUU8RWuELjxkjAayQ": "frank",
+  Beqv6dzTcjV2eodo8RRXCiCcnSYrS1vkQKhfqwHXqeit: "pointfarmcap",
 };
 
 type TokenAccount = { address?: string; amount?: number | string; owner?: string };
