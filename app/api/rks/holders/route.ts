@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import { rpcCall, rpcCandidates } from "../../../(utils)/lib/solanaRpc";
-import { getDomainsByOwner } from "../../../(utils)/lib/domainStore";
+import { getTurso, hasTurso } from "../../../(utils)/lib/turso";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const MINT = "9ZrGHKCdX2Bf5GWiGb9wSGGdBTMoZQqdEyzChapwE2Cx";
+const TOP_N = 100;
 
-/** Display names we already know (SNS v2 uses .sns, not .sol). */
+/** Display names we already know (SNS v2 uses .sns). */
 const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
   TRKRnnQLFtRrQutViLgqjCXWjk8YeFje88dEw2CoxP3: {
     name: "seekertracker.sns",
@@ -18,19 +19,13 @@ const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
     name: "rekees.sns",
     tld: "sns",
   },
-  // Raydium CPMM RKS/SKR vault authority (pool 7XosxtLK5LxoRgdvyioHrKAHKpCcyx1rYURrCDWtDaog)
   GpMZbSM2GgvTKHJirzeGfMFoaZ8UR2X7F4v8vHTvxFbL: {
     name: "Raydium CPMM",
     tld: "lp",
   },
 };
 
-type Largest = {
-  address: string;
-  uiAmount?: number;
-  amount?: string;
-  decimals?: number;
-};
+type TokenAccount = { address?: string; amount?: number | string; owner?: string };
 
 type Holder = {
   rank: number;
@@ -39,13 +34,24 @@ type Holder = {
   pct: number;
   name: string | null;
   tld: string | null;
+  skr: string | null;
+  sns: string | null;
+  fomo: string | null;
 };
 
 let cache: { at: number; holders: Holder[]; supply: number } | null = null;
-const CACHE_MS = 60_000;
+const CACHE_MS = 120_000;
 
 async function pickRpc(): Promise<string> {
   const candidates = rpcCandidates();
+  for (const rpc of candidates) {
+    try {
+      await rpcCall(rpc, "getTokenAccounts", { mint: MINT, limit: 1 });
+      return rpc;
+    } catch {
+      /* next */
+    }
+  }
   for (const rpc of candidates) {
     try {
       await rpcCall(rpc, "getHealth", []);
@@ -57,78 +63,107 @@ async function pickRpc(): Promise<string> {
   throw new Error("No working RPC");
 }
 
-async function jsonGet(url: string): Promise<unknown | null> {
-  try {
-    const res = await fetch(url, {
-      headers: { Accept: "application/json", "User-Agent": "SeekerTracker/1.0" },
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
+async function fetchTokenAccounts(rpc: string): Promise<TokenAccount[]> {
+  const all: TokenAccount[] = [];
+  let cursor: string | undefined;
+  for (let page = 0; page < 20; page++) {
+    const params: { mint: string; limit: number; cursor?: string } = {
+      mint: MINT,
+      limit: 1000,
+    };
+    if (cursor) params.cursor = cursor;
+    const result = await rpcCall<{
+      token_accounts?: TokenAccount[];
+      cursor?: string;
+    }>(rpc, "getTokenAccounts", params, `rks-${page}`);
+    const batch = result?.token_accounts || [];
+    all.push(...batch);
+    cursor = result?.cursor;
+    if (!cursor || batch.length === 0) break;
   }
+  return all;
 }
 
-function pickName(raw: unknown): { name: string; tld: string } | null {
+async function batchSkr(wallets: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!wallets.length || !hasTurso()) return out;
+  const db = getTurso();
+  const chunk = 80;
+  for (let i = 0; i < wallets.length; i += chunk) {
+    const slice = wallets.slice(i, i + chunk);
+    const ph = slice.map(() => "?").join(",");
+    try {
+      const res = await db.execute({
+        sql: `SELECT owner, subdomain FROM seeker_domains
+              WHERE owner IN (${ph})
+              ORDER BY LENGTH(subdomain) ASC`,
+        args: slice,
+      });
+      for (const r of res.rows) {
+        const owner = String((r as Record<string, unknown>).owner);
+        const sub = String((r as Record<string, unknown>).subdomain || "")
+          .replace(/\.skr$/i, "");
+        if (owner && sub && !out.has(owner)) out.set(owner, `${sub}.skr`);
+      }
+    } catch {
+      /* skip chunk */
+    }
+  }
+  return out;
+}
+
+function pickFomoHandle(raw: unknown): string | null {
   if (!raw) return null;
   if (typeof raw === "string") {
-    const m = raw
-      .trim()
-      .toLowerCase()
-      .match(/^([a-z0-9][a-z0-9_-]{0,62})\.(sns|sol|bonk)$/i);
-    if (m) {
-      const tld = m[2].toLowerCase() === "sol" ? "sns" : m[2].toLowerCase();
-      return { name: `${m[1]}.${tld}`, tld };
-    }
-    if (/^[a-z0-9][a-z0-9_-]{0,62}$/i.test(raw.trim())) {
-      return { name: `${raw.trim().toLowerCase()}.sns`, tld: "sns" };
-    }
+    const s = raw.trim().replace(/^@/, "");
+    if (/^[a-zA-Z0-9_]{2,32}$/.test(s)) return s;
+    return null;
   }
   if (typeof raw === "object") {
     const o = raw as Record<string, unknown>;
-    const cand =
-      o.result ??
-      o.domain ??
-      o.name ??
-      o.favorite ??
-      (Array.isArray(o.domains) ? o.domains[0] : null) ??
-      (Array.isArray(o.names) ? o.names[0] : null);
-    return pickName(cand);
+    return (
+      pickFomoHandle(o.handle) ||
+      pickFomoHandle(o.username) ||
+      pickFomoHandle(o.fomo) ||
+      pickFomoHandle(o.result)
+    );
   }
   return null;
 }
 
-async function resolveSns(wallet: string): Promise<{ name: string; tld: string } | null> {
-  const urls = [
-    `https://sns-sdk-proxy.bonfida.workers.dev/primary-domain/${wallet}`,
-    `https://sns-sdk-proxy.bonfida.workers.dev/domains/${wallet}`,
-    `https://sns-sdk-proxy.bonfida.workers.dev/favorite-domain/${wallet}`,
-    `https://sns-sdk-proxy.bonfida.workers.dev/reverse-lookup/${wallet}`,
-    `https://api.alldomains.id/name-service/owner/${wallet}`,
-  ];
-  for (const u of urls) {
-    const j = await jsonGet(u);
-    const n = pickName(j);
-    if (n) return n;
-  }
-  return null;
-}
-
-async function resolveId(
-  wallet: string,
-): Promise<{ name: string; tld: string } | null> {
-  if (KNOWN_NAMES[wallet]) return KNOWN_NAMES[wallet];
+async function batchFomo(wallets: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
   try {
-    const skr = await getDomainsByOwner(wallet);
-    if (skr[0]?.subdomain) {
-      const sub = skr[0].subdomain.replace(/\.skr$/i, "");
-      return { name: `${sub}.skr`, tld: "skr" };
+    const res = await fetch("https://api.fomotags.xyz/v1/resolve", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "User-Agent": "SeekerTracker/1.0",
+      },
+      body: JSON.stringify({ addresses: wallets }),
+      cache: "no-store",
+    });
+    if (!res.ok) return out;
+    const j = (await res.json()) as unknown;
+    const rows = Array.isArray(j)
+      ? j
+      : Array.isArray((j as { results?: unknown[] })?.results)
+        ? (j as { results: unknown[] }).results
+        : Array.isArray((j as { data?: unknown[] })?.data)
+          ? (j as { data: unknown[] }).data
+          : [];
+    for (const row of rows) {
+      if (!row || typeof row !== "object") continue;
+      const o = row as Record<string, unknown>;
+      const addr = String(o.address || o.wallet || o.solana || "");
+      const handle = pickFomoHandle(o);
+      if (addr && handle) out.set(addr, handle);
     }
   } catch {
-    /* sns next */
+    /* FOMO index optional */
   }
-  return resolveSns(wallet);
+  return out;
 }
 
 export async function GET() {
@@ -142,54 +177,69 @@ export async function GET() {
   }
   try {
     const rpc = await pickRpc();
-    const largest = await rpcCall<{ value: Largest[] }>(
-      rpc,
-      "getTokenLargestAccounts",
-      [MINT],
-    );
-    const rows = (largest?.value || []).slice(0, 20);
-    const atas = rows.map((r) => r.address);
-    const accs = await rpcCall<{
-      value: Array<{
-        data?: { parsed?: { info?: { owner?: string; tokenAmount?: { uiAmount?: number } } } };
-      } | null>;
-    }>(rpc, "getMultipleAccounts", [atas, { encoding: "jsonParsed" }]);
+    const accounts = await fetchTokenAccounts(rpc);
+    const byOwner = new Map<string, number>();
+    for (const a of accounts) {
+      const owner = a.owner;
+      if (!owner) continue;
+      const raw = Number(a.amount || 0);
+      if (!Number.isFinite(raw) || raw <= 0) continue;
+      byOwner.set(owner, (byOwner.get(owner) || 0) + raw);
+    }
 
-    const supplyRaw = rows.reduce((s, r) => s + (r.uiAmount || 0), 0);
-    // Full mint supply ~ 1e9; use sum of largest as display pct base? User wants % of supply.
     const mintInfo = await rpcCall<{
       value?: { data?: { parsed?: { info?: { supply?: string; decimals?: number } } } };
     }>(rpc, "getAccountInfo", [MINT, { encoding: "jsonParsed" }]);
     const info = mintInfo?.value?.data?.parsed?.info;
     const decimals = info?.decimals ?? 6;
-    const supply = info?.supply ? Number(info.supply) / 10 ** decimals : supplyRaw;
+    const supply = info?.supply ? Number(info.supply) / 10 ** decimals : 0;
+    const div = 10 ** decimals;
 
-    const holders: Holder[] = [];
-    const vals = accs?.value || [];
-    for (let i = 0; i < rows.length; i++) {
-      const parsed = vals[i]?.data?.parsed?.info;
-      const wallet = parsed?.owner;
-      if (!wallet) continue;
-      const balance = parsed?.tokenAmount?.uiAmount ?? rows[i].uiAmount ?? 0;
-      holders.push({
-        rank: holders.length + 1,
-        wallet,
-        balance,
-        pct: supply > 0 ? (balance / supply) * 100 : 0,
-        name: null,
-        tld: null,
-      });
-    }
+    const ranked = [...byOwner.entries()]
+      .map(([wallet, raw]) => ({ wallet, balance: raw / div }))
+      .sort((a, b) => b.balance - a.balance)
+      .slice(0, TOP_N);
 
-    const ids = await Promise.all(holders.map((h) => resolveId(h.wallet)));
-    ids.forEach((id, i) => {
-      if (!id) return;
-      holders[i].name = id.name;
-      holders[i].tld = id.tld;
+    const wallets = ranked.map((r) => r.wallet);
+    const [skrMap, fomoMap] = await Promise.all([
+      batchSkr(wallets),
+      batchFomo(wallets),
+    ]);
+
+    const holders: Holder[] = ranked.map((r, i) => {
+      const known = KNOWN_NAMES[r.wallet];
+      const skr = skrMap.get(r.wallet) || null;
+      const sns =
+        known && known.tld === "sns"
+          ? known.name
+          : known && known.tld !== "lp" && known.tld !== "skr"
+            ? known.name
+            : null;
+      const fomo = fomoMap.get(r.wallet) || null;
+      const lp = known && known.tld === "lp" ? known : null;
+      const name = lp?.name || skr || sns || (fomo ? `@${fomo}` : null);
+      const tld = lp?.tld || (skr ? "skr" : sns ? "sns" : fomo ? "fomo" : null);
+      return {
+        rank: i + 1,
+        wallet: r.wallet,
+        balance: r.balance,
+        pct: supply > 0 ? (r.balance / supply) * 100 : 0,
+        name,
+        tld,
+        skr,
+        sns,
+        fomo,
+      };
     });
 
     cache = { at: Date.now(), holders, supply };
-    return NextResponse.json({ ok: true, holders, supply, cached: false });
+    return NextResponse.json({
+      ok: true,
+      holders,
+      supply,
+      scanned: byOwner.size,
+      cached: false,
+    });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : "holders_failed" },

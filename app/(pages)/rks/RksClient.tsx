@@ -66,6 +66,9 @@ type Holder = {
   pct: number;
   name: string | null;
   tld: string | null;
+  skr: string | null;
+  sns: string | null;
+  fomo: string | null;
 };
 
 function usd(n: number | undefined | null, d?: number) {
@@ -110,11 +113,12 @@ function shortAddr(w: string) {
 }
 
 function idUrl(name: string, tld: string | null) {
-  const base = name.replace(/\.(skr|sol|bonk|sns)$/i, "");
+  const base = name.replace(/\.(skr|sol|bonk|sns)$/i, "").replace(/^@/, "");
   if (tld === "skr") return `https://myseeker.id/${encodeURIComponent(base)}`;
   if (tld === "bonk") return `https://www.sns.id/${encodeURIComponent(name)}`;
   if (tld === "lp")
     return "https://dexscreener.com/solana/7XosxtLK5LxoRgdvyioHrKAHKpCcyx1rYURrCDWtDaog";
+  if (tld === "fomo") return `https://fomo.family/profile/${encodeURIComponent(base)}`;
   return `https://www.sns.id/domain/${encodeURIComponent(base)}`;
 }
 
@@ -341,11 +345,11 @@ export default function RksClient() {
         )}
       </div>
 
-      <h2 className={styles.h2}>Top holders</h2>
+      <h2 className={styles.h2}>Top 100 holders</h2>
       <p className={styles.note}>
-        Rank · .skr / .sns / .bonk if set · wallet · $RKS balance. Opens MySeeker, SNS, or sol.new.
+        Rank · .skr · .sns · FOMO handle · wallet · $RKS. Opens MySeeker, SNS, fomo.family, or sol.new.
       </p>
-      <div className={styles.list}>
+      <div className={styles.listWide}>
         {!holders.length ? (
           <div className={styles.s}>Loading holders</div>
         ) : (
@@ -353,18 +357,51 @@ export default function RksClient() {
             <div key={h.wallet} className={styles.holdRow}>
               <div className={styles.holdRank}>{h.rank}</div>
               <div className={styles.holdWho}>
-                {h.name ? (
-                  <a
-                    href={idUrl(h.name, h.tld)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.holdName}
-                  >
-                    {h.name}
-                  </a>
-                ) : (
-                  <span className={styles.holdNameMiss}>-</span>
-                )}
+                <div className={styles.marks}>
+                  {h.tld === "lp" && h.name ? (
+                    <a
+                      href={idUrl(h.name, "lp")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      {h.name}
+                    </a>
+                  ) : null}
+                  {h.skr ? (
+                    <a
+                      href={idUrl(h.skr, "skr")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      {h.skr}
+                    </a>
+                  ) : null}
+                  {h.sns ? (
+                    <a
+                      href={idUrl(h.sns, "sns")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      {h.sns}
+                    </a>
+                  ) : null}
+                  {h.fomo ? (
+                    <a
+                      href={idUrl(h.fomo, "fomo")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      @{h.fomo}
+                    </a>
+                  ) : null}
+                  {!h.skr && !h.sns && !h.fomo && h.tld !== "lp" ? (
+                    <span className={styles.holdNameMiss}>-</span>
+                  ) : null}
+                </div>
                 <a
                   href={`https://sol.new/address/${h.wallet}`}
                   target="_blank"
