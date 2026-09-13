@@ -25,6 +25,10 @@ const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
   },
 };
 
+const KNOWN_FOMO: Record<string, string> = {
+  "1eMe7KodeNghErV9AbHSq7j2gzvSTPP2kgFp3C5r4eb": "ADPtheGreat",
+};
+
 type TokenAccount = { address?: string; amount?: number | string; owner?: string };
 
 type Holder = {
@@ -215,7 +219,7 @@ export async function GET() {
           : known && known.tld !== "lp" && known.tld !== "skr"
             ? known.name
             : null;
-      const fomo = fomoMap.get(r.wallet) || null;
+      const fomo = KNOWN_FOMO[r.wallet] || fomoMap.get(r.wallet) || null;
       const lp = known && known.tld === "lp" ? known : null;
       const name = lp?.name || skr || sns || (fomo ? `@${fomo}` : null);
       const tld = lp?.tld || (skr ? "skr" : sns ? "sns" : fomo ? "fomo" : null);
