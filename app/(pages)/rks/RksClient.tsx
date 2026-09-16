@@ -6,6 +6,7 @@ import styles from "./page.module.css";
 
 const MINT = "9ZrGHKCdX2Bf5GWiGb9wSGGdBTMoZQqdEyzChapwE2Cx";
 const BUY = `https://jup.ag/tokens/${MINT}?ref=${JUP_REFERRAL}`;
+const STONKFUN = `https://www.stonkfun.xyz/token/${MINT}`;
 const ICON =
   "https://gateway.irys.xyz/Drf1WTjkGeNCDME1A2vZDRsALrfpPtMKJAubmdTpbx6b";
 
@@ -210,7 +211,11 @@ export default function RksClient() {
         />
         <p className={styles.lead}>
           Every transfer of $RKS takes a {taxPct}% tax. That tax is paid to holders in $SKR.
-          There is no creator fee wallet. Trading fees on the pool go to the launchpad.
+          There is no creator fee wallet. Trading fees on the pool go to the launchpad. Token page:{" "}
+          <a href={STONKFUN} target="_blank" rel="noopener noreferrer">
+            stonkfun.xyz
+          </a>
+          .
         </p>
       </div>
 
@@ -226,6 +231,9 @@ export default function RksClient() {
       <div className={styles.actions}>
         <a className={styles.primary} href={BUY} target="_blank" rel="noopener noreferrer">
           Buy $RKS
+        </a>
+        <a className={styles.btn} href={STONKFUN} target="_blank" rel="noopener noreferrer">
+          Stonkfun
         </a>
         <button className={styles.btn} type="button" onClick={copyCa}>
           {copied ? "Copied" : "Copy CA"}

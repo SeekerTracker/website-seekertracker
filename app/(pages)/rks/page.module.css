@@ -68,6 +68,10 @@
   font-size: 1rem;
 }
 
+.lead a {
+  color: #00ffd9;
+}
+
 .hold {
   border: 2px solid #00ffd9;
   border-radius: 1em;
