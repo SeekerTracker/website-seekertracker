@@ -42,6 +42,13 @@
     cursor: not-allowed;
 }
 
+.compact {
+    min-height: 44px;
+    padding: 0.4em 0.85em;
+    font-size: 0.8em;
+    border-radius: 0.55em;
+}
+
 .walletIcon {
     width: 1.5em;
     height: 1.5em;

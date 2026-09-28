@@ -6,7 +6,7 @@ import styles from "./WalletButton.module.css";
 import WalletDropdown from "./WalletDropdown";
 import { useWalletModal } from "app/(utils)/context/walletProvider";
 
-export default function WalletButton() {
+export default function WalletButton({ compact = false }: { compact?: boolean }) {
     const { connected, connecting, selectedWallet, wallets } = useConnector();
     const { formatted } = useAccount();
     const { openModal } = useWalletModal();
@@ -27,7 +27,7 @@ export default function WalletButton() {
 
     if (connecting) {
         return (
-            <button className={`${styles.button} ${styles.connecting}`} disabled>
+            <button className={`${styles.button} ${styles.connecting} ${compact ? styles.compact : ""}`} disabled>
                 <span className={styles.spinner} />
                 <span>Connecting...</span>
             </button>
@@ -39,7 +39,7 @@ export default function WalletButton() {
             <div className={styles.buttonWrapper}>
                 <button
                     ref={buttonRef}
-                    className={`${styles.button} ${connected ? styles.connected : ""}`}
+                    className={`${styles.button} ${connected ? styles.connected : ""} ${compact ? styles.compact : ""}`}
                     onClick={handleClick}
                 >
                     {connected && walletIcon && (

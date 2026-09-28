@@ -473,6 +473,9 @@ const MainPage = () => {
                 Browse apps
                 {dAppCount != null ? ` · ${animatedDApps.toLocaleString()}` : ""}
               </Link>
+              <Link href="/chat" className={style.heroCtaSecondary}>
+                Join chat
+              </Link>
               <Link href="/explore" className={style.heroCtaSecondary}>
                 Explore all
               </Link>
@@ -622,6 +625,9 @@ const MainPage = () => {
             <h2 className={style.panelTitle}>Shortcuts</h2>
           </header>
           <div className={style.chipGrid}>
+            <Link href="/chat" className={style.chip}>
+              Join chat
+            </Link>
             <Link href="/skr" className={style.chip}>
               SKR stats
             </Link>

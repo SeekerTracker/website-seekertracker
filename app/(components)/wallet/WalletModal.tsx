@@ -54,6 +54,16 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
     const JUPITER_WALLET_URL = "https://jupiter.go.link/l6gxn";
 
+    const isMobileAdapter = (walletName: string) => {
+        const name = walletName.toLowerCase();
+        return (
+            name.includes("mobile") ||
+            name.includes("mwa") ||
+            name.includes("seeker") ||
+            name.includes("seed vault")
+        );
+    };
+
     const getInstallUrl = (walletName: string) => {
         const name = walletName.toLowerCase();
         if (name.includes("jupiter") || name.includes("jup")) return JUPITER_WALLET_URL;
@@ -71,6 +81,10 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
     // Sort installed: recently connected first
     const sortedInstalledWallets = [...installedWallets].sort((a, b) => {
+        const aMobile = isMobileAdapter(a.wallet.name);
+        const bMobile = isMobileAdapter(b.wallet.name);
+        if (aMobile && !bMobile) return -1;
+        if (!aMobile && bMobile) return 1;
         const aIsRecent = recentlyConnected === a.wallet.name;
         const bIsRecent = recentlyConnected === b.wallet.name;
         if (aIsRecent && !bIsRecent) return -1;
@@ -221,9 +235,11 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
                     <Activity mode={wallets.length === 0 && !connecting ? "visible" : "hidden"}>
                         <div className={styles.noWallets}>
-                            <div className={styles.noWalletsIcon}>👛</div>
-                            <h3>No Wallets Detected</h3>
-                            <p>Install a Solana wallet extension to get started</p>
+                            <h3>No wallet detected</h3>
+                            <p>
+                                On Seeker, connect with the wallet on this phone.
+                                On desktop, install a Solana wallet.
+                            </p>
                             <div className={styles.installButtons}>
                                 <button
                                     className={styles.primaryButton}
