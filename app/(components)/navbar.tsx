@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SEEKER_TOKEN_ADDRESS } from "app/(utils)/constant";
+import WalletButton from "./wallet/WalletButton";
 
 export const socialMediaLinks = [
   {
@@ -46,6 +47,7 @@ const PRIMARY = [
 
 /** Secondary — under More */
 const MORE = [
+  { href: "/chat", label: "Chat" },
   { href: "/sweep", label: "Sweep" },
   { href: "/winners", label: "Winners" },
   { href: "/whales", label: "Whales" },
@@ -143,6 +145,9 @@ const Navbar = () => {
           <span>Seeker Tracker</span>
         </Link>
         <div className={styles.mobileRight}>
+          <div className={styles.navWallet}>
+            <WalletButton compact />
+          </div>
           <a
             href={`https://jup.ag/tokens/${SEEKER_TOKEN_ADDRESS}?ref=yfgv2ibxy07v`}
             target="_blank"
@@ -232,6 +237,9 @@ const Navbar = () => {
           >
             Buy $TRACKER
           </button>
+          <div className={styles.navWallet}>
+            <WalletButton compact />
+          </div>
         </nav>
       </div>
 
@@ -342,6 +350,9 @@ const Navbar = () => {
           >
             Buy $TRACKER
           </button>
+          <div className={styles.navWallet}>
+            <WalletButton compact />
+          </div>
         </div>
       </div>
     </header>

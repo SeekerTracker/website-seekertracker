@@ -325,6 +325,11 @@
   gap: 0.5rem;
 }
 
+.navWallet {
+  display: flex;
+  align-items: center;
+}
+
 .mobileVol {
   display: inline-flex;
   align-items: center;

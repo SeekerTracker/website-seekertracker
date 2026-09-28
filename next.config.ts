@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["seekertracker.metasal.xyz", "*.metasal.xyz"],
   // Bundle domain snapshot for serverless domain APIs
   outputFileTracingIncludes: {
     "/api/**/*": ["./data/**/*", "./public/data/**/*"],

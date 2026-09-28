@@ -14,7 +14,7 @@ import {
     useConnector,
     useAccount,
 } from "@solana/connector/react";
-import { getDefaultConfig } from "@solana/connector/headless";
+import { getDefaultConfig, getDefaultMobileConfig } from "@solana/connector/headless";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { CONN_RPC_URL, REQUIRED_TRACKER_BALANCE } from "../constant";
 import { getTrackerTokenBalance } from "../lib/tokenBalance";
@@ -126,8 +126,24 @@ export function WalletProviderWrapper({ children }: { children: ReactNode }) {
         });
     }, []);
 
+    const mobile = useMemo(
+        () => ({
+            ...getDefaultMobileConfig({
+                appName: "Seeker Tracker",
+                appUrl: "https://seekertracker.com",
+                network: "mainnet" as const,
+            }),
+            appIdentity: {
+                name: "Seeker Tracker",
+                uri: "https://seekertracker.com",
+                icon: "https://seekertracker.com/logo.png",
+            },
+        }),
+        [],
+    );
+
     return (
-        <AppProvider connectorConfig={config}>
+        <AppProvider connectorConfig={config} mobile={mobile}>
             <WalletModalContext.Provider value={modalValue}>
                 <WalletContextProvider openWalletModal={openModal}>
                     <JupiterProvider onRequestConnectWallet={openModal}>

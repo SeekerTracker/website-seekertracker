@@ -12,6 +12,7 @@
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@cherrydotfun/chat-embed-sdk": "^0.1.7",
     "@libsql/client": "^0.17.0",
     "@solana/connector": "^0.1.10",
     "@solana/spl-token": "^0.4.14",
