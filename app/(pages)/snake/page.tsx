@@ -15,7 +15,7 @@ import {
 
 const PRIZE_WALLET = "snkTEcbUVW5EURccMjBo1YDfW8M8uDZ4b8Li9yeNXsq";
 const TRACKER_MINT = SEEKER_TOKEN_ADDRESS;
-const DEFAULT_REQUIRED_TRACKER = 1_000_000;
+const DEFAULT_REQUIRED_TRACKER = 250_000;
 const SNAKE_DAPP = "com.snakeseeker";
 const SNAKE_DAPP_URL = `/dapps/${SNAKE_DAPP}`;
 const SNAKE_SDS_URL =
@@ -958,7 +958,7 @@ export default function SnakePage() {
           ))}
         </div>
         <p style={{ fontSize: "0.75rem", color: "#666", marginTop: "4px" }}>
-          Example: score 1,000 at 1M TRACKER → 100 SKR. Same score at 5M+ → 500
+          Example: 10 phones at 250k TRACKER = 1 SKR. Same at 5M+ = 5 SKR
           SKR.
         </p>
       </section>
