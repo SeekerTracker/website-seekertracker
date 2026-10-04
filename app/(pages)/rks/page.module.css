@@ -43,6 +43,8 @@
   margin: 0;
   font-size: 1.05em;
   color: #7aa8a8;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .hero {
@@ -54,10 +56,10 @@
 .tokenIcon {
   width: 72px;
   height: 72px;
-  border-radius: 50%;
-  object-fit: cover;
+  border-radius: 14px;
+  object-fit: contain;
   border: 1px solid rgba(0, 255, 217, 0.25);
-  background: #001a1a;
+  background: #0b1020;
   flex-shrink: 0;
 }
 
@@ -66,6 +68,7 @@
   color: #c8e6e2;
   line-height: 1.5;
   font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .lead a {
@@ -129,6 +132,8 @@
   cursor: pointer;
   text-decoration: none;
   touch-action: manipulation;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .primary {
