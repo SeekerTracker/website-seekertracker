@@ -52,8 +52,8 @@
 }
 
 .tokenIcon {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid rgba(0, 255, 217, 0.25);
@@ -66,6 +66,41 @@
   color: #c8e6e2;
   line-height: 1.5;
   font-size: 1rem;
+}
+
+.lead a {
+  color: #00ffd9;
+}
+
+.hold {
+  border: 2px solid #00ffd9;
+  border-radius: 1em;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(0, 255, 217, 0.16), rgba(0, 255, 102, 0.06));
+  box-shadow: 0 0 24px rgba(0, 255, 217, 0.18);
+}
+
+.holdK {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 255, 217, 0.75);
+}
+
+.holdV {
+  margin-top: 6px;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
+  color: #00ffd9;
+  letter-spacing: -0.03em;
+}
+
+.holdS {
+  margin-top: 8px;
+  color: #c8e6e2;
+  line-height: 1.45;
+  font-size: 0.95rem;
 }
 
 .note {
@@ -246,6 +281,32 @@
   background: rgba(0, 26, 26, 0.4);
 }
 
+.listWide {
+  border: 1px solid rgba(0, 255, 217, 0.18);
+  border-radius: 1em;
+  max-height: 720px;
+  overflow: auto;
+  padding: 4px 12px;
+  background: rgba(0, 26, 26, 0.4);
+}
+
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.mark {
+  color: #00ffd9;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-decoration: none;
+  border: 1px solid rgba(0, 255, 217, 0.28);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
 .pay {
   display: flex;
   justify-content: space-between;
@@ -280,19 +341,55 @@
   font-size: 0.82rem;
 }
 
-.chartWrap {
-  border: 1px solid rgba(0, 255, 217, 0.18);
-  border-radius: 1em;
-  overflow: hidden;
-  background: #001a1a;
-  aspect-ratio: 16 / 7;
-  min-height: 280px;
+.holdRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid rgba(0, 255, 217, 0.12);
+  min-height: 52px;
 }
 
-.chartWrap iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
+.holdRow:last-child {
+  border-bottom: 0;
+}
+
+.holdRank {
+  width: 28px;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #00ffd9;
+  font-variant-numeric: tabular-nums;
+}
+
+.holdWho {
+  flex: 1;
+  min-width: 0;
+}
+
+.holdName {
+  display: block;
+  color: #00ffd9;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.holdNameMiss {
+  color: #6a908c;
+}
+
+.holdAddr {
+  display: block;
+  margin-top: 3px;
+  color: #7aa8a8;
+  font-size: 0.8rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  text-decoration: none;
+}
+
+.holdBal {
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .disclaimer {

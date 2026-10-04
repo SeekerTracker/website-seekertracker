@@ -6,10 +6,11 @@ import styles from "./page.module.css";
 
 const MINT = "9ZrGHKCdX2Bf5GWiGb9wSGGdBTMoZQqdEyzChapwE2Cx";
 const BUY = `https://jup.ag/tokens/${MINT}?ref=${JUP_REFERRAL}`;
-const CHART = `https://birdeye.so/token/${MINT}?chain=solana`;
-const TV = `https://birdeye.so/tv-widget/${MINT}?chain=solana&viewMode=pair&chartInterval=15&chartType=CANDLE&theme=dark`;
-const ICON =
-  "https://gateway.irys.xyz/Drf1WTjkGeNCDME1A2vZDRsALrfpPtMKJAubmdTpbx6b";
+const STONKFUN = `https://www.stonkfun.xyz/token/${MINT}`;
+const X = "https://x.com/rekees_rks";
+const TG = "https://t.me/rekees_rks";
+const STICKERS = "https://t.me/addstickers/Rekees";
+const ICON = "/icons/rks.png";
 
 type Payout = {
   signature?: string;
@@ -61,6 +62,18 @@ type Stats = {
   payouts?: Payout[];
 };
 
+type Holder = {
+  rank: number;
+  wallet: string;
+  balance: number;
+  pct: number;
+  name: string | null;
+  tld: string | null;
+  skr: string | null;
+  sns: string | null;
+  fomo: string | null;
+};
+
 function usd(n: number | undefined | null, d?: number) {
   if (n == null || !Number.isFinite(n)) return "-";
   const abs = Math.abs(n);
@@ -97,11 +110,27 @@ function ago(iso?: string) {
   return Math.floor(h / 24) + "d ago";
 }
 
+function shortAddr(w: string) {
+  if (!w || w.length < 10) return w || "-";
+  return w.slice(0, 4) + "..." + w.slice(-4);
+}
+
+function idUrl(name: string, tld: string | null) {
+  const base = name.replace(/\.(skr|sol|bonk|sns)$/i, "").replace(/^@/, "");
+  if (tld === "skr") return `https://myseeker.id/${encodeURIComponent(base)}`;
+  if (tld === "bonk") return `https://www.sns.id/${encodeURIComponent(name)}`;
+  if (tld === "lp")
+    return "https://dexscreener.com/solana/7XosxtLK5LxoRgdvyioHrKAHKpCcyx1rYURrCDWtDaog";
+  if (tld === "fomo") return `https://fomo.family/profile/${encodeURIComponent(base)}`;
+  return `https://www.sns.id/domain/${encodeURIComponent(base)}`;
+}
+
 export default function RksClient() {
   const [data, setData] = useState<Stats | null>(null);
   const [err, setErr] = useState(false);
   const [volKey, setVolKey] = useState<"h1" | "h6" | "h24">("h24");
   const [copied, setCopied] = useState(false);
+  const [holders, setHolders] = useState<Holder[]>([]);
 
   const load = useCallback(async () => {
     try {
@@ -120,6 +149,15 @@ export default function RksClient() {
     const id = setInterval(load, 30000);
     return () => clearInterval(id);
   }, [load]);
+
+  useEffect(() => {
+    fetch("/api/rks/holders", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j) => {
+        if (Array.isArray(j?.holders)) setHolders(j.holders);
+      })
+      .catch(() => {});
+  }, []);
 
   const t = data?.token || {};
   const m = data?.market || {};
@@ -168,27 +206,49 @@ export default function RksClient() {
       <div className={styles.hero}>
         <img
           className={styles.tokenIcon}
-          src={t.icon || ICON}
-          alt=""
-          width={56}
-          height={56}
+          src={ICON}
+          alt="Rekees"
+          width={72}
+          height={72}
         />
         <p className={styles.lead}>
           Every transfer of $RKS takes a {taxPct}% tax. That tax is paid to holders in $SKR.
-          There is no creator fee wallet. Trading fees on the pool go to the launchpad.
+          There is no creator fee wallet. Trading fees on the pool go to the launchpad. Token page:{" "}
+          <a href={STONKFUN} target="_blank" rel="noopener noreferrer">
+            stonkfun.xyz
+          </a>
+          .
         </p>
+      </div>
+
+      <div className={styles.hold}>
+        <div className={styles.holdK}>Seeker Tracker position</div>
+        <div className={styles.holdV}>3% of supply</div>
+        <div className={styles.holdS}>
+          Seeker Tracker holds 3% of $RKS. $SKR rewards from this bag fund the SNAKE and SWEEP
+          treasury.
+        </div>
       </div>
 
       <div className={styles.actions}>
         <a className={styles.primary} href={BUY} target="_blank" rel="noopener noreferrer">
           Buy $RKS
         </a>
+        <a className={styles.btn} href={STONKFUN} target="_blank" rel="noopener noreferrer">
+          Stonkfun
+        </a>
+        <a className={styles.btn} href={X} target="_blank" rel="noopener noreferrer">
+          @rekees_rks
+        </a>
+        <a className={styles.btn} href={TG} target="_blank" rel="noopener noreferrer">
+          Telegram
+        </a>
+        <a className={styles.btn} href={STICKERS} target="_blank" rel="noopener noreferrer">
+          Stickers
+        </a>
         <button className={styles.btn} type="button" onClick={copyCa}>
           {copied ? "Copied" : "Copy CA"}
         </button>
-        <a className={styles.btn} href={CHART} target="_blank" rel="noopener noreferrer">
-          Chart
-        </a>
       </div>
 
       <p className={styles.note}>
@@ -304,9 +364,79 @@ export default function RksClient() {
         )}
       </div>
 
-      <h2 className={styles.h2}>Price</h2>
-      <div className={styles.chartWrap}>
-        <iframe title="$RKS chart" src={TV} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+      <h2 className={styles.h2}>Top 100 holders</h2>
+      <p className={styles.note}>
+        Rank · .skr · .sns · FOMO handle · wallet · $RKS. Opens MySeeker, SNS, fomo.family, or sol.new.
+      </p>
+      <div className={styles.listWide}>
+        {!holders.length ? (
+          <div className={styles.s}>Loading holders</div>
+        ) : (
+          holders.map((h) => (
+            <div key={h.wallet} className={styles.holdRow}>
+              <div className={styles.holdRank}>{h.rank}</div>
+              <div className={styles.holdWho}>
+                <div className={styles.marks}>
+                  {h.tld === "lp" && h.name ? (
+                    <a
+                      href={idUrl(h.name, "lp")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      {h.name}
+                    </a>
+                  ) : null}
+                  {h.skr ? (
+                    <a
+                      href={idUrl(h.skr, "skr")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      {h.skr}
+                    </a>
+                  ) : null}
+                  {h.sns ? (
+                    <a
+                      href={idUrl(h.sns, "sns")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      {h.sns}
+                    </a>
+                  ) : null}
+                  {h.fomo ? (
+                    <a
+                      href={idUrl(h.fomo, "fomo")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      @{h.fomo}
+                    </a>
+                  ) : null}
+                  {!h.skr && !h.sns && !h.fomo && h.tld !== "lp" ? (
+                    <span className={styles.holdNameMiss}>-</span>
+                  ) : null}
+                </div>
+                <a
+                  href={`https://sol.new/address/${h.wallet}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.holdAddr}
+                >
+                  {shortAddr(h.wallet)}
+                </a>
+              </div>
+              <div className={styles.holdBal}>
+                <div className={styles.amt}>{tok(h.balance, "RKS")}</div>
+                <div className={styles.meta}>{h.pct.toFixed(2)}% supply</div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       <p className={styles.disclaimer}>
