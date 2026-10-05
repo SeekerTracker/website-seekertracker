@@ -387,6 +387,9 @@ export default function RksClient() {
                       {h.name}
                     </a>
                   ) : null}
+                  {h.tld === "tag" && h.name ? (
+                    <span className={styles.mark}>{h.name}</span>
+                  ) : null}
                   {h.skr ? (
                     <a
                       href={idUrl(h.skr, "skr")}
@@ -417,7 +420,7 @@ export default function RksClient() {
                       @{h.fomo}
                     </a>
                   ) : null}
-                  {!h.skr && !h.sns && !h.fomo && h.tld !== "lp" ? (
+                  {!h.skr && !h.sns && !h.fomo && h.tld !== "lp" && h.tld !== "tag" ? (
                     <span className={styles.holdNameMiss}>-</span>
                   ) : null}
                 </div>
