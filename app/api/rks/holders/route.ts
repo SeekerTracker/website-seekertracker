@@ -23,6 +23,10 @@ const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
     name: "Raydium CPMM",
     tld: "lp",
   },
+  "623DqCkdoRZfQJVunhVK6rdpeuqzKbaJ35wmuoCBF4zJ": {
+    name: "RKS Intern",
+    tld: "tag",
+  },
 };
 
 const KNOWN_FOMO: Record<string, string> = {
@@ -215,16 +219,12 @@ export async function GET() {
     const holders: Holder[] = ranked.map((r, i) => {
       const known = KNOWN_NAMES[r.wallet];
       const skr = skrMap.get(r.wallet) || null;
-      const sns =
-        known && known.tld === "sns"
-          ? known.name
-          : known && known.tld !== "lp" && known.tld !== "skr"
-            ? known.name
-            : null;
+      const sns = known && known.tld === "sns" ? known.name : null;
       const fomo = KNOWN_FOMO[r.wallet] || fomoMap.get(r.wallet) || null;
       const lp = known && known.tld === "lp" ? known : null;
-      const name = lp?.name || skr || sns || (fomo ? `@${fomo}` : null);
-      const tld = lp?.tld || (skr ? "skr" : sns ? "sns" : fomo ? "fomo" : null);
+      const tag = known && known.tld === "tag" ? known : null;
+      const name = lp?.name || tag?.name || skr || sns || (fomo ? `@${fomo}` : null);
+      const tld = lp?.tld || tag?.tld || (skr ? "skr" : sns ? "sns" : fomo ? "fomo" : null);
       return {
         rank: i + 1,
         wallet: r.wallet,
