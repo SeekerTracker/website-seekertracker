@@ -27,6 +27,14 @@ const KNOWN_NAMES: Record<string, { name: string; tld: string }> = {
     name: "RKS Intern",
     tld: "tag",
   },
+  GZVSEAajExLJEvACHHQcujBw7nJq98GWUEZtood9LM9b: {
+    name: "whashywash",
+    tld: "x",
+  },
+  D9gQ6RhKEpnobPBUdWY5bPQt2p3zGk3iVz6ChpUi2ArA: {
+    name: "mrdevvvv0",
+    tld: "tag",
+  },
 };
 
 const KNOWN_FOMO: Record<string, string> = {
@@ -223,8 +231,9 @@ export async function GET() {
       const fomo = KNOWN_FOMO[r.wallet] || fomoMap.get(r.wallet) || null;
       const lp = known && known.tld === "lp" ? known : null;
       const tag = known && known.tld === "tag" ? known : null;
-      const name = lp?.name || tag?.name || skr || sns || (fomo ? `@${fomo}` : null);
-      const tld = lp?.tld || tag?.tld || (skr ? "skr" : sns ? "sns" : fomo ? "fomo" : null);
+      const x = known && known.tld === "x" ? known : null;
+      const name = lp?.name || tag?.name || x?.name || skr || sns || (fomo ? `@${fomo}` : null);
+      const tld = lp?.tld || tag?.tld || x?.tld || (skr ? "skr" : sns ? "sns" : fomo ? "fomo" : null);
       return {
         rank: i + 1,
         wallet: r.wallet,

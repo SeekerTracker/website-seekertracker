@@ -122,6 +122,7 @@ function idUrl(name: string, tld: string | null) {
   if (tld === "lp")
     return "https://dexscreener.com/solana/7XosxtLK5LxoRgdvyioHrKAHKpCcyx1rYURrCDWtDaog";
   if (tld === "fomo") return `https://fomo.family/profile/${encodeURIComponent(base)}`;
+  if (tld === "x") return `https://x.com/${encodeURIComponent(base)}`;
   return `https://www.sns.id/domain/${encodeURIComponent(base)}`;
 }
 
@@ -390,6 +391,16 @@ export default function RksClient() {
                   {h.tld === "tag" && h.name ? (
                     <span className={styles.mark}>{h.name}</span>
                   ) : null}
+                  {h.tld === "x" && h.name ? (
+                    <a
+                      href={idUrl(h.name, "x")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mark}
+                    >
+                      @{h.name}
+                    </a>
+                  ) : null}
                   {h.skr ? (
                     <a
                       href={idUrl(h.skr, "skr")}
@@ -420,7 +431,7 @@ export default function RksClient() {
                       @{h.fomo}
                     </a>
                   ) : null}
-                  {!h.skr && !h.sns && !h.fomo && h.tld !== "lp" && h.tld !== "tag" ? (
+                  {!h.skr && !h.sns && !h.fomo && h.tld !== "lp" && h.tld !== "tag" && h.tld !== "x" ? (
                     <span className={styles.holdNameMiss}>-</span>
                   ) : null}
                 </div>
