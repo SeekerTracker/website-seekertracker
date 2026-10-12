@@ -8,9 +8,17 @@ const DAPPSTORE_API = "https://dappstore.solanamobile.com/graphql";
 const SC = `{locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}`;
 const SITE_URL = "https://seekertracker.com";
 
-/** Satori can't decode WebP — proxy icons to PNG */
+/** Satori can't decode WebP — proxy images to PNG */
 function pngIcon(uri: string, size = 280): string {
   return `https://images.weserv.nl/?url=${encodeURIComponent(uri)}&output=png&w=${size}&h=${size}&fit=cover`;
+}
+
+function pngShot(uri: string, w = 400, h = 720): string {
+  return `https://images.weserv.nl/?url=${encodeURIComponent(uri)}&output=png&w=${w}&h=${h}&fit=cover`;
+}
+
+function pngWide(uri: string, w = 1200, h = 630): string {
+  return `https://images.weserv.nl/?url=${encodeURIComponent(uri)}&output=png&w=${w}&h=${h}&fit=cover`;
 }
 
 async function fetchAppsData(): Promise<{ count: number; icons: string[] }> {
@@ -50,6 +58,9 @@ async function fetchAppData(androidPackage: string) {
                 description
                 updatedOn
                 icon { uri }
+                banner { uri }
+                featureGraphic { uri }
+                screenshots { uri }
                 publisherDetails { name }
             }
         }
@@ -348,6 +359,17 @@ export async function GET(request: NextRequest) {
   const subtitle = release?.subtitle || "";
   const publisher = release?.publisherDetails?.name || "";
   const initial = name.charAt(0).toUpperCase();
+  const shots: string[] = Array.isArray(release?.screenshots)
+    ? release.screenshots
+        .map((s: { uri?: string } | null) => s?.uri)
+        .filter((u: string | undefined): u is string => Boolean(u))
+        .slice(0, 3)
+    : [];
+  const heroArt: string | null =
+    release?.featureGraphic?.uri || release?.banner?.uri || null;
+  const shortName = name.length > 28 ? name.slice(0, 26) + "..." : name;
+  const shortSub =
+    subtitle.length > 72 ? subtitle.slice(0, 70) + "..." : subtitle;
 
   return new ImageResponse(
     (
@@ -362,93 +384,23 @@ export async function GET(request: NextRequest) {
             "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
         }}
       >
-        {/* Studio backdrop */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            display: "flex",
-            background:
-              "radial-gradient(ellipse 90% 80% at 30% 45%, #0e3a2e 0%, #061a14 45%, #020908 100%)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            top: -40,
-            right: -20,
-            width: 480,
-            height: 400,
-            display: "flex",
-            background:
-              "radial-gradient(circle, rgba(20,241,149,0.16) 0%, transparent 65%)",
-          }}
-        />
-
-        {/* Depth plate */}
-        <div
-          style={{
-            position: "absolute",
-            top: 78,
-            left: 88,
-            width: 1040,
-            height: 500,
-            borderRadius: 32,
-            display: "flex",
-            background: "rgba(0, 32, 26, 0.55)",
-          }}
-        />
-
-        {/* Main card */}
-        <div
-          style={{
-            position: "relative",
-            marginTop: 52,
-            marginLeft: 60,
-            width: 1080,
-            height: 526,
-            borderRadius: 32,
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            padding: "40px 48px",
-            background:
-              "linear-gradient(145deg, #12382e 0%, #0a241e 40%, #051612 100%)",
-            border: "2px solid rgba(20,241,149,0.4)",
-            overflow: "hidden",
-          }}
-        >
-          {/* Left neon edge */}
-          <div
-            style={{
-              position: "absolute",
-              top: 28,
-              bottom: 28,
-              left: 0,
-              width: 5,
-              borderRadius: 4,
-              display: "flex",
-              background:
-                "linear-gradient(180deg, #00ffa3 0%, #14f195 50%, #00c98a 100%)",
-            }}
-          />
-          {/* Top specular */}
-          <div
+        {heroArt ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={pngWide(heroArt)}
+            width={1200}
+            height={630}
+            alt=""
             style={{
               position: "absolute",
               top: 0,
               left: 0,
-              right: 0,
-              height: 3,
-              display: "flex",
-              background:
-                "linear-gradient(90deg, transparent 5%, rgba(180,255,230,0.9) 40%, rgba(20,241,149,0.8) 60%, transparent 95%)",
+              width: 1200,
+              height: 630,
+              objectFit: "cover",
             }}
           />
-          {/* Holo band */}
+        ) : (
           <div
             style={{
               position: "absolute",
@@ -458,235 +410,267 @@ export async function GET(request: NextRequest) {
               bottom: 0,
               display: "flex",
               background:
-                "linear-gradient(118deg, transparent 40%, rgba(255,255,255,0.04) 48%, rgba(20,241,149,0.08) 52%, transparent 62%)",
+                "radial-gradient(ellipse 90% 80% at 28% 40%, #0e3a2e 0%, #061a14 50%, #020908 100%)",
             }}
           />
+        )}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
+            background:
+              "linear-gradient(90deg, rgba(2,10,8,0.92) 0%, rgba(2,10,8,0.78) 42%, rgba(2,10,8,0.35) 100%)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: 8,
+            bottom: 0,
+            display: "flex",
+            background: "#00ffd9",
+          }}
+        />
 
-          {/* Icon */}
+        <div
+          style={{
+            position: "absolute",
+            left: 48,
+            top: 36,
+            width: 560,
+            height: 490,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              marginRight: 48,
-              flexShrink: 0,
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: 3,
+              color: "#00ffd9",
+              marginBottom: 18,
             }}
           >
+            SEEKER DAPP STORE
+          </div>
+          <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
             {release?.icon?.uri ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={pngIcon(release.icon.uri, 280)}
-                width={240}
-                height={240}
+                src={pngIcon(release.icon.uri, 160)}
+                width={96}
+                height={96}
                 alt=""
                 style={{
-                  borderRadius: 48,
-                  border: "3px solid rgba(20,241,149,0.55)",
-                  boxShadow:
-                    "0 20px 50px rgba(0,0,0,0.45), 0 0 40px rgba(20,241,149,0.25)",
+                  borderRadius: 22,
+                  border: "3px solid #00ffd9",
+                  marginRight: 18,
                 }}
               />
             ) : (
               <div
                 style={{
                   display: "flex",
-                  width: 240,
-                  height: 240,
-                  borderRadius: 48,
+                  width: 96,
+                  height: 96,
+                  borderRadius: 22,
                   alignItems: "center",
                   justifyContent: "center",
-                  background:
-                    "linear-gradient(135deg, #00e68a 0%, #14f195 100%)",
-                  fontSize: 100,
+                  background: "#00ffd9",
+                  fontSize: 42,
                   fontWeight: 800,
-                  color: "#04140e",
-                  border: "3px solid rgba(20,241,149,0.55)",
+                  color: "#001a1a",
+                  marginRight: 18,
                 }}
               >
                 {initial}
               </div>
             )}
-          </div>
-
-          {/* Details */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              flex: 1,
-              minWidth: 0,
-              height: "100%",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 14,
-                fontWeight: 700,
-                letterSpacing: 2.5,
-                color: "rgba(20,241,149,0.65)",
-                marginBottom: 10,
-              }}
-            >
-              SEEKER DAPP STORE
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                fontSize: name.length > 22 ? 42 : 54,
-                fontWeight: 800,
-                color: "#edfdf6",
-                letterSpacing: -1.2,
-                lineHeight: 1.05,
-                marginBottom: 12,
-              }}
-            >
-              {name.length > 36 ? name.slice(0, 34) + "…" : name}
-            </div>
-
-            {subtitle ? (
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <div
                 style={{
                   display: "flex",
-                  fontSize: 24,
-                  fontWeight: 500,
-                  color: "#14f195",
-                  lineHeight: 1.3,
-                  marginBottom: 16,
+                  fontSize: shortName.length > 16 ? 36 : 48,
+                  fontWeight: 800,
+                  color: "#edeeee",
+                  lineHeight: 1.05,
                 }}
               >
-                {subtitle.length > 90
-                  ? subtitle.slice(0, 88) + "…"
-                  : subtitle}
+                {shortName}
               </div>
-            ) : null}
-
-            {publisher ? (
-              <div
-                style={{
-                  display: "flex",
-                  fontSize: 18,
-                  color: "rgba(180,210,200,0.7)",
-                  marginBottom: 18,
-                }}
-              >
-                by {publisher}
-              </div>
-            ) : null}
-
-            {rating != null ? (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginBottom: 12,
-                }}
-              >
+              {publisher ? (
                 <div
                   style={{
                     display: "flex",
-                    padding: "8px 16px",
-                    borderRadius: 999,
-                    background: "rgba(20,241,149,0.12)",
-                    border: "1px solid rgba(20,241,149,0.35)",
-                    fontSize: 22,
-                    fontWeight: 800,
-                    color: "#14f195",
+                    marginTop: 6,
+                    fontSize: 20,
+                    color: "rgba(0,255,217,0.75)",
                   }}
                 >
-                  {`${rating.toFixed(1)} / 5`}
+                  {publisher}
                 </div>
-                {totalReviews > 0 ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      marginLeft: 14,
-                      fontSize: 20,
-                      color: "rgba(160,190,180,0.65)",
-                    }}
-                  >
-                    {`${totalReviews.toLocaleString()} reviews`}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            {/* Footer brand */}
+              ) : null}
+            </div>
+          </div>
+          {shortSub ? (
             <div
               style={{
                 display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginTop: "auto",
-                paddingTop: 20,
-                borderTop: "1px solid rgba(20,241,149,0.18)",
+                marginTop: 22,
+                fontSize: 24,
+                color: "#c8e6e2",
+                lineHeight: 1.3,
               }}
             >
+              {shortSub}
+            </div>
+          ) : null}
+          {rating != null && rating > 0 ? (
+            <div
+              style={{
+                display: "flex",
+                marginTop: 18,
+                padding: "8px 16px",
+                borderRadius: 999,
+                background: "rgba(0,255,217,0.12)",
+                border: "1px solid rgba(0,255,217,0.4)",
+                fontSize: 20,
+                fontWeight: 800,
+                color: "#00ffd9",
+              }}
+            >
+              {`${rating.toFixed(1)} / 5`}
+              {totalReviews > 0 ? `  ·  ${totalReviews} reviews` : ""}
+            </div>
+          ) : null}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              marginTop: "auto",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`${SITE_URL}/logo.png`}
+              width={44}
+              height={44}
+              alt=""
+              style={{ borderRadius: 10, marginRight: 12 }}
+            />
+            <div
+              style={{
+                display: "flex",
+                fontSize: 22,
+                fontWeight: 800,
+                color: "#00ffd9",
+              }}
+            >
+              Seeker Tracker
+            </div>
+          </div>
+        </div>
+
+        {shots.length > 0 ? (
+          <div
+            style={{
+              position: "absolute",
+              right: 36,
+              top: 24,
+              width: 540,
+              height: 500,
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-end",
+            }}
+          >
+            {shots.map((uri: string, i: number) => (
               <div
+                key={uri}
                 style={{
                   display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
+                  width: 186,
+                  height: 400,
+                  marginLeft: i === 0 ? 0 : -28,
+                  borderRadius: 28,
+                  overflow: "hidden",
+                  border: "3px solid #00ffd9",
+                  background: "#041616",
+                  transform:
+                    i === 0
+                      ? "rotate(-7deg)"
+                      : i === 2
+                        ? "rotate(7deg)"
+                        : "rotate(0deg)",
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`${SITE_URL}/logo.png`}
-                  width={40}
-                  height={40}
+                  src={pngShot(uri)}
+                  width={186}
+                  height={400}
                   alt=""
-                  style={{
-                    borderRadius: 10,
-                    border: "1.5px solid rgba(20,241,149,0.45)",
-                    marginRight: 12,
-                  }}
                 />
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: "#14f195",
-                    }}
-                  >
-                    Seeker Tracker
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      fontSize: 14,
-                      color: "rgba(160,190,180,0.55)",
-                    }}
-                  >
-                    seekertracker.com/dapps
-                  </div>
-                </div>
               </div>
-              <div
+            ))}
+          </div>
+        ) : (
+          <div
+            style={{
+              position: "absolute",
+              right: 80,
+              top: 140,
+              display: "flex",
+            }}
+          >
+            {release?.icon?.uri ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={pngIcon(release.icon.uri, 320)}
+                width={280}
+                height={280}
+                alt=""
                 style={{
-                  display: "flex",
-                  padding: "10px 20px",
-                  borderRadius: 999,
-                  background:
-                    "linear-gradient(90deg, #00e68a 0%, #14f195 100%)",
-                  fontSize: 16,
-                  fontWeight: 800,
-                  color: "#04140e",
+                  borderRadius: 48,
+                  border: "4px solid #00ffd9",
                 }}
-              >
-                View on Seeker
-              </div>
-            </div>
+              />
+            ) : null}
+          </div>
+        )}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 78,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#00ffd9",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              fontSize: 36,
+              fontWeight: 800,
+              letterSpacing: 2,
+              color: "#001a1a",
+            }}
+          >
+            seekertracker.com
           </div>
         </div>
       </div>
