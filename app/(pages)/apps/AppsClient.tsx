@@ -422,7 +422,7 @@ const AppsContent = () => {
             <div className={styles.header}>
                 <h1 className={styles.title}>Seeker dApp Store</h1>
                 <p className={styles.description}>
-                    Apps for Solana Seeker — browse, favorite, and open each dApp page.
+                    Apps for Solana Seeker - browse, favorite, and open each dApp page.
                 </p>
                 <div className={styles.headerActions}>
                     <a href="/dapps/manage" className={styles.maintainBtn}>
@@ -623,7 +623,7 @@ const Apps = () => {
             <div className={styles.main}>
                 <Backbutton />
                 <div className={styles.header}>
-                    <h1 className={styles.title}>Seeker dApp Store</h1>
+                    <p className={styles.title}>Seeker dApp Store</p>
                     <p className={styles.description}>Apps for Solana Seeker</p>
                 </div>
                 <div className={styles.skeletonGrid} aria-busy="true">

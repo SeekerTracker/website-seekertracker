@@ -1,6 +1,9 @@
 import type { MetadataRoute } from "next";
 import { hasTurso, listDappPackages } from "app/(utils)/lib/dappStore";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
 const SITE = "https://seekertracker.com";
 
 const STATIC_PATHS: {
