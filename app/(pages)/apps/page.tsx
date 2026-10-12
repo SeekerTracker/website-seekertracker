@@ -7,17 +7,17 @@ const BASE_URL = 'https://seekertracker.com'
 const OG_IMAGE = `${BASE_URL}/og/dapps.png`
 
 export const metadata: Metadata = {
-    title: 'Seeker dApp Store – Browse Apps for Solana Seeker | SeekerTracker',
+    title: { absolute: "Seeker dApp Store - apps for Solana Seeker" },
     description:
-        'Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more categories. Find the best dApps for your Seeker device.',
+        "Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more. Find dApps for your Seeker.",
     // Public catalog URL is /dapps (/apps still rewrites to the same UI).
     alternates: {
         canonical: `${BASE_URL}/dapps`,
     },
     openGraph: {
-        title: 'Seeker dApp Store – Browse Apps for the Solana Seeker',
+        title: "Seeker dApp Store - apps for Solana Seeker",
         description:
-            'Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more categories. Find the best dApps for your Seeker device.',
+            'Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more. Find dApps for your Seeker.',
         url: `${BASE_URL}/dapps`,
         images: [
             {
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Seeker dApp Store – Browse Apps for the Solana Seeker',
+        title: "Seeker dApp Store - apps for Solana Seeker",
         description:
-            'Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more categories. Find the best dApps for your Seeker device.',
+            'Discover apps optimized for Solana Seeker. Browse DeFi, Games, NFTs, Social, and more. Find dApps for your Seeker.',
         images: [OG_IMAGE],
         creator: '@seeker_tracker',
     },

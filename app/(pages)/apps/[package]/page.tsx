@@ -85,16 +85,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const release = app.lastRelease;
   const name = release.displayName || decodedPackage;
+  const desc = (release.description || "").replace(/\s+/g, " ").trim();
+  const sub = (release.subtitle || "").replace(/\s+/g, " ").trim();
+  let description = "";
+  if (desc.length >= 50) {
+    if (desc.length <= 160) description = desc;
+    else {
+      const cut = desc.slice(0, 157);
+      const sp = cut.lastIndexOf(" ");
+      description =
+        (sp > 80 ? cut.slice(0, sp) : cut).replace(/[.,;:]$/, "") + ".";
+    }
+  } else if (sub) {
+    description = `${sub}. ${desc}`.trim().slice(0, 160);
+  } else {
+    description = `Discover ${name} on the Seeker dApp Store. Apps for Solana Seeker.`;
+  }
   const title = `${name} | Seeker dApp Store`;
-  const description =
-    release.subtitle ||
-    release.description?.slice(0, 160) ||
-    `Discover ${name} on the Seeker dApp Store — apps optimized for Solana Seeker.`;
   const ogImageUrl = `${BASE_URL}/api/apps/og?app=${encodeURIComponent(decodedPackage)}`;
   const pathApps = appPath(decodedPackage);
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: {
       canonical: pathApps,
