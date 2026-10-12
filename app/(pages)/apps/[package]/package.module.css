@@ -3,7 +3,7 @@
     flex-direction: column;
     padding: 0 clamp(1rem, 3vw, 2rem) 3.5rem;
     width: 100%;
-    max-width: 760px;
+    max-width: 920px;
     margin: 0 auto;
     min-height: 60vh;
     gap: 1.25rem;
@@ -222,6 +222,48 @@
     text-transform: uppercase;
     letter-spacing: 0.12em;
     margin: 0 0 0.75rem;
+}
+
+.banner {
+    margin-top: 1.1rem;
+    border-radius: 0.85rem;
+    overflow: hidden;
+    border: 1px solid rgba(0, 255, 217, 0.18);
+    background: #041616;
+}
+
+.banner img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
+.shots {
+    display: flex;
+    gap: 0.7rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.35rem;
+}
+
+.shot {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    width: 168px;
+    min-height: 44px;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid rgba(0, 255, 217, 0.2);
+    background: #041616;
+}
+
+.shot img {
+    width: 168px;
+    height: 300px;
+    object-fit: cover;
+    display: block;
 }
 
 .description {

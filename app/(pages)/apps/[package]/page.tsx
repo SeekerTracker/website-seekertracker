@@ -125,7 +125,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function JsonLd({ app, path }: { app: DApp; path: string }) {
-  const release = app.lastRelease;
+  const release = app.lastRelease as NonNullable<DApp["lastRelease"]> & {
+    featureGraphic?: { uri?: string } | null;
+  };
   if (!release) return null;
 
   const name = release.displayName || app.androidPackage;
@@ -143,7 +145,9 @@ function JsonLd({ app, path }: { app: DApp; path: string }) {
     identifier: app.androidPackage,
   };
 
-  if (release.icon?.uri) {
+  if (release.featureGraphic?.uri) {
+    data.image = release.featureGraphic.uri;
+  } else if (release.icon?.uri) {
     data.image = release.icon.uri;
   }
   if (release.publisherDetails?.name) {
@@ -186,7 +190,11 @@ export default async function AppPage({ params }: Props) {
     notFound();
   }
 
-  const release = app.lastRelease!;
+  const release = app.lastRelease! as NonNullable<DApp["lastRelease"]> & {
+    banner?: { uri?: string } | null;
+    featureGraphic?: { uri?: string } | null;
+    screenshots?: { uri?: string }[] | null;
+  };
   const name = release.displayName || decodedPackage;
   const pathApps = appPath(decodedPackage);
   const totalReviews = getTotalReviews(app.rating?.reviewsByRating);
@@ -255,6 +263,48 @@ export default async function AppPage({ params }: Props) {
         {release.subtitle && (
           <p className={styles.subtitle}>{release.subtitle}</p>
         )}
+
+        {release.featureGraphic?.uri || release.banner?.uri ? (
+          <div className={styles.banner}>
+            <Image
+              src={
+                (release.featureGraphic?.uri || release.banner?.uri) as string
+              }
+              alt={`${name} graphic`}
+              width={1024}
+              height={500}
+              unoptimized
+            />
+          </div>
+        ) : null}
+
+        {release.screenshots && release.screenshots.length > 0 ? (
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>Screenshots</h2>
+            <div className={styles.shots}>
+              {release.screenshots
+                .map((s) => s?.uri)
+                .filter((u): u is string => Boolean(u))
+                .map((uri, i) => (
+                  <a
+                    key={uri}
+                    className={styles.shot}
+                    href={uri}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Image
+                      src={uri}
+                      alt={`${name} screenshot ${i + 1}`}
+                      width={270}
+                      height={480}
+                      unoptimized
+                    />
+                  </a>
+                ))}
+            </div>
+          </section>
+        ) : null}
 
         {release.blurb && <p className={styles.ownerBlurb}>{release.blurb}</p>}
 
