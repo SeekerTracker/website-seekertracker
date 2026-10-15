@@ -29,6 +29,8 @@ export default function robots(): MetadataRoute.Robots {
     "/lookup",
     "/brand",
     "/whitepaper",
+    "/ledger",
+    "/competitors",
   ];
 
   return {
