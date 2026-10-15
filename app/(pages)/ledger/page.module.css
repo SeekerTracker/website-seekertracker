@@ -46,6 +46,8 @@
   flex-direction: column;
   gap: 6px;
   min-height: 88px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .num {
@@ -61,6 +63,18 @@
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.source {
+  color: #6aa8a0;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-top: 4px;
+}
+
+.block a {
+  color: #00ffd9;
 }
 
 .block h2 {

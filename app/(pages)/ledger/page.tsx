@@ -2,6 +2,10 @@ import Link from "next/link";
 import Backbutton from "app/(components)/shared/Backbutton";
 import styles from "./page.module.css";
 
+const SM =
+  "https://solanamobile.com/blog/solana-mobile-announces-ledger-as-its-first-hardware-expansion-partner";
+const LEDGER = "https://www.ledger.com/blog-introducing-ledger-atom";
+
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "WebPage",
@@ -14,7 +18,35 @@ const JSON_LD = {
     name: "Seeker Tracker",
     url: "https://seekertracker.com",
   },
+  citation: [SM, LEDGER],
 };
+
+const STATS = [
+  {
+    num: "8M",
+    label: "Ledger devices",
+    source: "Ledger, 15 Oct 2026",
+    href: LEDGER,
+  },
+  {
+    num: "20%",
+    label: "of world crypto",
+    source: "Ledger, 15 Oct 2026",
+    href: LEDGER,
+  },
+  {
+    num: "1,500+",
+    label: "dApps on the store",
+    source: "Solana Mobile, 14 Oct 2026",
+    href: SM,
+  },
+  {
+    num: "200k+",
+    label: "Saga + Seeker sold",
+    source: "Solana Mobile, 14 Oct 2026",
+    href: SM,
+  },
+];
 
 export default function LedgerPage() {
   return (
@@ -33,22 +65,13 @@ export default function LedgerPage() {
       </p>
 
       <div className={styles.stats}>
-        <div className={styles.stat}>
-          <span className={styles.num}>8M</span>
-          <span className={styles.label}>Ledger devices</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.num}>100M</span>
-          <span className={styles.label}>$BTC secured</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.num}>$2B</span>
-          <span className={styles.label}>company</span>
-        </div>
-        <div className={styles.stat}>
-          <span className={styles.num}>2M</span>
-          <span className={styles.label}>dApp Store devices next year</span>
-        </div>
+        {STATS.map((s) => (
+          <a key={s.label} className={styles.stat} href={s.href} target="_blank" rel="noopener noreferrer">
+            <span className={styles.num}>{s.num}</span>
+            <span className={styles.label}>{s.label}</span>
+            <span className={styles.source}>{s.source}</span>
+          </a>
+        ))}
       </div>
 
       <section className={styles.block}>
@@ -63,10 +86,54 @@ export default function LedgerPage() {
       <section className={styles.block}>
         <h2>Why it matters</h2>
         <ul>
-          <li>First time the Solana dApp Store ships on hardware Solana Mobile did not build.</li>
-          <li>1,500+ apps on the store today, covering trading, payments, gaming, and AI.</li>
-          <li>Seeker has done over $13 billion in volume and 154 million transactions.</li>
-          <li>Over 200,000 Saga and Seeker devices sold.</li>
+          <li>
+            First time the Solana dApp Store ships on hardware Solana Mobile did
+            not build.{" "}
+            <a href={SM} target="_blank" rel="noopener noreferrer">
+              Solana Mobile
+            </a>
+          </li>
+          <li>
+            Over $13 billion in Seeker volume and 154 million transactions.{" "}
+            <a href={SM} target="_blank" rel="noopener noreferrer">
+              Solana Mobile
+            </a>
+          </li>
+          <li>
+            More than eight million Ledger devices in 165 countries.{" "}
+            <a href={LEDGER} target="_blank" rel="noopener noreferrer">
+              Ledger
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section className={styles.block}>
+        <h2>Seeker Tracker outlook</h2>
+        <p>
+          Seeker Tracker expects the Solana dApp Store to reach about 2 million
+          devices next year as Atom joins Seeker. That is our view, not a Ledger
+          or Solana Mobile forecast.
+        </p>
+      </section>
+
+      <section className={styles.block} id="sources">
+        <h2>Sources</h2>
+        <ul>
+          <li>
+            <a href={SM} target="_blank" rel="noopener noreferrer">
+              Solana Mobile: Ledger is the first hardware expansion partner
+            </a>
+            . Partner, Atom, summer 2027, 1,500+ apps, $13B volume, 154 million
+            transactions, 200,000+ devices sold.
+          </li>
+          <li>
+            <a href={LEDGER} target="_blank" rel="noopener noreferrer">
+              Ledger: Introducing Ledger Atom
+            </a>
+            . More than eight million devices, 165 countries, more than 20% of
+            the world crypto secured by Ledger.
+          </li>
         </ul>
       </section>
 
@@ -74,12 +141,7 @@ export default function LedgerPage() {
         <Link className={styles.btn} href="/dapps">
           Browse the dApp Store
         </Link>
-        <a
-          className={styles.btnGhost}
-          href="https://solanamobile.com/blog/solana-mobile-announces-ledger-as-its-first-hardware-expansion-partner"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <a className={styles.btnGhost} href={SM} target="_blank" rel="noopener noreferrer">
           Solana Mobile announcement
         </a>
         <a
