@@ -23,6 +23,7 @@ const STATIC_PATHS: {
   { path: "/whitepaper", changeFrequency: "monthly", priority: 0.6 },
   { path: "/seeker-fund", changeFrequency: "weekly", priority: 0.7 },
   { path: "/competitors", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/ledger", changeFrequency: "weekly", priority: 0.75 },
   { path: "/getdapp", changeFrequency: "weekly", priority: 0.7 },
   { path: "/das", changeFrequency: "weekly", priority: 0.6 },
   { path: "/sweep", changeFrequency: "weekly", priority: 0.6 },

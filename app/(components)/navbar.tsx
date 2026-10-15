@@ -52,6 +52,7 @@ const MORE = [
   { href: "/winners", label: "Winners" },
   { href: "/whales", label: "Whales" },
   { href: "/competitors", label: "Competitors" },
+  { href: "/ledger", label: "Ledger" },
   { href: "/snake", label: "Snake" },
   { href: "/export", label: "Export" },
   { href: "/explore", label: "Explore" },
