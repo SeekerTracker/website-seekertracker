@@ -25,6 +25,13 @@ export const metadata: Metadata = {
     images: [OG],
     creator: "@seeker_tracker",
   },
+  icons: {
+    icon: [
+      { url: "/snake/favicon.ico", sizes: "any" },
+      { url: "/snake/icon.png", type: "image/png", sizes: "1024x1024" },
+    ],
+    apple: [{ url: "/snake/icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function SnakeLayout({
