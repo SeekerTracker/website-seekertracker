@@ -11,7 +11,7 @@ interface Winner {
   handle: string;
   name: string;
   description: string;
-  tweetId: string;
+  tweetId?: string;
   tweetImage: string;
   project?: string;
   projectHandle?: string;
@@ -128,6 +128,37 @@ const winners: Winner[] = [
     tweetImage: "https://pbs.twimg.com/media/HAwMUokakAAwAqX.jpg",
     project: "OmegaX Health",
   },
+  {
+    number: 12,
+    handle: "trav_1111",
+    name: "trav.skr",
+    description:
+      "Building Momints — a lomo-style camera app for the Solana Mobile Seeker. Point, shoot, and every frame mints straight to your wallet. Built in Brisbane and already on the dApp Store.",
+    tweetId: "2101912541995930055",
+    tweetImage: "https://pbs.twimg.com/media/HSt-TYha4AEqNYi.jpg",
+    project: "Momints",
+    projectHandle: "skrmomints",
+  },
+  {
+    number: 13,
+    handle: "OnABoatAtSea99",
+    name: "OnABoat",
+    description:
+      "Founder of Ember Cover — the insurance market for Solana transaction risk. Assessing and pricing cover before you sign, so wallets can offer protection in the moment it matters.",
+    tweetImage: "/winners/winner-13.jpg",
+    project: "Ember Cover",
+    projectHandle: "EmberCover",
+  },
+  {
+    number: 14,
+    handle: "d0txyz",
+    name: "D0t",
+    description:
+      "Shipping Run Rekees Run — the pixel-art endless runner on the Solana Mobile dApp Store, starring Rekees (Seeker backwards). Play free, climb the boards, earn $RKS.",
+    tweetImage: "/winners/winner-14.jpg",
+    project: "Run Rekees Run",
+    projectHandle: "Rekees_RKS",
+  },
 ];
 
 export default function WinnersPage() {
@@ -170,14 +201,8 @@ export default function WinnersPage() {
       </header>
 
       <div className={styles.grid}>
-        {winners.map((winner) => (
-          <a
-            key={winner.number}
-            href={`https://x.com/Seeker_Tracker/status/${winner.tweetId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.cardLink}
-          >
+        {winners.map((winner) => {
+          const card = (
             <article className={styles.card}>
               <div className={styles.cardImageSection}>
                 <div className={styles.tweetImageWrapper}>
@@ -215,8 +240,28 @@ export default function WinnersPage() {
                 <p className={styles.description}>{winner.description}</p>
               </div>
             </article>
-          </a>
-        ))}
+          );
+
+          if (winner.tweetId) {
+            return (
+              <a
+                key={winner.number}
+                href={`https://x.com/Seeker_Tracker/status/${winner.tweetId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.cardLink}
+              >
+                {card}
+              </a>
+            );
+          }
+
+          return (
+            <div key={winner.number} className={styles.cardLink}>
+              {card}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
