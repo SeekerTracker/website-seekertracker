@@ -172,6 +172,19 @@ function formatSol(n: number | undefined | null, loading = false): string {
   });
 }
 
+/** Many older rows have an empty name_account; using it as a React key leaves stale cards. */
+function domainListKey(domain: DomainInfo): string {
+  return `${domain.subdomain}:${domain.rank}:${domain.name_account || ""}`;
+}
+
+/** Strip a trailing .skr so the query matches the server normalizer. */
+function normalizeClientQuery(input: string): string {
+  let raw = (input || "").trim();
+  if (raw.toLowerCase().endsWith(".skr")) raw = raw.slice(0, -4);
+  if (raw.startsWith(".")) raw = raw.slice(1);
+  return raw.trim();
+}
+
 const MainPage = () => {
   const { seekerData } = useDataContext();
 
@@ -183,6 +196,9 @@ const MainPage = () => {
   const [appsLoading, setAppsLoading] = useState(true);
   const [das, setDas] = useState<number | null>(null);
   const currSkrIdCount = useRef(0);
+  const searchTextRef = useRef("");
+  const filterRankRef = useRef<number | undefined>(undefined);
+  const requestIdRef = useRef(0);
   const [uiSeekerData, setUiSeekerData] = useState<DomainInfo[]>([]);
   const [listLoading, setListLoading] = useState(true);
   const [todaySeekerIds, setTodaySeekerIds] = useState(0);
@@ -259,6 +275,9 @@ const MainPage = () => {
     []
   );
 
+  searchTextRef.current = searchText;
+  filterRankRef.current = filterRank;
+
   const loadDomains = useCallback(
     async (opts?: {
       sortBy?: typeof sortBy;
@@ -268,20 +287,27 @@ const MainPage = () => {
       page?: number;
       soft?: boolean;
     }) => {
+      const requestId = ++requestIdRef.current;
       if (!opts?.soft) setListLoading(true);
       try {
         const data = await fetchDomains({
           sortBy: opts?.sortBy ?? sortBy,
-          query: opts?.query ?? searchText.replace(".skr", "").trim(),
-          rank: opts?.rank ?? filterRank,
+          query:
+            opts && "query" in opts
+              ? opts.query
+              : normalizeClientQuery(searchText),
+          rank: opts && "rank" in opts ? opts.rank : filterRank,
           limit: opts?.limit ?? pageLimit,
           page: opts?.page ?? currentPage,
         });
+        // Ignore stale responses so a slow on-chain miss cannot overwrite a newer query
+        if (requestId !== requestIdRef.current) return;
         applyDomainsPayload(data);
       } catch (e) {
+        if (requestId !== requestIdRef.current) return;
         console.error("loadDomains", e);
       } finally {
-        setListLoading(false);
+        if (requestId === requestIdRef.current) setListLoading(false);
       }
     },
     [sortBy, searchText, filterRank, pageLimit, currentPage, applyDomainsPayload]
@@ -290,7 +316,8 @@ const MainPage = () => {
   useEffect(() => {
     loadDomains();
     const id = setInterval(() => {
-      if (!searchText && !filterRank) {
+      // Refs, not the mount closure, so an active search is not wiped every 30s
+      if (!searchTextRef.current && !filterRankRef.current) {
         loadDomains({
           sortBy: "newest",
           query: "",
@@ -317,7 +344,7 @@ const MainPage = () => {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchMode !== "name") return;
-      handleTextSearch(searchText.replace(".skr", "").trim());
+      handleTextSearch(normalizeClientQuery(searchText));
     }, 300);
     return () => clearTimeout(delayDebounceFn);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -406,9 +433,8 @@ const MainPage = () => {
   }, []);
 
   const handleRankSearch = (rankNumber?: number) => {
-    if (rankNumber && rankNumber <= 0) return;
-    if (rankNumber === 0 || !rankNumber) {
-      handleTextSearch(searchText);
+    if (!rankNumber || rankNumber <= 0) {
+      // Wait until a rank is entered; do not fall back to a name search
       return;
     }
     loadDomains({ rank: rankNumber, query: "" });
@@ -423,7 +449,7 @@ const MainPage = () => {
 
   const onPrimarySearch = () => {
     if (searchMode === "rank") handleRankSearch(filterRank);
-    else handleTextSearch(searchText.replace(".skr", "").trim());
+    else handleTextSearch(normalizeClientQuery(searchText));
   };
 
   const fundLoading = !(seekerData?.lifeTimeSolFees > 0);
@@ -520,7 +546,7 @@ const MainPage = () => {
             {searchMode === "name" ? (
               <input
                 type="text"
-                placeholder="Search .skr SeekerIDs — e.g. web3dev"
+                placeholder="Search .skr SeekerIDs — e.g. tracker"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 onKeyDown={(e) => {
@@ -866,7 +892,7 @@ const MainPage = () => {
             >
               {uiSeekerData.map((domain) => (
                 <SeekerCard
-                  key={domain.name_account}
+                  key={domainListKey(domain)}
                   domainInfo={domain}
                   showRank={filterRank! > 0}
                 />

@@ -181,7 +181,7 @@ export default function Page() {
           {uiSeekerData.length > 0 && (
             <div className={styles.seekerCardOuter}>
               {uiSeekerData.map((domain) => (
-                <SeekerCard key={domain.name_account} domainInfo={domain} showRank={false} />
+                <SeekerCard key={`${domain.subdomain}:${domain.rank}:${domain.name_account || ""}`} domainInfo={domain} showRank={false} />
               ))}
             </div>
           )}
