@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 const TITLE = "SKR Buy and Burn";
 const DESCRIPTION =
-  "Live SKR buy-and-burn stats from Solana Mobile's official on-chain program. Total burned, share of initial supply, and recent burns.";
+  "Official SKR buy-and-burn, live from on-chain records. Total SKR burned, share of the 10 billion initial supply, and every official burn since 15 October 2026.";
 const URL = "https://seekertracker.com/burn";
 const OG = "https://seekertracker.com/og/skr.png";
 
