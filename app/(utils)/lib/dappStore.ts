@@ -321,6 +321,7 @@ function rowToApiApp(row: Record<string, unknown>) {
     androidPackage: String(row.android_package),
     status: String(row.status || "active"),
     removedAt: row.removed_at != null ? String(row.removed_at) : null,
+    firstSeenAt: row.first_seen_at != null ? String(row.first_seen_at) : null,
     rating:
       row.rating != null
         ? { rating: Number(row.rating), reviewsByRating: reviews }

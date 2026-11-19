@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import styles from './page.module.css'
@@ -15,6 +15,7 @@ interface DApp {
     androidPackage: string
     status?: 'active' | 'removed' | string
     removedAt?: string | null
+    firstSeenAt?: string | null
     rating?: {
         rating: number
         reviewsByRating?: number[]
@@ -47,6 +48,8 @@ interface DApp {
     }
 }
 
+type CatalogApp = DApp & { categories: string[] }
+
 interface CategoryWithApps {
     category: {
         id: string
@@ -59,17 +62,48 @@ interface CategoryWithApps {
     }
 }
 
-const INITIAL_VISIBLE = 6
-
-type SortOption = 'updated-desc' | 'updated-asc' | 'rating-desc' | 'name-asc' | 'category'
+type SortOption = 'updated-desc' | 'newest' | 'rating-desc' | 'name-asc'
+type StatusFilter = 'active' | 'removed' | 'all'
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-    { value: 'updated-desc', label: 'Recently Updated' },
-    { value: 'rating-desc', label: 'Highest Rated' },
-    { value: 'name-asc', label: 'Name (A-Z)' },
-    { value: 'updated-asc', label: 'Oldest Updated' },
-    { value: 'category', label: 'By Category' },
+    { value: 'updated-desc', label: 'Recently updated' },
+    { value: 'newest', label: 'Newest' },
+    { value: 'rating-desc', label: 'Highest rated' },
+    { value: 'name-asc', label: 'Name A–Z' },
 ]
+
+const SEARCH_ATTRS = {
+    autoCorrect: 'off' as const,
+    autoCapitalize: 'none' as const,
+    spellCheck: false as const,
+    autoComplete: 'off' as const,
+    enterKeyHint: 'search' as const,
+}
+
+function parseSort(value: string | null): SortOption {
+    if (value === 'updated-desc' || value === 'newest' || value === 'rating-desc' || value === 'name-asc') {
+        return value
+    }
+    return 'updated-desc'
+}
+
+function parseStatus(value: string | null): StatusFilter {
+    if (value === 'removed' || value === 'all') return value
+    return 'active'
+}
+
+function dateValue(value?: string | null): number {
+    if (!value) return 0
+    const t = new Date(value).getTime()
+    return Number.isFinite(t) ? t : 0
+}
+
+function appDescription(app: DApp): string {
+    const release = app.lastRelease
+    if (!release) return ''
+    const text = (release.subtitle || release.blurb || release.description || '').replace(/\s+/g, ' ').trim()
+    return text
+}
 
 const AppsContent = () => {
     const router = useRouter()
@@ -78,18 +112,57 @@ const AppsContent = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'))
-    const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
-    const [searchQuery, setSearchQuery] = useState('')
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('q') ?? '')
     const [favorites, setFavorites] = useState<Set<string>>(new Set())
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(searchParams.get('view') === 'favorites')
-    const [sortBy, setSortBy] = useState<SortOption>('updated-desc')
-    type StatusFilter = 'active' | 'removed' | 'all'
-    const initialStatus = (searchParams.get('status') as StatusFilter) || 'active'
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>(
-        initialStatus === 'removed' || initialStatus === 'all' ? initialStatus : 'active'
-    )
+    const [sortBy, setSortBy] = useState<SortOption>(parseSort(searchParams.get('sort')))
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>(parseStatus(searchParams.get('status')))
     const [activeCount, setActiveCount] = useState<number | null>(null)
     const [removedCount, setRemovedCount] = useState<number | null>(null)
+
+    const filtersRef = useRef({
+        searchQuery,
+        selectedCategory,
+        sortBy,
+        statusFilter,
+        showFavoritesOnly,
+    })
+    filtersRef.current = {
+        searchQuery,
+        selectedCategory,
+        sortBy,
+        statusFilter,
+        showFavoritesOnly,
+    }
+
+    const writeUrl = useCallback((overrides: {
+        q?: string
+        category?: string | null
+        sort?: SortOption
+        status?: StatusFilter
+        favorites?: boolean
+    } = {}) => {
+        const cur = filtersRef.current
+        const q = overrides.q !== undefined ? overrides.q : cur.searchQuery
+        const category = overrides.category !== undefined ? overrides.category : cur.selectedCategory
+        const sort = overrides.sort ?? cur.sortBy
+        const status = overrides.status ?? cur.statusFilter
+        const favoritesOnly = overrides.favorites !== undefined ? overrides.favorites : cur.showFavoritesOnly
+
+        const params = new URLSearchParams()
+        if (q) params.set('q', q)
+        if (category) params.set('category', category)
+        if (sort !== 'updated-desc') params.set('sort', sort)
+        if (status !== 'active') params.set('status', status)
+        if (favoritesOnly) params.set('view', 'favorites')
+
+        const qs = params.toString()
+        const next = qs ? `/dapps?${qs}` : '/dapps'
+        const current = `${window.location.pathname}${window.location.search}`
+        if (current !== next) {
+            router.replace(next, { scroll: false })
+        }
+    }, [router])
 
     const applyCatalog = useCallback((data: any) => {
         const units = data.data?.explore?.units?.edges || []
@@ -109,7 +182,7 @@ const AppsContent = () => {
             // Only cache active catalog for instant paint
             if ((data.statusFilter || 'active') === 'active') {
                 sessionStorage.setItem(
-                    'dappstore-catalog-v2',
+                    'dappstore-catalog-v3',
                     JSON.stringify({
                         ts: Date.now(),
                         totalApps: data.totalApps,
@@ -160,7 +233,8 @@ const AppsContent = () => {
             return
         }
         try {
-            const raw = sessionStorage.getItem('dappstore-catalog-v2')
+            const raw = sessionStorage.getItem('dappstore-catalog-v3')
+                || sessionStorage.getItem('dappstore-catalog-v2')
             if (raw) {
                 const parsed = JSON.parse(raw)
                 if (parsed?.ts && Date.now() - parsed.ts < 6 * 60 * 60 * 1000 && parsed.data) {
@@ -177,15 +251,6 @@ const AppsContent = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [statusFilter])
 
-    const onStatusChange = (next: StatusFilter) => {
-        setStatusFilter(next)
-        setShowFavoritesOnly(false)
-        setSelectedCategory(null)
-        const params = new URLSearchParams()
-        if (next !== 'active') params.set('status', next)
-        router.push(params.toString() ? `/dapps?${params}` : '/dapps', { scroll: false })
-    }
-
     // Load favorites from localStorage
     useEffect(() => {
         const saved = localStorage.getItem('dappstore-favorites')
@@ -194,17 +259,62 @@ const AppsContent = () => {
         }
     }, [])
 
-    const selectCategory = useCallback((category: string | null) => {
+    const onStatusChange = (next: StatusFilter) => {
+        setStatusFilter(next)
+        writeUrl({ status: next })
+    }
+
+    const selectCategory = (category: string | null) => {
         setSelectedCategory(category)
         setShowFavoritesOnly(false)
-        if (category) {
-            router.push(`/dapps?category=${encodeURIComponent(category)}`, { scroll: false })
+        writeUrl({ category, favorites: false })
+    }
+
+    const toggleFavoritesView = () => {
+        const next = !showFavoritesOnly
+        setShowFavoritesOnly(next)
+        if (next) {
+            setSelectedCategory(null)
+            writeUrl({ favorites: true, category: null })
         } else {
-            router.push('/dapps', { scroll: false })
+            writeUrl({ favorites: false })
         }
-    }, [router])
+    }
 
+    const onSortChange = (next: SortOption) => {
+        setSortBy(next)
+        writeUrl({ sort: next })
+    }
 
+    const onSearchChange = (value: string) => {
+        setSearchQuery(value)
+        writeUrl({ q: value })
+    }
+
+    const hasActiveFilters =
+        Boolean(searchQuery) ||
+        Boolean(selectedCategory) ||
+        showFavoritesOnly ||
+        sortBy !== 'updated-desc' ||
+        statusFilter !== 'active'
+
+    const clearFilters = () => {
+        setSearchQuery('')
+        setSelectedCategory(null)
+        setShowFavoritesOnly(false)
+        setSortBy('updated-desc')
+        const statusReset = statusFilter !== 'active'
+        setStatusFilter('active')
+        writeUrl({
+            q: '',
+            category: null,
+            sort: 'updated-desc',
+            status: 'active',
+            favorites: false,
+        })
+        // Status change triggers a refetch via the effect; writeUrl already set status=active
+        void statusReset
+    }
 
     const toggleFavorite = (packageName: string, e: React.MouseEvent) => {
         e.preventDefault()
@@ -249,26 +359,24 @@ const AppsContent = () => {
               ? 'Apps tracked on Seeker Tracker'
               : 'Active apps tracked on Seeker Tracker'
 
-    // Get all unique apps for filtering
-    const sortApps = useCallback((apps: DApp[], sort: SortOption): DApp[] => {
-        if (sort === 'category') return apps
-
+    const sortApps = useCallback((apps: CatalogApp[], sort: SortOption): CatalogApp[] => {
         return [...apps].sort((a, b) => {
             switch (sort) {
                 case 'updated-desc': {
-                    const dateA = a.lastRelease?.updatedOn ? new Date(a.lastRelease.updatedOn).getTime() : 0
-                    const dateB = b.lastRelease?.updatedOn ? new Date(b.lastRelease.updatedOn).getTime() : 0
-                    return dateB - dateA
+                    return dateValue(b.lastRelease?.updatedOn) - dateValue(a.lastRelease?.updatedOn)
                 }
-                case 'updated-asc': {
-                    const dateA = a.lastRelease?.updatedOn ? new Date(a.lastRelease.updatedOn).getTime() : 0
-                    const dateB = b.lastRelease?.updatedOn ? new Date(b.lastRelease.updatedOn).getTime() : 0
-                    return dateA - dateB
+                case 'newest': {
+                    const seen = dateValue(b.firstSeenAt) - dateValue(a.firstSeenAt)
+                    if (seen !== 0) return seen
+                    return dateValue(b.lastRelease?.updatedOn) - dateValue(a.lastRelease?.updatedOn)
                 }
                 case 'rating-desc': {
                     const ratingA = a.rating?.rating ?? 0
                     const ratingB = b.rating?.rating ?? 0
-                    return ratingB - ratingA
+                    if (ratingB !== ratingA) return ratingB - ratingA
+                    const nameA = a.lastRelease?.displayName?.toLowerCase() ?? ''
+                    const nameB = b.lastRelease?.displayName?.toLowerCase() ?? ''
+                    return nameA.localeCompare(nameB)
                 }
                 case 'name-asc': {
                     const nameA = a.lastRelease?.displayName?.toLowerCase() ?? ''
@@ -282,46 +390,56 @@ const AppsContent = () => {
     }, [])
 
     const allApps = useMemo(() => {
-        const seen = new Map<string, DApp>()
+        const seen = new Map<string, CatalogApp>()
         categories.forEach(cat => {
             cat.dApps.edges.forEach(edge => {
-                if (!seen.has(edge.node.androidPackage)) {
-                    seen.set(edge.node.androidPackage, edge.node)
+                const existing = seen.get(edge.node.androidPackage)
+                if (existing) {
+                    if (!existing.categories.includes(cat.category.name)) {
+                        existing.categories.push(cat.category.name)
+                    }
+                } else {
+                    seen.set(edge.node.androidPackage, {
+                        ...edge.node,
+                        categories: [cat.category.name],
+                    })
                 }
             })
         })
         return Array.from(seen.values())
     }, [categories])
 
-    const sortedAllApps = useMemo(() => {
-        return sortApps(allApps, sortBy)
-    }, [allApps, sortBy, sortApps])
-
-    // Filter apps based on search query
-    const filteredApps = useMemo(() => {
-        if (!searchQuery.trim()) return []
-        const query = searchQuery.toLowerCase()
-        const filtered = sortedAllApps.filter(app => {
-            const name = app.lastRelease?.displayName?.toLowerCase() || ''
-            const publisher = app.lastRelease?.publisherDetails?.name?.toLowerCase() || ''
-            const subtitle = app.lastRelease?.subtitle?.toLowerCase() || ''
-            const packageName = app.androidPackage.toLowerCase()
-            return name.includes(query) || publisher.includes(query) || subtitle.includes(query) || packageName.includes(query)
-        })
-        return filtered
-    }, [sortedAllApps, searchQuery])
-
-    const toggleExpanded = (categoryId: string) => {
-        setExpandedCategories(prev => {
-            const next = new Set(prev)
-            if (next.has(categoryId)) {
-                next.delete(categoryId)
-            } else {
-                next.add(categoryId)
-            }
-            return next
-        })
-    }
+    const visibleApps = useMemo(() => {
+        let apps = allApps
+        if (showFavoritesOnly) {
+            apps = apps.filter(app => favorites.has(app.androidPackage))
+        }
+        if (selectedCategory) {
+            apps = apps.filter(app => app.categories.includes(selectedCategory))
+        }
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase()
+            apps = apps.filter(app => {
+                const name = app.lastRelease?.displayName?.toLowerCase() || ''
+                const publisher = app.lastRelease?.publisherDetails?.name?.toLowerCase() || ''
+                const subtitle = app.lastRelease?.subtitle?.toLowerCase() || ''
+                const description = app.lastRelease?.description?.toLowerCase() || ''
+                const blurb = app.lastRelease?.blurb?.toLowerCase() || ''
+                const packageName = app.androidPackage.toLowerCase()
+                const cats = app.categories.join(' ').toLowerCase()
+                return (
+                    name.includes(query) ||
+                    publisher.includes(query) ||
+                    subtitle.includes(query) ||
+                    description.includes(query) ||
+                    blurb.includes(query) ||
+                    packageName.includes(query) ||
+                    cats.includes(query)
+                )
+            })
+        }
+        return sortApps(apps, sortBy)
+    }, [allApps, showFavoritesOnly, favorites, selectedCategory, searchQuery, sortBy, sortApps])
 
     const renderStars = (rating: number) => {
         const fullStars = Math.floor(rating)
@@ -355,12 +473,16 @@ const AppsContent = () => {
         return `${Math.floor(diffDays / 365)}y ago`
     }
 
-    const AppCard = ({ app }: { app: DApp }) => {
+    const AppCard = ({ app }: { app: CatalogApp }) => {
         const release = app.lastRelease
         if (!release) return null
         const isFavorite = favorites.has(app.androidPackage)
         const isRemoved = app.status === 'removed'
         const href = `/dapps/${encodeURIComponent(app.androidPackage)}`
+        const categoryLabel = selectedCategory && app.categories.includes(selectedCategory)
+            ? selectedCategory
+            : app.categories[0]
+        const description = appDescription(app)
 
         return (
             <Link
@@ -372,6 +494,7 @@ const AppsContent = () => {
                     className={`${styles.favoriteBtn} ${isFavorite ? styles.favorited : ''}`}
                     onClick={(e) => toggleFavorite(app.androidPackage, e)}
                     title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                    aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                 >
                     {isFavorite ? '\u2605' : '\u2606'}
                 </button>
@@ -395,16 +518,19 @@ const AppsContent = () => {
                         {release.displayName}
                         {isRemoved && <span className={styles.removedBadge}>Removed</span>}
                     </h3>
-                    {release.subtitle && (
-                        <span className={styles.subtitle}>{release.subtitle}</span>
+                    {categoryLabel && (
+                        <span className={styles.appCategory}>{categoryLabel}</span>
+                    )}
+                    {description && (
+                        <span className={styles.subtitle}>{description}</span>
                     )}
                     <div className={styles.appMeta}>
-                        {app.rating?.rating && (
+                        {app.rating?.rating ? (
                             <div className={styles.rating}>
                                 {renderStars(app.rating.rating)}
                                 <span className={styles.ratingValue}>{app.rating.rating.toFixed(1)}</span>
                             </div>
-                        )}
+                        ) : null}
                         {release.updatedOn && (
                             <span className={styles.updatedBadge}>{formatShortDate(release.updatedOn)}</span>
                         )}
@@ -414,15 +540,19 @@ const AppsContent = () => {
         )
     }
 
-    // Get all favorite apps across categories
-    const favoriteApps = useMemo(() => {
-        if (!showFavoritesOnly) return []
-        return sortedAllApps.filter(app => favorites.has(app.androidPackage))
-    }, [sortedAllApps, favorites, showFavoritesOnly])
+    const emptyTitle = showFavoritesOnly && !searchQuery
+        ? 'No favorites yet'
+        : searchQuery
+            ? `No apps match “${searchQuery}”`
+            : selectedCategory
+                ? `No apps in ${selectedCategory}`
+                : 'No apps to show'
 
-    const filteredCategories = selectedCategory
-        ? categories.filter(cat => cat.category.name === selectedCategory)
-        : categories
+    const emptyHint = showFavoritesOnly && !searchQuery
+        ? 'Tap the star on any app to save it here.'
+        : hasActiveFilters
+            ? 'Try a different search, category, or clear the filters.'
+            : 'The catalog may still be loading. Try again in a moment.'
 
     if (error && !categories.length) {
         return (
@@ -486,156 +616,124 @@ const AppsContent = () => {
                 </div>
             ) : (
             <>
-            <div className={styles.searchAndSort}>
-                <div className={styles.searchBar}>
-                    <input
-                        type="text"
-                        placeholder="Filter apps..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className={styles.searchInput}
-                    />
-                </div>
-                <div className={styles.sortControl}>
-                    <label className={styles.sortLabel}>Status:</label>
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
-                        className={styles.sortSelect}
-                        aria-label="App status filter"
+            <div className={styles.toolbar}>
+                <div className={styles.searchAndSort}>
+                    <form
+                        className={styles.searchBar}
+                        role="search"
+                        onSubmit={(e) => e.preventDefault()}
                     >
-                        <option value="active">
-                            Active{activeCount != null ? ` (${activeCount})` : ''}
-                        </option>
-                        <option value="removed">
-                            Removed{removedCount != null ? ` (${removedCount})` : ''}
-                        </option>
-                        <option value="all">All</option>
-                    </select>
+                        <label htmlFor="dapp-search" className={styles.srOnly}>Search apps</label>
+                        <input
+                            id="dapp-search"
+                            type="search"
+                            placeholder="Search by name, publisher, or package"
+                            value={searchQuery}
+                            onChange={(e) => onSearchChange(e.target.value)}
+                            className={styles.searchInput}
+                            aria-label="Search apps"
+                            {...SEARCH_ATTRS}
+                        />
+                    </form>
+                    <div className={styles.toolbarControls}>
+                        <div className={styles.statusToggle} role="group" aria-label="App status">
+                            {([
+                                ['active', 'Active', activeCount],
+                                ['removed', 'Removed', removedCount],
+                                ['all', 'All', (activeCount != null && removedCount != null) ? activeCount + removedCount : null],
+                            ] as const).map(([value, label, count]) => (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    className={`${styles.statusBtn} ${statusFilter === value ? styles.statusBtnActive : ''}`}
+                                    onClick={() => onStatusChange(value)}
+                                    aria-pressed={statusFilter === value}
+                                >
+                                    {label}
+                                    {count != null ? ` (${count.toLocaleString()})` : ''}
+                                </button>
+                            ))}
+                        </div>
+                        <div className={styles.sortControl}>
+                            <label className={styles.sortLabel} htmlFor="dapp-sort">Sort</label>
+                            <select
+                                id="dapp-sort"
+                                value={sortBy}
+                                onChange={(e) => onSortChange(e.target.value as SortOption)}
+                                className={styles.sortSelect}
+                                aria-label="Sort apps"
+                            >
+                                {SORT_OPTIONS.map(option => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div className={styles.sortControl}>
-                    <label className={styles.sortLabel}>Sort:</label>
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as SortOption)}
-                        className={styles.sortSelect}
-                    >
-                        {SORT_OPTIONS.map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
 
-            <div className={styles.categoryFilter}>
-                <button
-                    className={`${styles.categoryBtn} ${!selectedCategory && !showFavoritesOnly ? styles.active : ''}`}
-                    onClick={() => selectCategory(null)}
-                >
-                    All
-                </button>
-                <button
-                    className={`${styles.categoryBtn} ${styles.favoritesBtn} ${showFavoritesOnly ? styles.active : ''}`}
-                    onClick={() => { setShowFavoritesOnly(!showFavoritesOnly); setSelectedCategory(null); router.push(!showFavoritesOnly ? '/dapps?view=favorites' : '/dapps', { scroll: false }); }}
-                >
-                    {'\u2605'} Favorites ({favorites.size})
-                </button>
-                {categories.map(cat => (
+                <div className={styles.categoryFilter} role="tablist" aria-label="Categories">
                     <button
-                        key={cat.category.id}
-                        className={`${styles.categoryBtn} ${selectedCategory === cat.category.name ? styles.active : ''}`}
-                        onClick={() => selectCategory(cat.category.name)}
+                        type="button"
+                        className={`${styles.categoryBtn} ${!selectedCategory && !showFavoritesOnly ? styles.active : ''}`}
+                        onClick={() => selectCategory(null)}
                     >
-                        {cat.category.name} ({cat.dApps.edges.length})
+                        All ({uniqueListedApps.toLocaleString()})
                     </button>
-                ))}
+                    <button
+                        type="button"
+                        className={`${styles.categoryBtn} ${styles.favoritesBtn} ${showFavoritesOnly ? styles.active : ''}`}
+                        onClick={toggleFavoritesView}
+                    >
+                        {'\u2605'} Favorites ({favorites.size})
+                    </button>
+                    {categories.map(cat => (
+                        <button
+                            key={cat.category.id}
+                            type="button"
+                            className={`${styles.categoryBtn} ${selectedCategory === cat.category.name ? styles.active : ''}`}
+                            onClick={() => selectCategory(cat.category.name)}
+                        >
+                            {cat.category.name} ({cat.dApps.edges.length})
+                        </button>
+                    ))}
+                </div>
+
+                <div className={styles.toolbarMeta}>
+                    <p className={styles.resultCount} aria-live="polite">
+                        Showing {visibleApps.length.toLocaleString()} of {trackedCount.toLocaleString()}
+                        {selectedCategory ? ` in ${selectedCategory}` : ''}
+                        {showFavoritesOnly ? ' favorites' : ''}
+                        {searchQuery ? ` for “${searchQuery}”` : ''}
+                    </p>
+                    {hasActiveFilters && (
+                        <button type="button" className={styles.clearFilters} onClick={clearFilters}>
+                            Clear filters
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {showFavoritesOnly ? (
-                <div className={styles.searchResults}>
-                    <h2 className={styles.sectionTitle}>
-                        Your Favorites
-                        <span className={styles.appCount}>({favoriteApps.length} apps)</span>
-                    </h2>
-                    {favoriteApps.length > 0 ? (
-                        <div className={styles.appGrid}>
-                            {favoriteApps.map(app => (
-                                <AppCard key={app.androidPackage} app={app} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className={styles.noResults}>No favorites yet. Click the star on any app to add it!</div>
-                    )}
-                </div>
-            ) : searchQuery.trim() ? (
-                <div className={styles.searchResults}>
-                    <h2 className={styles.sectionTitle}>
-                        Results for &quot;{searchQuery}&quot;
-                        <span className={styles.appCount}>({filteredApps.length} apps)</span>
-                    </h2>
-                    {filteredApps.length > 0 ? (
-                        <div className={styles.appGrid}>
-                            {filteredApps.map(app => (
-                                <AppCard key={app.androidPackage} app={app} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className={styles.noResults}>No apps found</div>
-                    )}
-                </div>
-            ) : sortBy !== 'category' ? (
-                <div className={styles.searchResults}>
-                    <h2 className={styles.sectionTitle}>
-                        All Apps
-                        <span className={styles.appCount}>
-                            ({sortedAllApps.length} apps, sorted by {SORT_OPTIONS.find(o => o.value === sortBy)?.label})
-                        </span>
-                    </h2>
+            <div className={styles.searchResults}>
+                {visibleApps.length > 0 ? (
                     <div className={styles.appGrid}>
-                        {sortedAllApps.map(app => (
+                        {visibleApps.map(app => (
                             <AppCard key={app.androidPackage} app={app} />
                         ))}
                     </div>
-                </div>
-            ) : (
-            <div className={styles.catalog}>
-                {filteredCategories.map(categoryUnit => {
-                    const isExpanded = expandedCategories.has(categoryUnit.category.id)
-                    const categoryApps = categoryUnit.dApps.edges
-                    const visibleApps = isExpanded ? categoryApps : categoryApps.slice(0, INITIAL_VISIBLE)
-                    const hasMore = categoryApps.length > INITIAL_VISIBLE
-
-                    return (
-                        <div key={categoryUnit.category.id} className={styles.categorySection}>
-                            <h2 className={styles.sectionTitle}>
-                                {categoryUnit.category.name}
-                                <span className={styles.appCount}>
-                                    ({categoryApps.length} apps)
-                                </span>
-                            </h2>
-                            <div className={styles.appGrid}>
-                                {visibleApps.map(edge => (
-                                    <AppCard key={edge.node.androidPackage} app={edge.node} />
-                                ))}
-                            </div>
-                            {hasMore && (
-                                <button
-                                    className={styles.showMoreBtn}
-                                    onClick={() => toggleExpanded(categoryUnit.category.id)}
-                                >
-                                    {isExpanded
-                                        ? 'Show Less'
-                                        : `Show ${categoryApps.length - INITIAL_VISIBLE} More`
-                                    }
-                                </button>
-                            )}
-                        </div>
-                    )
-                })}
+                ) : (
+                    <div className={styles.emptyState}>
+                        <p className={styles.emptyTitle}>{emptyTitle}</p>
+                        <p className={styles.emptyHint}>{emptyHint}</p>
+                        {hasActiveFilters && (
+                            <button type="button" className={styles.clearFilters} onClick={clearFilters}>
+                                Clear filters
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
-            )}
             </>
             )}
 
