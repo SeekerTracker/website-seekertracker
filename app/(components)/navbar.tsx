@@ -42,6 +42,7 @@ const PRIMARY = [
   { href: "/activations", label: "Activations" },
   { href: "/das", label: "DAS" },
   { href: "/skr", label: "SKR" },
+  { href: "/burn", label: "Burn" },
   { href: "/rks", label: "RKS" },
 ] as const;
 

@@ -657,6 +657,9 @@ const MainPage = () => {
             <Link href="/skr" className={style.chip}>
               SKR stats
             </Link>
+            <Link href="/burn" className={style.chip}>
+              SKR burn
+            </Link>
             <Link href="/export" className={style.chip}>
               SKR holders
             </Link>

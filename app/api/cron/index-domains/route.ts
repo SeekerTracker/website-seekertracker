@@ -27,7 +27,15 @@ export const maxDuration = 300;
  * and upserts into Turso.
  *
  * Auth: Authorization: Bearer $CRON_SECRET (if set)
- * GET /api/cron/index-domains?limit=50
+ * GET /api/cron/index-domains?limit=200&backfill=80
+ *
+ * Incremental tip-following uses Solana `until` = last indexed signature.
+ * We paginate with `before` until that cursor is actually reached, so a
+ * burst larger than `limit` cannot skip a gap and then advance the cursor
+ * to the tip (which previously left ~16k historical names unindexed).
+ *
+ * `backfill` walks older parent-NA signatures and INSERTs missing names
+ * into unused rank slots. Existing rows are never updated or deleted.
  */
 
 const ANS_PROGRAM_ID = new PublicKey(
@@ -124,6 +132,68 @@ async function rpc<T>(method: string, params: unknown[]): Promise<T> {
   return json.result as T;
 }
 
+type Sig = { signature: string; blockTime: number | null; err: unknown };
+
+/**
+ * Newest-first signatures until `untilSig` is reached (or no more history).
+ * Paginates with `before` so we never skip a gap larger than one page.
+ */
+async function fetchSignaturesUntil(opts: {
+  untilSig?: string;
+  before?: string;
+  max: number;
+}): Promise<Sig[]> {
+  const out: Sig[] = [];
+  let before = opts.before;
+  while (out.length < opts.max) {
+    const pageLimit = Math.min(1000, opts.max - out.length);
+    const batch = await rpc<Sig[]>("getSignaturesForAddress", [
+      SKR_PARENT_NA,
+      {
+        limit: pageLimit,
+        ...(before ? { before } : {}),
+        ...(opts.untilSig ? { until: opts.untilSig } : {}),
+      },
+    ]);
+    if (!batch?.length) break;
+    out.push(...batch);
+    if (batch.length < pageLimit) break;
+    before = batch[batch.length - 1].signature;
+  }
+  return out;
+}
+
+async function nextUnusedRank(
+  db: ReturnType<typeof getTurso>,
+  createdAt: string
+): Promise<number> {
+  const lower = await db.execute({
+    sql: `SELECT COALESCE(MAX(rank), 0) AS r FROM seeker_domains WHERE created_at <= ?`,
+    args: [createdAt],
+  });
+  const lowerRank = Number(lower.rows[0]?.r ?? 0);
+  const gap = await db.execute({
+    sql: `SELECT MIN(rank) AS r FROM seeker_domains WHERE rank > ?`,
+    args: [lowerRank],
+  });
+  const nextExisting = Number(gap.rows[0]?.r ?? 0);
+  if (nextExisting && lowerRank + 1 < nextExisting) return lowerRank + 1;
+  const after = await db.execute({
+    sql: `SELECT r + 1 AS gap
+          FROM (SELECT rank AS r FROM seeker_domains
+                UNION ALL SELECT 0)
+          WHERE r + 1 NOT IN (SELECT rank FROM seeker_domains)
+          ORDER BY r ASC LIMIT 1`,
+    args: [],
+  });
+  const found = Number(after.rows[0]?.gap ?? 0);
+  if (found > 0) return found;
+  const maxRes = await db.execute(
+    "SELECT COALESCE(MAX(rank), 0) AS m FROM seeker_domains"
+  );
+  return Number(maxRes.rows[0]?.m ?? 0) + 1;
+}
+
 export async function GET(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
@@ -138,8 +208,12 @@ export async function GET(request: NextRequest) {
   }
 
   const limit = Math.min(
-    100,
-    Math.max(1, Number(request.nextUrl.searchParams.get("limit") || 40))
+    1000,
+    Math.max(1, Number(request.nextUrl.searchParams.get("limit") || 200))
+  );
+  const backfillLimit = Math.min(
+    1000,
+    Math.max(0, Number(request.nextUrl.searchParams.get("backfill") ?? 80))
   );
 
   const db = getTurso();
@@ -157,17 +231,8 @@ export async function GET(request: NextRequest) {
   const untilSig =
     (lastSigRes.rows[0]?.value as string | undefined) || undefined;
 
-  type Sig = { signature: string; blockTime: number | null; err: unknown };
-  // Incremental: Solana `until` = search back from newest until that sig.
-  // Without this, every cron re-scans the same latest N txs and can re-alert
-  // old domains missing from Turso (e.g. transfers of Sep-2025 IDs).
-  const sigs = await rpc<Sig[]>("getSignaturesForAddress", [
-    SKR_PARENT_NA,
-    {
-      limit,
-      ...(untilSig ? { until: untilSig } : {}),
-    },
-  ]);
+  // Paginate tip → last_indexed_sig so bursts larger than one page are not skipped.
+  const sigs = await fetchSignaturesUntil({ untilSig, max: limit });
 
   // Process oldest-first among this batch so ranks increase chronologically
   const batch = (sigs || []).filter((s) => !s.err).reverse();
@@ -312,6 +377,103 @@ export async function GET(request: NextRequest) {
           ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
     args: [new Date().toISOString()],
   });
+
+  const backfill = {
+    scanned: 0,
+    inserted: 0,
+    skipped: 0,
+    before: null as string | null,
+  };
+  if (backfillLimit > 0) {
+    const cursorRes = await db.execute({
+      sql: `SELECT value FROM seeker_domain_meta WHERE key = 'backfill_before'`,
+      args: [],
+    });
+    const startBefore =
+      (cursorRes.rows[0]?.value as string | undefined) ||
+      untilSig ||
+      newestSig ||
+      undefined;
+    const hist = await fetchSignaturesUntil({
+      before: startBefore,
+      max: backfillLimit,
+    });
+    backfill.scanned = hist.length;
+    const seenBack = new Set<string>();
+    for (const s of hist.filter((x) => !x.err).reverse()) {
+      try {
+        const tx = await rpc<{
+          meta?: { logMessages?: string[]; err?: unknown };
+          blockTime?: number;
+        } | null>("getTransaction", [
+          s.signature,
+          { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 },
+        ]);
+        if (!tx || tx.meta?.err) {
+          backfill.skipped++;
+          continue;
+        }
+        const names: string[] = [];
+        for (const line of tx.meta?.logMessages || []) {
+          const m = line.match(DOMAIN_LOG_RE);
+          if (m?.[1]) names.push(m[1].toLowerCase());
+        }
+        if (!names.length) {
+          backfill.skipped++;
+          continue;
+        }
+        for (const sub of names) {
+          if (seenBack.has(sub)) continue;
+          seenBack.add(sub);
+          const existing = await db.execute({
+            sql: `SELECT rank FROM seeker_domains WHERE LOWER(subdomain) = ? LIMIT 1`,
+            args: [sub],
+          });
+          if (existing.rows.length) continue;
+
+          const { subDomain_NA, subDomain_TLD } = getSubdomainPubkey(".skr", sub);
+          const info = await conn.getAccountInfo(subDomain_NA);
+          if (!info?.data) {
+            backfill.skipped++;
+            continue;
+          }
+          const parsed = deserializeNameAccount(Buffer.from(info.data));
+          const created_at = new Date(parsed.createdAt * 1000).toISOString();
+          const rank = await nextUnusedRank(db, created_at);
+          await db.execute({
+            sql: `INSERT INTO seeker_domains
+              (rank, domain, subdomain, owner, created_at, name_account, tld_account,
+               subdomain_tx, subdomain_tx_blocktime, non_transferable)
+              VALUES (?, '.skr', ?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [
+              rank,
+              sub,
+              parsed.owner,
+              created_at,
+              subDomain_NA.toBase58(),
+              subDomain_TLD.toBase58(),
+              s.signature,
+              new Date((tx.blockTime || parsed.createdAt) * 1000).toISOString(),
+              parsed.nonTransferable ? 1 : 0,
+            ],
+          });
+          backfill.inserted++;
+        }
+      } catch (e) {
+        console.error("backfill tx failed", s.signature, e);
+        backfill.skipped++;
+      }
+    }
+    if (hist.length) {
+      backfill.before = hist[hist.length - 1].signature;
+      await db.execute({
+        sql: `INSERT INTO seeker_domain_meta (key, value) VALUES ('backfill_before', ?)
+              ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
+        args: [backfill.before],
+      });
+    }
+  }
+
   const countRes = await db.execute(
     "SELECT COUNT(*) AS c, COALESCE(MAX(rank), 0) AS max_rank FROM seeker_domains"
   );
@@ -354,6 +516,7 @@ export async function GET(request: NextRequest) {
     indexed,
     maxRank,
     newestSig,
+    backfill,
     telegram,
     telegramConfigured: telegramConfigured(),
   });
