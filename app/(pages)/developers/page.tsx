@@ -169,7 +169,8 @@ curl -sS ${SITE_ORIGIN}/api/price
 curl -sS '${SITE_ORIGIN}/api/domains?page=1&pageSize=20'
 curl -sS '${SITE_ORIGIN}/api/domain?domain=metasal.skr'
 curl -sS '${SITE_ORIGIN}/api/dappstore?package=com.seekertracker'
-curl -sS ${SITE_ORIGIN}/api/skr/vault`}</pre>
+curl -sS ${SITE_ORIGIN}/api/skr/vault
+curl -sS ${SITE_ORIGIN}/api/skr/burns`}</pre>
       </section>
 
       <section className={styles.card}>
@@ -217,6 +218,9 @@ curl -sS ${SITE_ORIGIN}/api/skr/vault`}</pre>
           </li>
           <li>
             <Link href="/skr">/skr</Link> — SKR stats UI
+          </li>
+          <li>
+            <Link href="/burn">/burn</Link> — SKR buy-and-burn live stats
           </li>
         </ul>
       </section>

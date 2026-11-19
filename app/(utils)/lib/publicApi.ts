@@ -97,6 +97,12 @@ export const PUBLIC_ENDPOINTS: PublicEndpoint[] = [
     example: "?package=com.example.app | ?q=wallet | ?status=active",
   },
   {
+    path: "/api/skr/burns",
+    methods: ["GET"],
+    auth: false,
+    summary: "Official SKR buy-and-burn totals from on-chain burns",
+  },
+  {
     path: "/api/skr/vault",
     methods: ["GET"],
     auth: false,
@@ -417,6 +423,13 @@ export function buildOpenApiSpec() {
         responses: { "200": { description: "Catalog or app" } },
       },
     },
+    "/api/skr/burns": {
+      get: {
+        operationId: "getSkrBurns",
+        summary: "Official SKR buy-and-burn totals from on-chain burns",
+        responses: { "200": { description: "Burn totals, recent txs, daily series" } },
+      },
+    },
     "/api/skr/vault": {
       get: {
         operationId: "getSkrVault",
@@ -537,6 +550,7 @@ export function buildLlmsTxt(): string {
     `curl -sS '${SITE_ORIGIN}/api/lookup?wallet=YOUR_WALLET'`,
     `curl -sS '${SITE_ORIGIN}/api/dappstore?package=com.seekertracker'`,
     `curl -sS ${SITE_ORIGIN}/api/skr/vault`,
+    `curl -sS ${SITE_ORIGIN}/api/skr/burns`,
     "```",
     "",
     "## Human pages (secondary)",
@@ -546,6 +560,7 @@ export function buildLlmsTxt(): string {
     `- dApp detail: ${SITE_ORIGIN}/dapps/{androidPackage}`,
     `- Domain profile: ${SITE_ORIGIN}/id/{name.skr}`,
     `- SKR: ${SITE_ORIGIN}/skr`,
+    `- SKR buy and burn: ${SITE_ORIGIN}/burn`,
     `- Developers / skill install: ${SITE_ORIGIN}/developers`,
     "",
     "## Not public",

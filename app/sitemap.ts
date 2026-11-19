@@ -16,6 +16,7 @@ const STATIC_PATHS: {
   { path: "/explore", changeFrequency: "daily", priority: 0.9 },
   { path: "/lookup", changeFrequency: "weekly", priority: 0.8 },
   { path: "/skr", changeFrequency: "daily", priority: 0.8 },
+  { path: "/burn", changeFrequency: "daily", priority: 0.8 },
   { path: "/whales", changeFrequency: "daily", priority: 0.7 },
   { path: "/activations", changeFrequency: "weekly", priority: 0.7 },
   { path: "/winners", changeFrequency: "weekly", priority: 0.6 },

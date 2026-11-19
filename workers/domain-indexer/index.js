@@ -7,7 +7,7 @@ export default {
     const secret = env.CRON_SECRET;
     const url =
       env.INDEX_URL ||
-      "https://seekertracker.com/api/cron/index-domains?limit=50";
+      "https://seekertracker.com/api/cron/index-domains?limit=200&backfill=80";
     const res = await fetch(url, {
       headers: secret ? { Authorization: `Bearer ${secret}` } : {},
     });
