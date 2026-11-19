@@ -7,6 +7,7 @@ import { WalletProviderWrapper } from "./(utils)/context/walletProvider";
 import Navbar from "./(components)/navbar";
 import Footer from "./(components)/footer";
 import ToastMessage from "./(components)/toastMessage";
+import { SEO_HOME_DESCRIPTION } from "app/(utils)/lib/dappStoreStats";
 
 const jetBrains = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
@@ -18,8 +19,7 @@ const jetBrains = JetBrains_Mono({
 /** GA4 — Seeker Tracker property (existing stream since 2025-08) */
 const GA_MEASUREMENT_ID = "G-2G1PFJ2R6G";
 
-const DESCRIPTION =
-  "Search and track .skr SeekerIDs, Seeker dApps, SKR stats, and analytics. Public API for agents.";
+const DESCRIPTION = SEO_HOME_DESCRIPTION;
 // Keep OG titles under ~60 chars so X/LinkedIn do not truncate awkwardly.
 const TITLE = "Seeker Tracker — Solana Mobile explorer";
 const OG_TITLE = "Seeker Tracker — .skr, dApps & SKR";

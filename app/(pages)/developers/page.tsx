@@ -6,6 +6,7 @@ import {
   SITE_ORIGIN,
 } from "app/(utils)/lib/publicApi";
 import styles from "./page.module.css";
+import { SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED, SOLANA_DAPP_STORE_OFFICIAL_CITATION } from "app/(utils)/lib/dappStoreStats";
 
 const TITLE = "Seeker Tracker API for agents";
 const DESCRIPTION =
@@ -208,7 +209,7 @@ curl -sS ${SITE_ORIGIN}/api/skr/burns`}</pre>
         <h2 className={styles.sectionTitle}>Human pages</h2>
         <ul className={styles.list}>
           <li>
-            <Link href="/dapps">/dapps</Link> — dApp catalog (Solana Seeker store mirror)
+            <Link href="/dapps">/dapps</Link> — dApp catalog (Seeker Tracker index; official store: {SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED} apps, {SOLANA_DAPP_STORE_OFFICIAL_CITATION})
           </li>
           <li>
             <code>/dapps/{"{package}"}</code> — dApp detail
