@@ -1138,7 +1138,7 @@
         align-items: stretch;
         width: 100%;
         max-width: 100vw;
-        overflow-x: hidden;
+        overflow-x: clip;
         box-sizing: border-box;
     }
 
@@ -1239,6 +1239,7 @@
     }
 
     .searchBar {
+        flex: 0 0 auto;
         min-width: 0;
         max-width: none;
         width: 100%;
