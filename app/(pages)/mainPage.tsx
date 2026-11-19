@@ -548,7 +548,7 @@ const MainPage = () => {
             <IoSearchOutline className={style.searchIcon} aria-hidden />
             {searchMode === "name" ? (
               <input
-                type="text"
+                type="search"
                 placeholder="Search .skr SeekerIDs — e.g. tracker"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
@@ -556,6 +556,11 @@ const MainPage = () => {
                   if (e.key === "Enter") onPrimarySearch();
                 }}
                 aria-label="Search SeekerIDs by name"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                autoComplete="off"
+                enterKeyHint="search"
               />
             ) : (
               <input
@@ -573,6 +578,11 @@ const MainPage = () => {
                   if (e.key === "Enter") onPrimarySearch();
                 }}
                 aria-label="Search SeekerIDs by rank"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                autoComplete="off"
+                enterKeyHint="search"
               />
             )}
             <button type="button" className={style.searchBtn} onClick={onPrimarySearch}>

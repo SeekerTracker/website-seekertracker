@@ -296,11 +296,16 @@ function ManageInner() {
               </label>
               <input
                 id="q"
+                type="search"
                 className={styles.input}
                 placeholder="Search by name or package"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                enterKeyHint="search"
                 autoFocus
               />
               {hits.length > 0 && (

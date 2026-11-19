@@ -685,6 +685,11 @@ export default function DasPage() {
                                         value={query}
                                         onChange={(e) => setQuery(e.target.value)}
                                         className={styles.searchInput}
+                                        autoCorrect="off"
+                                        autoCapitalize="none"
+                                        spellCheck={false}
+                                        autoComplete="off"
+                                        enterKeyHint="search"
                                     />
                                 </label>
                                 <div className={styles.sortRow}>

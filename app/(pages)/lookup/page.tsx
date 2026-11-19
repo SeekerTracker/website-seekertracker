@@ -79,12 +79,17 @@ const LookupPage = () => {
             <div className={styles.searchSection}>
                 <div className={styles.searchBox}>
                     <input
-                        type="text"
+                        type="search"
                         placeholder="Enter Solana wallet address..."
                         value={wallet}
                         onChange={(e) => setWallet(e.target.value)}
                         onKeyPress={handleKeyPress}
                         className={styles.input}
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        autoComplete="off"
+                        enterKeyHint="search"
                     />
                     <button
                         onClick={handleLookup}

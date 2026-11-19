@@ -478,6 +478,11 @@ export default function Sweep() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Search wallet"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            autoComplete="off"
+            enterKeyHint="search"
           />
         </div>
 
