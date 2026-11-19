@@ -1,6 +1,10 @@
 import Link from "next/link";
 import Backbutton from "app/(components)/shared/Backbutton";
 import styles from "./page.module.css";
+import {
+  SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED,
+  SOLANA_DAPP_STORE_OFFICIAL_CITATION,
+} from "app/(utils)/lib/dappStoreStats";
 
 const SM =
   "https://solanamobile.com/blog/solana-mobile-announces-ledger-as-its-first-hardware-expansion-partner";
@@ -35,10 +39,10 @@ const STATS = [
     href: LEDGER,
   },
   {
-    num: "1,500+",
+    num: SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED,
     label: "dApps on the store",
-    source: "Solana Mobile, 14 Oct 2026",
-    href: SM,
+    source: SOLANA_DAPP_STORE_OFFICIAL_CITATION,
+    href: "/dapps",
   },
   {
     num: "200k+",
@@ -65,13 +69,21 @@ export default function LedgerPage() {
       </p>
 
       <div className={styles.stats}>
-        {STATS.map((s) => (
-          <a key={s.label} className={styles.stat} href={s.href} target="_blank" rel="noopener noreferrer">
-            <span className={styles.num}>{s.num}</span>
-            <span className={styles.label}>{s.label}</span>
-            <span className={styles.source}>{s.source}</span>
-          </a>
-        ))}
+        {STATS.map((s) => {
+          const external = s.href.startsWith("http");
+          return (
+            <a
+              key={s.label}
+              className={styles.stat}
+              href={s.href}
+              {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            >
+              <span className={styles.num}>{s.num}</span>
+              <span className={styles.label}>{s.label}</span>
+              <span className={styles.source}>{s.source}</span>
+            </a>
+          );
+        })}
       </div>
 
       <section className={styles.block}>
@@ -124,8 +136,10 @@ export default function LedgerPage() {
             <a href={SM} target="_blank" rel="noopener noreferrer">
               Solana Mobile: Ledger is the first hardware expansion partner
             </a>
-            . Partner, Atom, summer 2027, 1,500+ apps, $13B volume, 154 million
-            transactions, 200,000+ devices sold.
+            . Partner, Atom, summer 2027, 1,500+ apps (as of 14 Oct 2026), $13B
+            volume, 154 million transactions, 200,000+ devices sold. Official
+            catalog size as of 12 Nov 2026 is{" "}
+            {SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED} apps ({SOLANA_DAPP_STORE_OFFICIAL_CITATION}).
           </li>
           <li>
             <a href={LEDGER} target="_blank" rel="noopener noreferrer">

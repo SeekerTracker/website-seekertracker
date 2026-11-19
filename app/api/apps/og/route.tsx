@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
+import { SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT, SOLANA_DAPP_STORE_OFFICIAL_CITATION } from "app/(utils)/lib/dappStoreStats";
 
 // nodejs: more reliable ImageResponse + outbound GraphQL on CF Workers
 export const runtime = "nodejs";
@@ -37,9 +38,9 @@ async function fetchAppsData(): Promise<{ count: number; icons: string[] }> {
       }
       if (icons.length >= 8) break;
     }
-    return { count: count || 500, icons };
+    return { count: count || SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT, icons };
   } catch {
-    return { count: 500, icons: [] };
+    return { count: SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT, icons: [] };
   }
 }
 
@@ -106,7 +107,7 @@ export async function GET(request: NextRequest) {
 
   // ── Catalog OG (no ?app=) ──
   if (!appPackage) {
-    const { count: appCount, icons } = await fetchAppsData();
+    const { icons } = await fetchAppsData();
 
     return new ImageResponse(
       (
@@ -241,7 +242,7 @@ export async function GET(request: NextRequest) {
                 letterSpacing: -4,
               }}
             >
-              {appCount.toLocaleString()}+
+              {SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT.toLocaleString()}
             </div>
             <div
               style={{
@@ -253,7 +254,7 @@ export async function GET(request: NextRequest) {
                 color: "rgba(20,241,149,0.75)",
               }}
             >
-              SEEKER APPS
+              SOLANA DAPP STORE APPS
             </div>
             <div
               style={{
@@ -274,7 +275,7 @@ export async function GET(request: NextRequest) {
                 color: "rgba(180,210,200,0.7)",
               }}
             >
-              Apps optimized for Solana Seeker
+              {SOLANA_DAPP_STORE_OFFICIAL_CITATION} · official catalog size
             </div>
             <div
               style={{

@@ -34,7 +34,7 @@
     font-size: 0.95rem;
     margin: 0.55rem 0 0;
     line-height: 1.5;
-    max-width: 28rem;
+    max-width: 36rem;
     margin-left: auto;
     margin-right: auto;
 }
@@ -204,16 +204,36 @@
 
 
 
+.countRow {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 1.1rem auto 0;
+    width: 100%;
+    max-width: 36rem;
+}
+
 .totalCount {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 1.1rem auto 0;
-    padding: 0.85rem 1.75rem;
+    margin: 0;
+    padding: 0.85rem 1.25rem;
     border-radius: 14px;
     background: rgba(0, 20, 20, 0.65);
     border: 1px solid rgba(0, 255, 217, 0.16);
     min-width: 10rem;
+    flex: 1 1 10rem;
+}
+
+.totalSource {
+    font-size: 0.62rem;
+    color: #6a9090;
+    margin-top: 0.2rem;
+    letter-spacing: 0.02em;
+    text-align: center;
+    line-height: 1.3;
 }
 
 .totalNumber {
@@ -962,16 +982,30 @@
         color: #8a9a97;
     }
 
-    .totalCount {
+    .countRow {
         margin-top: 0.35em;
+        max-width: 100%;
+        flex-direction: column;
+        gap: 0.5em;
+    }
+
+    .totalCount {
+        margin-top: 0;
         padding: 0.55em 0.9em;
         border-radius: 0.75em;
         width: 100%;
         box-sizing: border-box;
         flex-direction: row;
+        flex-wrap: wrap;
         justify-content: space-between;
         align-items: baseline;
-        gap: 0.75em;
+        gap: 0.35em 0.75em;
+    }
+
+    .totalSource {
+        flex-basis: 100%;
+        text-align: right;
+        margin-top: 0;
     }
 
     .totalNumber {

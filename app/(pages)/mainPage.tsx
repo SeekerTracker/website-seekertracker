@@ -10,6 +10,7 @@ import TelegramModal from "app/(components)/TelegramModal";
 import PixelSnake from "app/(components)/PixelSnake";
 import { analytics } from "app/(utils)/lib/analytics";
 import { fetchDomains } from "app/(utils)/lib/fetchDomains";
+import { SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED, SOLANA_DAPP_STORE_OFFICIAL_CITATION } from "app/(utils)/lib/dappStoreStats";
 import { IoArrowForward, IoSearchOutline } from "react-icons/io5";
 
 const DAS_PUBLIC = "https://seeker-das-scanner.gm-4e8.workers.dev/public/das";
@@ -483,7 +484,9 @@ const MainPage = () => {
                 <p className={style.eyebrow}>Solana Mobile · unofficial</p>
                 <h1 className={style.brandTitle}>Seeker Tracker</h1>
                 <p className={style.slogan}>
-                  Explore .skr SeekerIDs, dApps, DAS, and on-chain stats.
+                  Explore .skr SeekerIDs, {SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED} official
+                  Solana dApp Store apps ({SOLANA_DAPP_STORE_OFFICIAL_CITATION}), DAS, and on-chain
+                  stats.
                 </p>
               </div>
             </div>
@@ -598,7 +601,7 @@ const MainPage = () => {
           </strong>
         </div>
         <Link href="/dapps" className={style.metric}>
-          <span className={style.metricLabel}>Apps</span>
+          <span className={style.metricLabel}>Apps tracked</span>
           <strong className={style.metricValue}>
             {dAppCount !== null ? animatedDApps.toLocaleString() : "—"}
           </strong>

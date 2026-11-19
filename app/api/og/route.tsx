@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
+import { SEO_DAPPS_DESCRIPTION } from "app/(utils)/lib/dappStoreStats";
 
 export const runtime = 'edge'
 
@@ -407,7 +408,7 @@ export async function GET(request: NextRequest) {
         },
         apps: {
             title: 'Seeker dApp Store',
-            subtitle: 'Discover apps optimized for Solana Seeker',
+            subtitle: SEO_DAPPS_DESCRIPTION,
         },
     }
 

@@ -6,6 +6,10 @@ import Link from 'next/link'
 import styles from './page.module.css'
 import Image from 'next/image'
 import Backbutton from 'app/(components)/shared/Backbutton'
+import {
+    SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED,
+    SOLANA_DAPP_STORE_OFFICIAL_CITATION,
+} from 'app/(utils)/lib/dappStoreStats'
 
 interface DApp {
     androidPackage: string
@@ -105,7 +109,7 @@ const AppsContent = () => {
             // Only cache active catalog for instant paint
             if ((data.statusFilter || 'active') === 'active') {
                 sessionStorage.setItem(
-                    'dappstore-catalog-v1',
+                    'dappstore-catalog-v2',
                     JSON.stringify({
                         ts: Date.now(),
                         totalApps: data.totalApps,
@@ -156,7 +160,7 @@ const AppsContent = () => {
             return
         }
         try {
-            const raw = sessionStorage.getItem('dappstore-catalog-v1')
+            const raw = sessionStorage.getItem('dappstore-catalog-v2')
             if (raw) {
                 const parsed = JSON.parse(raw)
                 if (parsed?.ts && Date.now() - parsed.ts < 6 * 60 * 60 * 1000 && parsed.data) {
@@ -217,7 +221,7 @@ const AppsContent = () => {
         })
     }
 
-    const totalApps = useMemo(() => {
+    const uniqueListedApps = useMemo(() => {
         const seen = new Set<string>()
         categories.forEach(cat => {
             cat.dApps.edges.forEach(edge => {
@@ -226,6 +230,24 @@ const AppsContent = () => {
         })
         return seen.size
     }, [categories])
+
+    // Prefer the Turso/API catalog total for the current status filter; fall
+    // back to unique packages actually present in the loaded category payload.
+    const trackedCount = useMemo(() => {
+        if (statusFilter === 'removed' && typeof removedCount === 'number') return removedCount
+        if (statusFilter === 'active' && typeof activeCount === 'number') return activeCount
+        if (statusFilter === 'all' && typeof activeCount === 'number' && typeof removedCount === 'number') {
+            return activeCount + removedCount
+        }
+        return uniqueListedApps
+    }, [statusFilter, activeCount, removedCount, uniqueListedApps])
+
+    const trackedLabel =
+        statusFilter === 'removed'
+            ? 'Removed apps tracked on Seeker Tracker'
+            : statusFilter === 'all'
+              ? 'Apps tracked on Seeker Tracker'
+              : 'Active apps tracked on Seeker Tracker'
 
     // Get all unique apps for filtering
     const sortApps = useCallback((apps: DApp[], sort: SortOption): DApp[] => {
@@ -422,7 +444,8 @@ const AppsContent = () => {
             <div className={styles.header}>
                 <h1 className={styles.title}>Seeker dApp Store</h1>
                 <p className={styles.description}>
-                    Apps for Solana Seeker - browse, favorite, and open each dApp page.
+                    The Solana dApp Store has {SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED} apps ({SOLANA_DAPP_STORE_OFFICIAL_CITATION}).
+                    The figure on the right is Seeker Tracker&apos;s indexed catalog, a subset of the official store.
                 </p>
                 <div className={styles.headerActions}>
                     <a href="/dapps/manage" className={styles.maintainBtn}>
@@ -432,17 +455,20 @@ const AppsContent = () => {
                         Publishers: claim with your store support email
                     </span>
                 </div>
-                <div className={styles.totalCount}>
-                    <span className={styles.totalNumber}>
-                        {loading && !totalApps ? '—' : totalApps}
-                    </span>
-                    <span className={styles.totalLabel}>
-                        {statusFilter === 'removed'
-                            ? 'Removed apps'
-                            : statusFilter === 'all'
-                              ? 'All apps'
-                              : 'Active apps'}
-                    </span>
+                <div className={styles.countRow}>
+                    <div className={styles.totalCount}>
+                        <span className={styles.totalNumber}>
+                            {SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED}
+                        </span>
+                        <span className={styles.totalLabel}>Apps on the Solana dApp Store</span>
+                        <span className={styles.totalSource}>{SOLANA_DAPP_STORE_OFFICIAL_CITATION}</span>
+                    </div>
+                    <div className={styles.totalCount}>
+                        <span className={styles.totalNumber}>
+                            {loading && !trackedCount ? '—' : trackedCount.toLocaleString()}
+                        </span>
+                        <span className={styles.totalLabel}>{trackedLabel}</span>
+                    </div>
                 </div>
             </div>
 

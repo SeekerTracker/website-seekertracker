@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Backbutton from "app/(components)/shared/Backbutton";
 import styles from "./page.module.css";
+import { SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED, SOLANA_DAPP_STORE_OFFICIAL_CITATION } from "app/(utils)/lib/dappStoreStats";
 
 export const metadata: Metadata = {
   title: "Brand — Seeker Tracker",
@@ -236,9 +237,11 @@ export default async function BrandPage() {
             </div>
           </div>
           <div className={styles.card}>
-            <p className={styles.cardLabel}>Active dApps</p>
+            <p className={styles.cardLabel}>Active dApps tracked</p>
             <p className={styles.cardValue}>{appLabel}</p>
-            <p className={styles.cardSub}>Solana Mobile store catalog</p>
+            <p className={styles.cardSub}>
+              Seeker Tracker catalog · official store: {SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT_FORMATTED} ({SOLANA_DAPP_STORE_OFFICIAL_CITATION})
+            </p>
           </div>
         </div>
       </section>
