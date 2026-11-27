@@ -102,7 +102,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description = `Discover ${name} on the Seeker dApp Store. Apps for Solana Seeker.`;
   }
   const title = `${name} | Seeker dApp Store`;
-  const ogImageUrl = `${BASE_URL}/api/apps/og?app=${encodeURIComponent(decodedPackage)}`;
+  // v=2 busts cached empty-frame cards after the data-URI OG fix
+  const ogImageUrl = `${BASE_URL}/api/apps/og?app=${encodeURIComponent(decodedPackage)}&v=2`;
   const pathApps = appPath(decodedPackage);
 
   return {
