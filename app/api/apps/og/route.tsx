@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { SOLANA_DAPP_STORE_OFFICIAL_APP_COUNT, SOLANA_DAPP_STORE_OFFICIAL_CITATION } from "app/(utils)/lib/dappStoreStats";
+import { LOGO_OG_DATA_URL } from "app/(utils)/lib/logoOgDataUrl";
+import { ogImageDataUri } from "app/(utils)/lib/ogImageDataUri";
 
 // nodejs: more reliable ImageResponse + outbound GraphQL on CF Workers
 export const runtime = "nodejs";
@@ -9,18 +11,8 @@ const DAPPSTORE_API = "https://dappstore.solanamobile.com/graphql";
 const SC = `{locale: "en-US", platformSdk: 34, pixelDensity: 480, model: "SEEKER"}`;
 const SITE_URL = "https://seekertracker.com";
 
-/** Satori can't decode WebP — proxy images to PNG */
-function pngIcon(uri: string, size = 280): string {
-  return `https://images.weserv.nl/?url=${encodeURIComponent(uri)}&output=png&w=${size}&h=${size}&fit=cover`;
-}
-
-function pngShot(uri: string, w = 400, h = 720): string {
-  return `https://images.weserv.nl/?url=${encodeURIComponent(uri)}&output=png&w=${w}&h=${h}&fit=cover`;
-}
-
-function pngWide(uri: string, w = 1200, h = 630): string {
-  return `https://images.weserv.nl/?url=${encodeURIComponent(uri)}&output=png&w=${w}&h=${h}&fit=cover`;
-}
+// Remote listing images are prefetched to data URIs in ogImageDataUri
+// (Satori cannot fetch third-party URLs in the OpenNext Workers runtime).
 
 async function fetchAppsData(): Promise<{ count: number; icons: string[] }> {
   try {
@@ -108,6 +100,9 @@ export async function GET(request: NextRequest) {
   // ── Catalog OG (no ?app=) ──
   if (!appPackage) {
     const { icons } = await fetchAppsData();
+    const iconSrcs = await Promise.all(
+      icons.map((uri) => ogImageDataUri(uri, { width: 140, height: 140 }))
+    );
 
     return new ImageResponse(
       (
@@ -150,44 +145,44 @@ export async function GET(request: NextRequest) {
           />
 
           {/* Icon scatter — fixed positions (Satori-safe) */}
-          {icons[0] ? (
+          {iconSrcs[0] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={pngIcon(icons[0], 140)} width={72} height={72} alt=""
+            <img src={iconSrcs[0]!} width={72} height={72} alt=""
               style={{ position: "absolute", top: 48, left: 48, borderRadius: 16, border: "2px solid rgba(20,241,149,0.35)" }} />
           ) : null}
-          {icons[1] ? (
+          {iconSrcs[1] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={pngIcon(icons[1], 140)} width={64} height={64} alt=""
+            <img src={iconSrcs[1]!} width={64} height={64} alt=""
               style={{ position: "absolute", top: 160, left: 140, borderRadius: 14, border: "2px solid rgba(20,241,149,0.35)" }} />
           ) : null}
-          {icons[2] ? (
+          {iconSrcs[2] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={pngIcon(icons[2], 140)} width={56} height={56} alt=""
+            <img src={iconSrcs[2]!} width={56} height={56} alt=""
               style={{ position: "absolute", top: 300, left: 56, borderRadius: 12, border: "2px solid rgba(20,241,149,0.35)" }} />
           ) : null}
-          {icons[3] ? (
+          {iconSrcs[3] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={pngIcon(icons[3], 140)} width={60} height={60} alt=""
+            <img src={iconSrcs[3]!} width={60} height={60} alt=""
               style={{ position: "absolute", top: 440, left: 130, borderRadius: 14, border: "2px solid rgba(20,241,149,0.35)" }} />
           ) : null}
-          {icons[4] ? (
+          {iconSrcs[4] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={pngIcon(icons[4], 140)} width={68} height={68} alt=""
+            <img src={iconSrcs[4]!} width={68} height={68} alt=""
               style={{ position: "absolute", top: 48, right: 48, borderRadius: 16, border: "2px solid rgba(20,241,149,0.35)" }} />
           ) : null}
-          {icons[5] ? (
+          {iconSrcs[5] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={pngIcon(icons[5], 140)} width={58} height={58} alt=""
+            <img src={iconSrcs[5]!} width={58} height={58} alt=""
               style={{ position: "absolute", top: 160, right: 130, borderRadius: 14, border: "2px solid rgba(20,241,149,0.35)" }} />
           ) : null}
-          {icons[6] ? (
+          {iconSrcs[6] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={pngIcon(icons[6], 140)} width={62} height={62} alt=""
+            <img src={iconSrcs[6]!} width={62} height={62} alt=""
               style={{ position: "absolute", top: 300, right: 56, borderRadius: 14, border: "2px solid rgba(20,241,149,0.35)" }} />
           ) : null}
-          {icons[7] ? (
+          {iconSrcs[7] ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={pngIcon(icons[7], 140)} width={54} height={54} alt=""
+            <img src={iconSrcs[7]!} width={54} height={54} alt=""
               style={{ position: "absolute", top: 440, right: 120, borderRadius: 12, border: "2px solid rgba(20,241,149,0.35)" }} />
           ) : null}
 
@@ -210,7 +205,7 @@ export async function GET(request: NextRequest) {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`${SITE_URL}/logo.png`}
+                src={LOGO_OG_DATA_URL}
                 width={64}
                 height={64}
                 alt=""
@@ -360,14 +355,27 @@ export async function GET(request: NextRequest) {
   const subtitle = release?.subtitle || "";
   const publisher = release?.publisherDetails?.name || "";
   const initial = name.charAt(0).toUpperCase();
-  const shots: string[] = Array.isArray(release?.screenshots)
+  const shotCandidates: string[] = Array.isArray(release?.screenshots)
     ? release.screenshots
         .map((s: { uri?: string } | null) => s?.uri)
         .filter((u: string | undefined): u is string => Boolean(u))
-        .slice(0, 3)
+        .slice(0, 8)
     : [];
   const heroArt: string | null =
     release?.featureGraphic?.uri || release?.banner?.uri || null;
+  const iconUri: string | null = release?.icon?.uri || null;
+
+  const [iconSrc, heroSrc, ...shotResults] = await Promise.all([
+    iconUri ? ogImageDataUri(iconUri, { width: 160, height: 160 }) : null,
+    heroArt ? ogImageDataUri(heroArt, { width: 1200, height: 630 }) : null,
+    ...shotCandidates.map((uri) =>
+      ogImageDataUri(uri, { width: 400, height: 720 })
+    ),
+  ]);
+  const shots = shotResults
+    .filter((src): src is string => Boolean(src))
+    .slice(0, 3);
+
   const shortName = name.length > 28 ? name.slice(0, 26) + "..." : name;
   const shortSub =
     subtitle.length > 72 ? subtitle.slice(0, 70) + "..." : subtitle;
@@ -385,10 +393,10 @@ export async function GET(request: NextRequest) {
             "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
         }}
       >
-        {heroArt ? (
+        {heroSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={pngWide(heroArt)}
+            src={heroSrc}
             width={1200}
             height={630}
             alt=""
@@ -463,10 +471,10 @@ export async function GET(request: NextRequest) {
             SEEKER DAPP STORE
           </div>
           <div style={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
-            {release?.icon?.uri ? (
+            {iconSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={pngIcon(release.icon.uri, 160)}
+                src={iconSrc}
                 width={96}
                 height={96}
                 alt=""
@@ -562,7 +570,7 @@ export async function GET(request: NextRequest) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`${SITE_URL}/logo.png`}
+              src={LOGO_OG_DATA_URL}
               width={44}
               height={44}
               alt=""
@@ -595,9 +603,9 @@ export async function GET(request: NextRequest) {
               justifyContent: "flex-end",
             }}
           >
-            {shots.map((uri: string, i: number) => (
+            {shots.map((src: string, i: number) => (
               <div
-                key={uri}
+                key={i}
                 style={{
                   display: "flex",
                   width: 186,
@@ -617,10 +625,11 @@ export async function GET(request: NextRequest) {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={pngShot(uri)}
+                  src={src}
                   width={186}
                   height={400}
                   alt=""
+                  style={{ objectFit: "cover" }}
                 />
               </div>
             ))}
@@ -634,10 +643,10 @@ export async function GET(request: NextRequest) {
               display: "flex",
             }}
           >
-            {release?.icon?.uri ? (
+            {iconSrc ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={pngIcon(release.icon.uri, 320)}
+                src={iconSrc}
                 width={280}
                 height={280}
                 alt=""
